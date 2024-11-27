@@ -1,0 +1,2 @@
+nest start --watch
+
