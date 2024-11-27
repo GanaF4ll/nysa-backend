@@ -5,7 +5,7 @@ services:
       dockerfile: docker/nest-api/Dockerfile
     container_name: nest-api
     volumes:
-      - ./src/nest-api:/usr/src/nest-api
+      - ./src:/usr/src/nest-api
     ports:
       - '3000:3000'
     depends_on:
