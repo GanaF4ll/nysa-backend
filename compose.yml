@@ -4,6 +4,8 @@ services:
       context: .
       dockerfile: docker/nest-api/Dockerfile
     container_name: nest-api
+    environment:
+      - JWT_SECRET=${JWT_SECRET}
     volumes:
       - ./src:/usr/src/app/src
     ports:
