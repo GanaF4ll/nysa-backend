@@ -29,7 +29,6 @@ enum Member_status {
   ACCEPTED
   REFUSED
   LEFT
-  // Si un utilisateur est exclu d'un évènement, il ne peut plus s'y inscrire
   KICKED
 }
 
@@ -137,13 +136,14 @@ model Event {
   // relation One to Many, un évènement peut avoir plusieurs participants
   Event_member     Event_member[]
   Conversation     Conversation?
+  Event_images     Event_images[]
 }
 
 model Event_member {
   event_id String
   user_id  String
   status   Member_status @map("status")
-  // Est-ce qu'il y'a besoin de created_at et updated_at ici ? Pour avoir un truc sur le front qui dit "membre depuis le ..." ?
+  // Est-ce qu'il y'a besoin de created_at et updated_at ici ? Pour avoir un truc sur le front qui dit "membre depuis le ..." ? OUI
   // Par contre comment ça se passe pour les orga, est-ce qu'elle peuvent être membres d'un event ?
   event    Event         @relation(fields: [event_id], references: [id])
   user     User          @relation(fields: [user_id], references: [auth_id])
@@ -183,6 +183,7 @@ model Message {
 model Conversation_member {
   conversation_id String
   user_id         String
+  is_admin        Boolean @default(false)
 
   conversation Conversation @relation(fields: [conversation_id], references: [id])
   // relation avec Auth ou User en fonction de si une orga peut être membre d'une conversation
@@ -213,4 +214,15 @@ model Get_notification {
   Auth Auth @relation(fields: [auth_id], references: [id])
 
   Notification Notification @relation(fields: [notification_id], references: [id])
+}
+
+model Event_images {
+  id         String   @id @default(cuid())
+  event_id   String
+  url        String
+  order      Int
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  Event Event @relation(fields: [event_id], references: [id])
 }
