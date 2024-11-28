@@ -1,4 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Auth } from './entities/auth.entity';
+import {
+  Injectable,
+  ConflictException,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { UpdateAuthDto } from './dto/update-auth.dto';
 import { PrismaService } from 'src/db/prisma.service';
@@ -11,23 +16,64 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  register(createAuthDto: CreateAuthDto) {
-    return 'This action adds a new auth';
+  async register(createAuthDto: CreateAuthDto): Promise<Auth> {
+    const { email, password } = createAuthDto;
+    const existingUser = await this.prismaservice.auth.findUnique({ email });
+
+    if (existingUser) {
+      throw new ConflictException('Email already exists');
+    }
+
+    const user = await this.prismaservice.auth.create({
+      data: {
+        email,
+        password,
+      },
+    });
+
+    return user;
   }
 
-  findAll() {
-    return `This action returns all auth`;
+  async findAll(): Promise<Auth[]> {
+    const users = await this.prismaservice.auth.findMany();
+
+    return users;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} auth`;
+  async findOne(id: string): Promise<Auth> {
+    const user = await this.prismaservice.auth.findUnique({ id });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    return user;
   }
 
-  update(id: number, updateAuthDto: UpdateAuthDto) {
-    return `This action updates a #${id} auth`;
+  async update(id: string, updateAuthDto: UpdateAuthDto) {
+    const existingUser = await this.findOne(id);
+
+    if (!existingUser) {
+      throw new NotFoundException('User not found');
+    }
+
+    const updatedUser = await this.prismaservice.auth.update({
+      where: { id },
+      data: updateAuthDto,
+    });
+
+    return updatedUser;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} auth`;
+  async remove(id: string): Promise<Auth> {
+    const existingUser = await this.findOne(id);
+
+    if (!existingUser) {
+      throw new NotFoundException('User not found');
+    }
+
+    const deletedUser = await this.prismaservice.auth.delete({ where: { id } });
+
+    return deletedUser;
   }
 }
