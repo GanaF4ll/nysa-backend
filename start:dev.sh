@@ -1,2 +1,2 @@
-nest start --watch
+# nest start --watch
 
