@@ -1,6 +1,13 @@
 import { PartialType } from '@nestjs/mapped-types';
 import { CreateAuthDto } from './create-auth.dto';
-import { IsEmail, IsString, MinLength, IsOptional } from 'class-validator';
+import {
+  IsEmail,
+  IsString,
+  MinLength,
+  IsOptional,
+  IsEnum,
+} from 'class-validator';
+import { AuthType } from 'src/constants';
 
 export class UpdateAuthDto extends PartialType(CreateAuthDto) {
   @IsEmail()
@@ -12,7 +19,7 @@ export class UpdateAuthDto extends PartialType(CreateAuthDto) {
   @IsOptional()
   readonly password: string;
 
-  @IsString()
+  @IsEnum(AuthType, { message: 'type must be either USER or ORGANISATION' })
   @IsOptional()
-  readonly type: string;
+  readonly type: AuthType;
 }
