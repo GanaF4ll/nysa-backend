@@ -36,6 +36,22 @@ export class AuthService {
     return user;
   }
 
+  async login(createAuthDto: CreateAuthDto) {
+    const { email, password } = createAuthDto;
+
+    const user = await this.prismaservice.auth.findUnique({
+      where: { email },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    if (user.password !== password) {
+      throw new NotFoundException('Invalid credentials');
+    }
+  }
+
   async findAll() {
     const users = await this.prismaservice.auth.findMany();
 
