@@ -4,7 +4,7 @@ import {
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
-import { CreateAuthDto } from './dto/create-auth.dto';
+import { CreateAuthDto, LoginDto } from './dto/create-auth.dto';
 import { UpdateAuthDto } from './dto/update-auth.dto';
 import { PrismaService } from 'src/db/prisma.service';
 import { JwtService } from '@nestjs/jwt';
@@ -21,11 +21,12 @@ export class AuthService {
     const existingUser = await this.prismaservice.auth.findUnique({
       where: { email },
     });
-    const hashedPassword = await argon2.hash(password);
+
     if (existingUser) {
       throw new ConflictException('Email already exists');
     }
 
+    const hashedPassword = await argon2.hash(password);
     const user = await this.prismaservice.auth.create({
       data: {
         email,
@@ -36,9 +37,8 @@ export class AuthService {
     return user;
   }
 
-  async login(createAuthDto: CreateAuthDto): Promise<{ access_token: string }> {
-    const { email, password } = createAuthDto;
-
+  async login(loginDto: LoginDto) {
+    const { email, password } = loginDto;
     const user = await this.prismaservice.auth.findUnique({
       where: { email },
     });
@@ -47,18 +47,15 @@ export class AuthService {
       throw new NotFoundException('User not found');
     }
 
-    const isMatch = await argon2.verify(password, user.password);
-
-    if (!isMatch) {
+    const isPasswordValid = await argon2.verify(user.password, password);
+    if (!isPasswordValid) {
       throw new BadRequestException('Invalid credentials');
     }
 
-    const payload = {
-      id: user.id,
-      email: user.email,
-    };
+    // Générer et retourner le token JWT
+    const payload = { email: user.email, sub: user.id };
     return {
-      access_token: await this.jwt.signAsync(payload),
+      access_token: this.jwt.sign(payload),
     };
   }
 
