@@ -8,8 +8,7 @@ import { CreateAuthDto } from './dto/create-auth.dto';
 import { UpdateAuthDto } from './dto/update-auth.dto';
 import { PrismaService } from 'src/db/prisma.service';
 import { JwtService } from '@nestjs/jwt';
-import * as bcrypt from 'bcrypt';
-
+import * as argon2 from 'argon2';
 @Injectable()
 export class AuthService {
   constructor(
@@ -19,11 +18,10 @@ export class AuthService {
 
   async register(createAuthDto: CreateAuthDto) {
     const { email, password } = createAuthDto;
-    const saltOrRounds = 10;
     const existingUser = await this.prismaservice.auth.findUnique({
       where: { email },
     });
-    const hashedPassword = await bcrypt.hash(password, saltOrRounds);
+    const hashedPassword = await argon2.hash(password);
     if (existingUser) {
       throw new ConflictException('Email already exists');
     }
@@ -49,7 +47,7 @@ export class AuthService {
       throw new NotFoundException('User not found');
     }
 
-    const isMatch = await bcrypt.compare(password, user.password);
+    const isMatch = await argon2.verify(password, user.password);
 
     if (!isMatch) {
       throw new BadRequestException('Invalid credentials');
