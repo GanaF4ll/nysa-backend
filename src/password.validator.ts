@@ -18,7 +18,6 @@ export class IsStrongPassword implements ValidatorConstraintInterface {
 
     const isValid =
       hasUpperCase && hasLowerCase && hasNumber && hasSpecialCharacter;
-    console.log(`Validating password: ${password}, isValid: ${isValid}`);
     return isValid;
   }
 
