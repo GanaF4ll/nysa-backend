@@ -16,9 +16,11 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async register(createAuthDto: CreateAuthDto): Promise<Auth> {
+  async register(createAuthDto: CreateAuthDto) {
     const { email, password } = createAuthDto;
-    const existingUser = await this.prismaservice.auth.findUnique({ email });
+    const existingUser = await this.prismaservice.auth.findUnique({
+      where: { email },
+    });
 
     if (existingUser) {
       throw new ConflictException('Email already exists');
@@ -34,14 +36,16 @@ export class AuthService {
     return user;
   }
 
-  async findAll(): Promise<Auth[]> {
+  async findAll() {
     const users = await this.prismaservice.auth.findMany();
 
     return users;
   }
 
-  async findOne(id: string): Promise<Auth> {
-    const user = await this.prismaservice.auth.findUnique({ id });
+  async findOne(id: string) {
+    const user = await this.prismaservice.auth.findUnique({
+      where: { id },
+    });
 
     if (!user) {
       throw new NotFoundException('User not found');
@@ -65,14 +69,16 @@ export class AuthService {
     return updatedUser;
   }
 
-  async remove(id: string): Promise<Auth> {
+  async remove(id: string) {
     const existingUser = await this.findOne(id);
 
     if (!existingUser) {
       throw new NotFoundException('User not found');
     }
 
-    const deletedUser = await this.prismaservice.auth.delete({ where: { id } });
+    const deletedUser = await this.prismaservice.auth.delete({
+      where: { id },
+    });
 
     return deletedUser;
   }

@@ -7,5 +7,9 @@ RUN npm install --cache /usr/src/app/.npm
 COPY . ./
 RUN apt-get update -y && apt-get install -y openssl
 
+RUN npx prisma generate
+
+RUN 
+
 EXPOSE 3000
 CMD ["npm", "run", "start:dev"]

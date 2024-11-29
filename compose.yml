@@ -5,11 +5,13 @@ services:
       dockerfile: docker/nest-api/Dockerfile
     container_name: nest-api
     environment:
+      - DATABASE_URL=${DATABASE_URL}
       - JWT_SECRET=${JWT_SECRET}
     volumes:
       - ./src:/usr/src/app/src
     ports:
       - '3000:3000'
+      - '5555:5555'
     depends_on:
       - postgres
 
