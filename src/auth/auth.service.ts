@@ -52,7 +52,6 @@ export class AuthService {
       throw new BadRequestException('Invalid credentials');
     }
 
-    // Générer et retourner le token JWT
     const payload = { email: user.email, sub: user.id };
     return {
       access_token: this.jwt.sign(payload),

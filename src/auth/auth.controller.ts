@@ -10,7 +10,6 @@ import {
 import { AuthService } from './auth.service';
 import { CreateAuthDto, LoginDto } from './dto/create-auth.dto';
 import { UpdateAuthDto } from './dto/update-auth.dto';
-import { stringify } from 'querystring';
 
 @Controller('auth')
 export class AuthController {
