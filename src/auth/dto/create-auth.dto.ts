@@ -4,13 +4,15 @@ import {
   IsOptional,
   IsString,
   MinLength,
+  Validate,
 } from 'class-validator';
 import { AuthType } from 'src/constants';
+import { IsStrongPassword } from 'src/password.validator';
 export class CreateAuthDto {
   @IsEmail()
   readonly email: string;
 
-  @IsString()
+  @Validate(IsStrongPassword)
   @MinLength(8)
   readonly password: string;
 
@@ -23,7 +25,7 @@ export class LoginDto {
   @IsEmail()
   readonly email: string;
 
-  @IsString()
+  @Validate(IsStrongPassword)
   @MinLength(8)
   readonly password: string;
 }
