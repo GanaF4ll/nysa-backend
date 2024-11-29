@@ -7,14 +7,19 @@ import {
 @ValidatorConstraint({ name: 'isStrongPassword', async: false })
 export class IsStrongPassword implements ValidatorConstraintInterface {
   validate(password: string, args: ValidationArguments) {
-    // Définissez ici les règles de robustesse du mot de passe
-    // Exemple: au moins une majuscule, une minuscule, un chiffre et un caractère spécial
+    if (typeof password !== 'string') {
+      return false;
+    }
+
     const hasUpperCase = /[A-Z]/.test(password);
     const hasLowerCase = /[a-z]/.test(password);
     const hasNumber = /\d/.test(password);
     const hasSpecialCharacter = /[!@#$%^&*(),.?":{}|<>]/.test(password);
 
-    return hasUpperCase && hasLowerCase && hasNumber && hasSpecialCharacter;
+    const isValid =
+      hasUpperCase && hasLowerCase && hasNumber && hasSpecialCharacter;
+    console.log(`Validating password: ${password}, isValid: ${isValid}`);
+    return isValid;
   }
 
   defaultMessage(args: ValidationArguments) {
