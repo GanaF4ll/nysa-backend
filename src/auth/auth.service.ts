@@ -1,27 +1,29 @@
-import { Auth } from './entities/auth.entity';
 import {
   Injectable,
   ConflictException,
   NotFoundException,
+  BadRequestException,
 } from '@nestjs/common';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { UpdateAuthDto } from './dto/update-auth.dto';
 import { PrismaService } from 'src/db/prisma.service';
 import { JwtService } from '@nestjs/jwt';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class AuthService {
   constructor(
     private prismaservice: PrismaService,
-    private jwtService: JwtService,
+    private jwt: JwtService,
   ) {}
 
   async register(createAuthDto: CreateAuthDto) {
     const { email, password } = createAuthDto;
+    const saltOrRounds = 10;
     const existingUser = await this.prismaservice.auth.findUnique({
       where: { email },
     });
-
+    const hashedPassword = await bcrypt.hash(password, saltOrRounds);
     if (existingUser) {
       throw new ConflictException('Email already exists');
     }
@@ -29,14 +31,14 @@ export class AuthService {
     const user = await this.prismaservice.auth.create({
       data: {
         email,
-        password,
+        password: hashedPassword,
       },
     });
 
     return user;
   }
 
-  async login(createAuthDto: CreateAuthDto) {
+  async login(createAuthDto: CreateAuthDto): Promise<{ access_token: string }> {
     const { email, password } = createAuthDto;
 
     const user = await this.prismaservice.auth.findUnique({
@@ -47,9 +49,19 @@ export class AuthService {
       throw new NotFoundException('User not found');
     }
 
-    if (user.password !== password) {
-      throw new NotFoundException('Invalid credentials');
+    const isMatch = await bcrypt.compare(password, user.password);
+
+    if (!isMatch) {
+      throw new BadRequestException('Invalid credentials');
     }
+
+    const payload = {
+      id: user.id,
+      email: user.email,
+    };
+    return {
+      access_token: await this.jwt.signAsync(payload),
+    };
   }
 
   async findAll() {
