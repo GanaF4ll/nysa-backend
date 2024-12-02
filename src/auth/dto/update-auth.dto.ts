@@ -17,9 +17,9 @@ export class UpdateAuthDto extends PartialType(CreateAuthDto) {
   @IsString()
   @MinLength(8)
   @IsOptional()
-  readonly password: string;
+  password: string;
 
   @IsEnum(AuthType, { message: 'type must be either USER or ORGANISATION' })
   @IsOptional()
-  readonly type: AuthType;
+  type: AuthType;
 }

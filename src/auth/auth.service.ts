@@ -82,7 +82,9 @@ export class AuthService {
     if (!existingUser) {
       throw new NotFoundException('User not found');
     }
-
+    if (updateAuthDto.password) {
+      updateAuthDto.password = await argon2.hash(updateAuthDto.password);
+    }
     const updatedUser = await this.prismaservice.auth.update({
       where: { id },
       data: updateAuthDto,
