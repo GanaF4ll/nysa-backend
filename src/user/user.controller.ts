@@ -1,7 +1,17 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+} from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { AuthGuard } from 'src/auth/auth.guard';
 
 @Controller('user')
 export class UserController {
@@ -17,18 +27,29 @@ export class UserController {
     return this.userService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.userService.findOne(+id);
+  @Get(':auth_id')
+  findOne(@Param('auth_id') auth_id: string) {
+    return this.userService.findOne(auth_id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.userService.update(+id, updateUserDto);
+  @UseGuards(AuthGuard)
+  @Patch(':auth_id')
+  update(
+    @Param('auth_id') auth_id: string,
+    @Body() updateUserDto: UpdateUserDto,
+  ) {
+    return this.userService.update(auth_id, updateUserDto);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.userService.remove(+id);
+  @UseGuards(AuthGuard)
+  @Patch('/deactivate/:auth_id')
+  deactivate(@Param('auth_id') auth_id: string) {
+    return this.userService.deactivate(auth_id);
+  }
+
+  @UseGuards(AuthGuard)
+  @Delete(':auth_id')
+  remove(@Param('auth_id') auth_id: string) {
+    return this.userService.remove(auth_id);
   }
 }

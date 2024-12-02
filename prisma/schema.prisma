@@ -75,11 +75,12 @@ model User {
   firstname           String
   lastname            String
   birthdate           DateTime
-  sex                 Sex                   @map("sex")
-  phone               String
-  image_url           String
-  bio                 String
-  city                String
+  sex                 Sex?                  @map("sex")
+  phone               String?
+  image_url           String?
+  bio                 String?
+  city                String?
+  active              Boolean               @default(true)
   created_at          DateTime              @default(now())
   updated_at          DateTime              @updatedAt
   // relation One to One, on référence le champ id de la table Auth dans la table User
