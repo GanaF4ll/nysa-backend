@@ -4,7 +4,9 @@ import {
   IsPhoneNumber,
   IsUrl,
   IsOptional,
+  IsEnum,
 } from 'class-validator';
+import { SexEnum } from 'src/constants';
 
 export class CreateUserDto {
   @IsString()
@@ -23,9 +25,9 @@ export class CreateUserDto {
   @IsNotEmpty()
   readonly birthdate: string;
 
-  @IsString()
+  @IsEnum(SexEnum, { message: 'Unknown Sex' })
   @IsOptional()
-  readonly sex?: string;
+  readonly sex?: SexEnum;
 
   @IsPhoneNumber('FR')
   @IsOptional()

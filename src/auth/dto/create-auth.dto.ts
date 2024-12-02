@@ -2,7 +2,6 @@ import {
   IsEmail,
   IsEnum,
   IsOptional,
-  IsString,
   MinLength,
   Validate,
 } from 'class-validator';

@@ -6,7 +6,9 @@ import {
   IsPhoneNumber,
   IsUrl,
   IsOptional,
+  IsEnum,
 } from 'class-validator';
+import { SexEnum } from 'src/constants';
 
 export class UpdateUserDto extends PartialType(CreateUserDto) {
   @IsString()
@@ -25,9 +27,9 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
   @IsOptional()
   readonly birthdate?: string;
 
-  @IsString()
+  @IsEnum(SexEnum, { message: 'Unknown Sex' })
   @IsOptional()
-  readonly sex?: string;
+  readonly sex?: SexEnum;
 
   @IsPhoneNumber('FR')
   @IsOptional()
