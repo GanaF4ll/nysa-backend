@@ -7,8 +7,7 @@ import {
   IsOptional,
   IsEnum,
 } from 'class-validator';
-import { AuthType } from 'src/constants';
-
+import { Auth_type } from '@prisma/client';
 export class UpdateAuthDto extends PartialType(CreateAuthDto) {
   @IsEmail()
   @IsOptional()
@@ -19,7 +18,7 @@ export class UpdateAuthDto extends PartialType(CreateAuthDto) {
   @IsOptional()
   password: string;
 
-  @IsEnum(AuthType, { message: 'type must be either USER or ORGANISATION' })
+  @IsEnum(Auth_type, { message: 'type must be either USER or ORGANISATION' })
   @IsOptional()
-  type: AuthType;
+  type: Auth_type;
 }

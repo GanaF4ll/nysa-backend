@@ -6,7 +6,7 @@ import {
   IsOptional,
   IsEnum,
 } from 'class-validator';
-import { SexEnum } from 'src/constants';
+import { Sex } from '@prisma/client';
 
 export class CreateUserDto {
   @IsString()
@@ -25,9 +25,9 @@ export class CreateUserDto {
   @IsNotEmpty()
   readonly birthdate: string;
 
-  @IsEnum(SexEnum, { message: 'Unknown Sex' })
+  @IsEnum(Sex, { message: 'Unknown Sex' })
   @IsOptional()
-  readonly sex?: SexEnum;
+  readonly sex?: Sex;
 
   @IsPhoneNumber('FR')
   @IsOptional()

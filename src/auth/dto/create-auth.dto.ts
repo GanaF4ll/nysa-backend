@@ -1,3 +1,4 @@
+import { Auth_type } from '@prisma/client';
 import {
   IsEmail,
   IsEnum,
@@ -5,7 +6,6 @@ import {
   MinLength,
   Validate,
 } from 'class-validator';
-import { AuthType } from 'src/constants';
 import { IsStrongPassword } from 'src/password.validator';
 export class CreateAuthDto {
   @IsEmail()
@@ -15,9 +15,9 @@ export class CreateAuthDto {
   @MinLength(8)
   readonly password: string;
 
-  @IsEnum(AuthType, { message: 'type must be either USER or ORGANISATION' })
+  @IsEnum(Auth_type, { message: 'type must be either USER or ORGANISATION' })
   @IsOptional()
-  readonly type: AuthType;
+  readonly type: Auth_type;
 }
 
 export class LoginDto {

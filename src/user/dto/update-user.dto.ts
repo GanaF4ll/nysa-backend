@@ -9,8 +9,7 @@ import {
   IsEnum,
   IsBoolean,
 } from 'class-validator';
-import { SexEnum } from 'src/constants';
-
+import { Sex } from '@prisma/client';
 export class UpdateUserDto extends PartialType(CreateUserDto) {
   @IsString()
   @IsOptional()
@@ -28,9 +27,9 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
   @IsOptional()
   birthdate?: string;
 
-  @IsEnum(SexEnum, { message: 'Unknown Sex' })
+  @IsEnum(Sex, { message: 'Unknown Sex' })
   @IsOptional()
-  sex?: SexEnum;
+  sex?: Sex;
 
   @IsPhoneNumber('FR')
   @IsOptional()
