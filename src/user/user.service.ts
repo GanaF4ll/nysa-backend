@@ -9,8 +9,6 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from 'src/db/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 
-import { SexEnum } from 'src/constants';
-
 @Injectable()
 export class UserService {
   constructor(
@@ -24,9 +22,9 @@ export class UserService {
       where: { auth_id },
     });
 
-    // if (existingUser) {
-    //   throw new ConflictException('User already exists');
-    // }
+    if (existingUser) {
+      throw new ConflictException('User already exists');
+    }
 
     const newUser = await this.prismaService.user.create({
       data: {
@@ -86,7 +84,7 @@ export class UserService {
       throw new NotFoundException('User not found');
     }
 
-    const deactivatedUser = await this.prismaService.user.update({
+    await this.prismaService.user.update({
       where: { auth_id },
       data: {
         active: false,
