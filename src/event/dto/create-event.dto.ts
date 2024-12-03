@@ -7,7 +7,7 @@ import {
   Min,
   Max,
 } from 'class-validator';
-import { Event_visibility } from 'src/constants';
+import { Event_visibility } from '@prisma/client';
 
 export class CreateEventDto {
   @IsString()
@@ -40,11 +40,13 @@ export class CreateEventDto {
   readonly visibility: Event_visibility;
 
   @IsNumber()
+  @Min(0)
   readonly entry_fee: number;
 
   @IsString()
   readonly description: string;
 
   @IsNumber()
+  @Min(0)
   readonly view_count: number;
 }

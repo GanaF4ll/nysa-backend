@@ -9,7 +9,7 @@ import {
   Min,
   Max,
 } from 'class-validator';
-import { Event_visibility } from 'src/constants';
+import { Event_visibility } from '@prisma/client';
 
 export class UpdateEventDto extends PartialType(CreateEventDto) {
   @IsOptional()
