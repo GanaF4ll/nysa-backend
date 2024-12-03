@@ -5,12 +5,18 @@ import {
 } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+
 import { PrismaService } from 'src/db/prisma.service';
+import { JwtService } from '@nestjs/jwt';
+
 import { SexEnum } from 'src/constants';
 
 @Injectable()
 export class UserService {
-  constructor(private prismaService: PrismaService) {}
+  constructor(
+    private prismaService: PrismaService,
+    private jwt: JwtService,
+  ) {}
 
   async create(createUserDto: CreateUserDto) {
     const { auth_id } = createUserDto;
@@ -91,6 +97,16 @@ export class UserService {
   }
 
   async remove(id: string) {
-    return `This action removes a #${id} user`;
+    const existingUser = await this.findOne(id);
+
+    if (!existingUser) {
+      throw new NotFoundException('User not found');
+    }
+
+    await this.prismaService.user.delete({
+      where: { auth_id: id },
+    });
+
+    return `User ${id} has been deleted`;
   }
 }
