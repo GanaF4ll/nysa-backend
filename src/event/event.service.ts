@@ -40,19 +40,74 @@ export class EventService {
     return newEvent;
   }
 
-  findAll() {
-    return `This action returns all event`;
+  async findAll() {
+    const events = this.prismaService.event.findMany();
+
+    if (!events) {
+      throw new NotFoundException('No events found');
+    }
+
+    return events;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} event`;
+  async findOne(id: string) {
+    const event = this.prismaService.event.findUnique({ where: { id } });
+
+    if (!event) {
+      throw new NotFoundException('Event not found');
+    }
+    return event;
   }
 
-  update(id: number, updateEventDto: UpdateEventDto) {
-    return `This action updates a #${id} event`;
+  async findByCreator(creator_id: string) {
+    const creator = await this.authService.findOne(creator_id);
+
+    const events = this.prismaService.event.findMany({ where: { creator_id } });
+
+    if (!events) {
+      throw new NotFoundException(
+        `No events found for the user with id ${creator_id}`,
+      );
+    }
+
+    return events;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} event`;
+  async update(id: string, updateEventDto: UpdateEventDto) {
+    const existingEvent = await this.findOne(id);
+
+    if (updateEventDto.date) {
+      const eventDate = new Date(updateEventDto.date);
+      const currentDate = new Date();
+      if (eventDate < currentDate) {
+        throw new BadRequestException('Event date cannot be in the past');
+      }
+    }
+
+    const updatedEvent = await this.prismaService.event.update({
+      data: { ...updateEventDto },
+      where: { id },
+    });
+
+    return updatedEvent;
+  }
+
+  // async disableEvent(id: string) {
+  //   const existingEvent = await this.findOne(id);
+
+  //   const disabledEvent = await this.prismaService.event.update({
+  //     data: { active: false },
+  //     where: { id },
+  //   });
+
+  //   return disabledEvent;
+  // }
+
+  async remove(id: string) {
+    const existingEvent = await this.findOne(id);
+
+    await this.prismaService.event.delete({ where: { id } });
+
+    return `Event with id ${id} has been deleted`;
   }
 }
