@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   UseGuards,
+  Req,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -32,24 +33,24 @@ export class UserController {
     return this.userService.findOne(auth_id);
   }
 
-  // @UseGuards(AuthGuard)
-  @Patch(':auth_id')
-  update(
-    @Param('auth_id') auth_id: string,
-    @Body() updateUserDto: UpdateUserDto,
-  ) {
+  @UseGuards(AuthGuard)
+  @Patch()
+  update(@Req() request: Request, @Body() updateUserDto: UpdateUserDto) {
+    const auth_id = request['user'].id;
     return this.userService.update(auth_id, updateUserDto);
   }
 
-  // @UseGuards(AuthGuard)
-  @Patch('/deactivate/:auth_id')
-  deactivate(@Param('auth_id') auth_id: string) {
+  @UseGuards(AuthGuard)
+  @Patch('/deactivate')
+  deactivate(@Req() request: Request) {
+    const auth_id = request['user'].id;
     return this.userService.deactivate(auth_id);
   }
 
   // @UseGuards(AuthGuard)
   @Delete(':auth_id')
-  remove(@Param('auth_id') auth_id: string) {
+  remove(@Req() request: Request) {
+    const auth_id = request['user'].id;
     return this.userService.remove(auth_id);
   }
 }
