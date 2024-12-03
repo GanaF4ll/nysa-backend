@@ -32,7 +32,7 @@ export class UserController {
     return this.userService.findOne(auth_id);
   }
 
-  @UseGuards(AuthGuard)
+  // @UseGuards(AuthGuard)
   @Patch(':auth_id')
   update(
     @Param('auth_id') auth_id: string,
@@ -41,13 +41,13 @@ export class UserController {
     return this.userService.update(auth_id, updateUserDto);
   }
 
-  @UseGuards(AuthGuard)
+  // @UseGuards(AuthGuard)
   @Patch('/deactivate/:auth_id')
   deactivate(@Param('auth_id') auth_id: string) {
     return this.userService.deactivate(auth_id);
   }
 
-  @UseGuards(AuthGuard)
+  // @UseGuards(AuthGuard)
   @Delete(':auth_id')
   remove(@Param('auth_id') auth_id: string) {
     return this.userService.remove(auth_id);
