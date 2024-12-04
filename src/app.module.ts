@@ -5,9 +5,8 @@ import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from './db/prisma.module';
 import { UserModule } from './user/user.module';
-import { WebsocketModule } from './websocket/websocket.module';
 @Module({
-  imports: [AuthModule, PrismaModule, ConfigModule.forRoot({ isGlobal: true }), UserModule, WebsocketModule],
+  imports: [AuthModule, PrismaModule, ConfigModule.forRoot({ isGlobal: true }), UserModule],
   controllers: [AppController],
   providers: [AppService],
 })
