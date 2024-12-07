@@ -14,7 +14,7 @@ import { Logger } from '@nestjs/common';
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer() server: Server;
   private logger = new Logger('ChatGateway');
-
+  // TODO: adapter pour utiliser les décorateurs de NestJS
   handleConnection(client: Socket) {
     this.logger.log(`New user joined the chat: ${client.id}`);
 
@@ -35,7 +35,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @SubscribeMessage('newMessage')
   handleNewMessage(client: Socket, message: any) {
-    console.log('newMessage', message);
+    this.logger.log(`New message: ${message}`);
 
     client.emit('reply', 'this is a reply');
 
