@@ -6,66 +6,69 @@ import {
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
-
 import { Server, Socket } from 'socket.io';
-import { Logger } from '@nestjs/common';
-
+import { Logger, UseGuards } from '@nestjs/common';
+import { ChatGuard } from './chat.guard';
 @WebSocketGateway()
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer() server: Server;
   private logger = new Logger('ChatGateway');
-  // TODO: adapter pour utiliser les décorateurs de NestJS
-  handleConnection(client: Socket) {
-    this.logger.log(`New user joined the chat: ${client.id}`);
 
-    // Envoie le message à tous les clients sauf celui qui vient de se connecter
-    client.broadcast.emit('user-joined', {
-      message: `New user joined the chat: ${client.id}`,
-    });
+  @UseGuards(ChatGuard)
+  handleConnection(client: Socket) {
+    const user = client.data.user; // User data is now attached by the guard
+    this.logger.log(`New user connected: ${client.id}, user: ${user.id}`);
   }
 
   handleDisconnect(client: Socket) {
-    this.logger.log(`User ${client.id} left the chat`);
-
-    // Envoie le message à tous les clients sauf celui qui vient de se déconnecter
-    this.server.emit('user-left', {
-      message: `User ${client.id} left the chat`,
-    });
+    this.logger.log(`User disconnected: ${client.id}`);
   }
 
-  @SubscribeMessage('newMessage')
-  handleNewMessage(client: Socket, message: any) {
-    this.logger.log(`New message: ${message}`);
-
-    client.emit('reply', 'this is a reply');
-
-    this.server.emit('reply', 'diffusion');
-  }
-
-  // TODO: à tester
+  @UseGuards(ChatGuard)
   @SubscribeMessage('joinRoom')
   handleJoinRoom(client: Socket, room: string) {
     client.join(room);
-    this.logger.log(`User ${client.id} joined room: ${room}`);
+    this.logger.log(`User ${client.data.user.id} joined room: ${room}`);
     client.emit('joinedRoom', room);
   }
 
-  // TODO: à tester
+  @UseGuards(ChatGuard)
   @SubscribeMessage('leaveRoom')
   handleLeaveRoom(client: Socket, room: string) {
     client.leave(room);
-    this.logger.log(`User ${client.id} left room: ${room}`);
+    this.logger.log(`User ${client.data.user.id} left room: ${room}`);
     client.emit('leftRoom', room);
   }
 
-  // Censé envoyé un message à tous les clients d'une room
-  // TODO: à tester
+  @UseGuards(ChatGuard)
   @SubscribeMessage('sendMessageToRoom')
   handleMessageToRoom(
     client: Socket,
     { room, message }: { room: string; message: string },
   ) {
     this.logger.log(`Message to room ${room}: ${message}`);
-    this.server.to(room).emit('newMessage', { message, sender: client.id });
+    this.server
+      .to(room)
+      .emit('newMessage', { message, sender: client.data.user.id });
+  }
+
+  @UseGuards(ChatGuard)
+  @SubscribeMessage('privateMessage')
+  handlePrivateMessage(
+    client: Socket,
+    { recipientId, message }: { recipientId: string; message: string },
+  ) {
+    const room = this.getPrivateRoomName(client.data.user.id, recipientId);
+    this.logger.log(
+      `Private message from ${client.data.user.id} to ${recipientId}: ${message}`,
+    );
+    this.server
+      .to(room)
+      .emit('newPrivateMessage', { message, sender: client.data.user.id });
+  }
+
+  private getPrivateRoomName(userId1: string, userId2: string): string {
+    const sortedIds = [userId1, userId2].sort();
+    return `private-${sortedIds[0]}-${sortedIds[1]}`;
   }
 }
