@@ -6,10 +6,11 @@ import {
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
+import { UseGuards, Logger } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
-import { Logger, UseGuards } from '@nestjs/common';
 import { ChatGuard } from './chat.guard';
-@WebSocketGateway()
+
+@WebSocketGateway({ namespace: '/', cors: { origin: '*' } })
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer() server: Server;
   private logger = new Logger('ChatGateway');
@@ -17,6 +18,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @UseGuards(ChatGuard)
   handleConnection(client: Socket) {
     const user = client.data.user; // User data is now attached by the guard
+    if (!user || !user.id) {
+      this.logger.error('User data is not attached or user id is missing');
+      client.disconnect(); // Optionally disconnect the client
+      return;
+    }
     this.logger.log(`New user connected: ${client.id}, user: ${user.id}`);
   }
 
@@ -27,16 +33,18 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @UseGuards(ChatGuard)
   @SubscribeMessage('joinRoom')
   handleJoinRoom(client: Socket, room: string) {
+    const user = client.data.user;
     client.join(room);
-    this.logger.log(`User ${client.data.user.id} joined room: ${room}`);
+    this.logger.log(`User ${user.id} joined room: ${room}`);
     client.emit('joinedRoom', room);
   }
 
   @UseGuards(ChatGuard)
   @SubscribeMessage('leaveRoom')
   handleLeaveRoom(client: Socket, room: string) {
+    const user = client.data.user;
     client.leave(room);
-    this.logger.log(`User ${client.data.user.id} left room: ${room}`);
+    this.logger.log(`User ${user.id} left room: ${room}`);
     client.emit('leftRoom', room);
   }
 
@@ -46,10 +54,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     client: Socket,
     { room, message }: { room: string; message: string },
   ) {
-    this.logger.log(`Message to room ${room}: ${message}`);
-    this.server
-      .to(room)
-      .emit('newMessage', { message, sender: client.data.user.id });
+    const user = client.data.user;
+    this.logger.log(`Message to room ${room} from ${user.id}: ${message}`);
+    this.server.to(room).emit('newMessage', { message, sender: user.id });
   }
 
   @UseGuards(ChatGuard)
@@ -58,13 +65,14 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     client: Socket,
     { recipientId, message }: { recipientId: string; message: string },
   ) {
-    const room = this.getPrivateRoomName(client.data.user.id, recipientId);
+    const user = client.data.user;
+    const room = this.getPrivateRoomName(user.id, recipientId);
     this.logger.log(
-      `Private message from ${client.data.user.id} to ${recipientId}: ${message}`,
+      `Private message from ${user.id} to ${recipientId}: ${message}`,
     );
     this.server
       .to(room)
-      .emit('newPrivateMessage', { message, sender: client.data.user.id });
+      .emit('newPrivateMessage', { message, sender: user.id });
   }
 
   private getPrivateRoomName(userId1: string, userId2: string): string {

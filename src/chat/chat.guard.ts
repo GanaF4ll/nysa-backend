@@ -31,7 +31,10 @@ export class ChatGuard implements CanActivate {
   }
 
   private extractTokenFromHandshake(client: Socket): string | undefined {
-    const token = client.handshake.query.token as string;
-    return token;
+    const authHeader = client.handshake.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      return authHeader.split(' ')[1];
+    }
+    return undefined;
   }
 }
