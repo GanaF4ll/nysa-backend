@@ -145,12 +145,8 @@ model Event_member {
   event_id String
   user_id  String
   status   Member_status @map("status")
-  // Est-ce qu'il y'a besoin de created_at et updated_at ici ? Pour avoir un truc sur le front qui dit "membre depuis le ..." ? OUI
-  // Par contre comment ça se passe pour les orga, est-ce qu'elle peuvent être membres d'un event ?
   event    Event         @relation(fields: [event_id], references: [id])
   user     User          @relation(fields: [user_id], references: [auth_id])
-  // La clé primaire est la combinaison des deux champs, obligé d'avoir une clé primaire ici,
-  //  et comme ça on est sûr qu'un user ne peut s'inscrire qu'une fois à un évènement
 
   @@id([event_id, user_id])
 }
