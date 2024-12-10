@@ -73,21 +73,33 @@ export class EventController {
    *****************************/
 
   @Get(':id/images')
+  @ApiOperation({
+    summary: "Récupère toutes les images d'un événement",
+  })
   getImagesByEventId(@Param('id') event_id: string) {
     return this.imageService.getImagesByEventId(event_id);
   }
 
   @Post(':id/images')
+  @ApiOperation({
+    summary: 'Crée une image pour un événement',
+  })
   createImage(@Param('id') event_id: string, @Body() createImageDto) {
     return this.imageService.create(event_id, createImageDto);
   }
 
   @Patch('images/:image_id')
+  @ApiOperation({
+    summary: 'Met à jour une image',
+  })
   updateImage(@Param('image_id') image_id: string, @Body() updateImageDto) {
     return this.imageService.update(image_id, updateImageDto);
   }
 
   @Delete('images/:image_id')
+  @ApiOperation({
+    summary: 'Supprime une image',
+  })
   deleteImage(@Param('image_id') image_id: string) {
     return this.imageService.delete(image_id);
   }
