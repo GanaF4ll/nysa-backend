@@ -11,10 +11,14 @@ import { EventService } from './event.service';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { ApiOperation } from '@nestjs/swagger';
+import { ImageService } from './image/image.service';
 
 @Controller('event')
 export class EventController {
-  constructor(private readonly eventService: EventService) {}
+  constructor(
+    private readonly eventService: EventService,
+    private imageService: ImageService,
+  ) {}
 
   @Post()
   @ApiOperation({
@@ -62,5 +66,29 @@ export class EventController {
   })
   remove(@Param('id') id: string) {
     return this.eventService.remove(id);
+  }
+
+  /*****************************
+   *******IMAGES ROUTES*********
+   *****************************/
+
+  @Get(':id/images')
+  getImagesByEventId(@Param('id') event_id: string) {
+    return this.imageService.getImagesByEventId(event_id);
+  }
+
+  @Post(':id/images')
+  createImage(@Param('id') event_id: string, @Body() createImageDto) {
+    return this.imageService.create(event_id, createImageDto);
+  }
+
+  @Patch('images/:image_id')
+  updateImage(@Param('image_id') image_id: string, @Body() updateImageDto) {
+    return this.imageService.update(image_id, updateImageDto);
+  }
+
+  @Delete('images/:image_id')
+  deleteImage(@Param('image_id') image_id: string) {
+    return this.imageService.delete(image_id);
   }
 }
