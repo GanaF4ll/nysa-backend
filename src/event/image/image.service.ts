@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/db/prisma.service';
-import { CreateImageDto } from '../dto/create-image.dto';
+import { CreateImageDto } from './dto/create-image.dto';
 import { EventService } from '../event.service';
 
 @Injectable()
