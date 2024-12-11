@@ -1,82 +1,106 @@
 import {
-  MessageBody,
-  OnGatewayConnection,
-  OnGatewayDisconnect,
-  SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
+  SubscribeMessage,
+  ConnectedSocket,
+  MessageBody,
 } from '@nestjs/websockets';
-import { UseGuards, Logger } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
-import { ChatGuard } from './chat.guard';
+import { ChatService } from './chat.service';
+import { PrivateMessageDto } from './dto/private-message.dto';
+import { GroupMessageDto } from './dto/group-message.dto';
+import { JoinGroupDto } from './dto/join-group.dto';
+import { Logger } from '@nestjs/common';
 
-@WebSocketGateway({ namespace: '/', cors: { origin: '*' } })
-export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
-  @WebSocketServer() server: Server;
+@WebSocketGateway({
+  cors: {
+    origin: '*',
+  },
+})
+export class ChatGateway {
+  @WebSocketServer()
+  server: Server;
   private logger = new Logger('ChatGateway');
 
-  @UseGuards(ChatGuard)
+  constructor(private readonly chatService: ChatService) {}
+
   handleConnection(client: Socket) {
-    const user = client.data.user; // User data is now attached by the guard
-    if (!user || !user.id) {
-      this.logger.error('User data is not attached or user id is missing');
-      client.disconnect(); // Optionally disconnect the client
-      return;
+    const userId = client.handshake.query.userId as string;
+    if (userId) {
+      this.chatService.addUser(userId, client.id);
+      this.logger.log(`User connected: ${userId}`);
+      client.emit('connected', { status: 'connected', userId });
     }
-    this.logger.log(`New user connected: ${client.id}, user: ${user.id}`);
   }
 
   handleDisconnect(client: Socket) {
-    this.logger.log(`User disconnected: ${client.id}`);
+    this.chatService.removeUser(client.id);
   }
 
-  @UseGuards(ChatGuard)
-  @SubscribeMessage('joinRoom')
-  handleJoinRoom(client: Socket, room: string) {
-    const user = client.data.user;
-    client.join(room);
-    this.logger.log(`User ${user.id} joined room: ${room}`);
-    client.emit('joinedRoom', room);
-  }
-
-  @UseGuards(ChatGuard)
-  @SubscribeMessage('leaveRoom')
-  handleLeaveRoom(client: Socket, room: string) {
-    const user = client.data.user;
-    client.leave(room);
-    this.logger.log(`User ${user.id} left room: ${room}`);
-    client.emit('leftRoom', room);
-  }
-
-  @UseGuards(ChatGuard)
-  @SubscribeMessage('sendMessageToRoom')
-  handleMessageToRoom(
-    client: Socket,
-    { room, message }: { room: string; message: string },
-  ) {
-    const user = client.data.user;
-    this.logger.log(`Message to room ${room} from ${user.id}: ${message}`);
-    this.server.to(room).emit('newMessage', { message, sender: user.id });
-  }
-
-  @UseGuards(ChatGuard)
   @SubscribeMessage('privateMessage')
-  handlePrivateMessage(
-    client: Socket,
-    { recipientId, message }: { recipientId: string; message: string },
+  async handlePrivateMessage(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() messageData: PrivateMessageDto,
   ) {
-    const user = client.data.user;
-    const room = this.getPrivateRoomName(user.id, recipientId);
     this.logger.log(
-      `Private message from ${user.id} to ${recipientId}: ${message}`,
+      `Received privateMessage event: ${JSON.stringify(messageData)}`,
     );
-    this.server
-      .to(room)
-      .emit('newPrivateMessage', { message, sender: user.id });
+    this.logger.log(`Sender ID: ${messageData.senderId}`);
+    this.logger.log(`Recipient ID: ${messageData.recipientId}`);
+
+    const recipientSocketId = this.chatService.getUserSocketId(
+      messageData.recipientId,
+    );
+
+    if (recipientSocketId) {
+      this.server.to(recipientSocketId).emit('privateMessage', {
+        from: messageData.senderId,
+        message: messageData.message,
+        timestamp: new Date(),
+      });
+      this.logger.log(
+        `Message sent from ${messageData.senderId} to ${messageData.recipientId}`,
+      );
+
+      return { status: 'success', message: 'Message sent' };
+    }
+
+    this.logger.log(`User not found or offline: ${messageData.recipientId}`);
+    return { status: 'error', message: 'User not found or offline' };
   }
 
-  private getPrivateRoomName(userId1: string, userId2: string): string {
-    const sortedIds = [userId1, userId2].sort();
-    return `private-${sortedIds[0]}-${sortedIds[1]}`;
+  @SubscribeMessage('joinGroup')
+  handleJoinGroup(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() joinGroupData: JoinGroupDto,
+  ) {
+    client.join(joinGroupData.groupId);
+    this.chatService.addUserToGroup(
+      joinGroupData.userId,
+      joinGroupData.groupId,
+    );
+
+    return { status: 'success', message: 'Joined group successfully' };
+  }
+
+  @SubscribeMessage('groupMessage')
+  async handleGroupMessage(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() messageData: GroupMessageDto,
+  ) {
+    if (
+      this.chatService.isUserInGroup(messageData.senderId, messageData.groupId)
+    ) {
+      this.server.to(messageData.groupId).emit('groupMessage', {
+        groupId: messageData.groupId,
+        from: messageData.senderId,
+        message: messageData.message,
+        timestamp: new Date(),
+      });
+
+      return { status: 'success', message: 'Group message sent' };
+    }
+
+    return { status: 'error', message: 'User not in group' };
   }
 }
