@@ -24,28 +24,28 @@ export class ChatService {
     return this.userSocketMap.get(userId);
   }
 
-  addUserToGroup(userId: string, groupId: string) {
-    if (!this.groupUsers.has(groupId)) {
-      this.groupUsers.set(groupId, new Set());
+  addUserToGroup(userId: string, group_id: string) {
+    if (!this.groupUsers.has(group_id)) {
+      this.groupUsers.set(group_id, new Set());
     }
-    this.groupUsers.get(groupId).add(userId);
+    this.groupUsers.get(group_id).add(userId);
   }
 
-  removeUserFromGroup(userId: string, groupId: string) {
-    const group = this.groupUsers.get(groupId);
+  removeUserFromGroup(userId: string, group_id: string) {
+    const group = this.groupUsers.get(group_id);
     if (group) {
       group.delete(userId);
     }
   }
 
-  isUserInGroup(userId: string, groupId: string): boolean {
-    const group = this.groupUsers.get(groupId);
+  isUserInGroup(userId: string, group_id: string): boolean {
+    const group = this.groupUsers.get(group_id);
     return group ? group.has(userId) : false;
   }
 
   createGroup(): string {
-    const groupId = uuidv4();
-    this.groupUsers.set(groupId, new Set());
-    return groupId;
+    const group_id = uuidv4();
+    this.groupUsers.set(group_id, new Set());
+    return group_id;
   }
 }

@@ -1,5 +1,5 @@
 export class GroupMessageDto {
-  senderId: string;
-  groupId: string;
+  sender_id: string;
+  group_id: string;
   message: string;
 }

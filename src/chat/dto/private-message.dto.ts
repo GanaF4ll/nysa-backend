@@ -1,5 +1,5 @@
 export class PrivateMessageDto {
-  senderId: string;
-  recipientId: string;
+  sender_id: string;
+  recipient_id: string;
   message: string;
 }

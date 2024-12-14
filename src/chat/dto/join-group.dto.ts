@@ -1,4 +1,4 @@
 export class JoinGroupDto {
   userId: string;
-  groupId: string;
+  group_id: string;
 }

@@ -45,27 +45,27 @@ export class ChatGateway {
     this.logger.log(
       `Received privateMessage event: ${JSON.stringify(messageData)}`,
     );
-    this.logger.log(`Sender ID: ${messageData.senderId}`);
-    this.logger.log(`Recipient ID: ${messageData.recipientId}`);
+    this.logger.log(`Sender ID: ${messageData.sender_id}`);
+    this.logger.log(`Recipient ID: ${messageData.recipient_id}`);
 
     const recipientSocketId = this.chatService.getUserSocketId(
-      messageData.recipientId,
+      messageData.recipient_id,
     );
 
     if (recipientSocketId) {
       this.server.to(recipientSocketId).emit('privateMessage', {
-        from: messageData.senderId,
+        from: messageData.sender_id,
         message: messageData.message,
         timestamp: new Date(),
       });
       this.logger.log(
-        `Message sent from ${messageData.senderId} to ${messageData.recipientId}`,
+        `Message sent from ${messageData.sender_id} to ${messageData.recipient_id}`,
       );
 
       return { status: 'success', message: 'Message sent' };
     }
 
-    this.logger.log(`User not found or offline: ${messageData.recipientId}`);
+    this.logger.log(`User not found or offline: ${messageData.recipient_id}`);
     return { status: 'error', message: 'User not found or offline' };
   }
 
@@ -74,10 +74,10 @@ export class ChatGateway {
     @ConnectedSocket() client: Socket,
     @MessageBody() joinGroupData: JoinGroupDto,
   ) {
-    client.join(joinGroupData.groupId);
+    client.join(joinGroupData.group_id);
     this.chatService.addUserToGroup(
       joinGroupData.userId,
-      joinGroupData.groupId,
+      joinGroupData.group_id,
     );
 
     return { status: 'success', message: 'Joined group successfully' };
@@ -89,11 +89,14 @@ export class ChatGateway {
     @MessageBody() messageData: GroupMessageDto,
   ) {
     if (
-      this.chatService.isUserInGroup(messageData.senderId, messageData.groupId)
+      this.chatService.isUserInGroup(
+        messageData.sender_id,
+        messageData.group_id,
+      )
     ) {
-      this.server.to(messageData.groupId).emit('groupMessage', {
-        groupId: messageData.groupId,
-        from: messageData.senderId,
+      this.server.to(messageData.group_id).emit('groupMessage', {
+        group_id: messageData.group_id,
+        from: messageData.sender_id,
         message: messageData.message,
         timestamp: new Date(),
       });
