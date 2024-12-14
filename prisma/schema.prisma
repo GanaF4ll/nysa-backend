@@ -137,7 +137,7 @@ model Event {
   updated_at       DateTime         @updatedAt
   // relation One to Many, un évènement peut avoir plusieurs participants
   Event_member     Event_member[]
-  Conversation     Conversation?
+  // Conversation     Conversation?
   Event_images     Event_images[]
 }
 
@@ -157,13 +157,13 @@ model Event_member {
 
 model Conversation {
   id         String   @id @default(cuid())
-  event_id   String   @unique
+  // event_id   String   @unique
   name       String
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
   Message Message[]
-  Event   Event     @relation(fields: [event_id], references: [id])
+  // Event   Event     @relation(fields: [event_id], references: [id])
 
   Conversation_member Conversation_member[]
 }

@@ -25,11 +25,11 @@ export class ChatGateway {
   constructor(private readonly chatService: ChatService) {}
 
   handleConnection(client: Socket) {
-    const userId = client.handshake.query.userId as string;
-    if (userId) {
-      this.chatService.addUser(userId, client.id);
-      this.logger.log(`User connected: ${userId}`);
-      client.emit('connected', { status: 'connected', userId });
+    const user_id = client.handshake.query.user_id as string;
+    if (user_id) {
+      this.chatService.addUser(user_id, client.id);
+      this.logger.log(`User connected: ${user_id}`);
+      client.emit('connected', { status: 'connected', user_id });
     }
   }
 
@@ -52,14 +52,30 @@ export class ChatGateway {
       messageData.recipient_id,
     );
 
+    // Assuming you have a method to get or create a conversation ID between two users
+    const conversation_id = await this.getOrCreateConversation(
+      messageData.sender_id,
+      messageData.recipient_id,
+    );
+
     if (recipientSocketId) {
       this.server.to(recipientSocketId).emit('privateMessage', {
         from: messageData.sender_id,
         message: messageData.message,
         timestamp: new Date(),
+        type: messageData.type, // Include message type
       });
       this.logger.log(
         `Message sent from ${messageData.sender_id} to ${messageData.recipient_id}`,
+      );
+
+      // Save the message in the database
+      await this.chatService.createMessage(
+        messageData.sender_id,
+        messageData.recipient_id,
+        messageData.message,
+        conversation_id,
+        messageData.type, // Pass message type
       );
 
       return { status: 'success', message: 'Message sent' };
@@ -76,7 +92,7 @@ export class ChatGateway {
   ) {
     client.join(joinGroupData.group_id);
     this.chatService.addUserToGroup(
-      joinGroupData.userId,
+      joinGroupData.user_id,
       joinGroupData.group_id,
     );
 
@@ -99,11 +115,50 @@ export class ChatGateway {
         from: messageData.sender_id,
         message: messageData.message,
         timestamp: new Date(),
+        type: messageData.type, // Include message type
       });
 
       return { status: 'success', message: 'Group message sent' };
     }
 
     return { status: 'error', message: 'User not in group' };
+  }
+
+  private async getOrCreateConversation(
+    sender_id: string,
+    recipient_id: string,
+  ): Promise<string> {
+    const existingConversation =
+      await this.chatService.prismaService.conversation.findFirst({
+        where: {
+          Conversation_member: {
+            some: {
+              user_id: sender_id,
+            },
+          },
+          AND: {
+            Conversation_member: {
+              some: {
+                user_id: recipient_id,
+              },
+            },
+          },
+        },
+      });
+
+    if (existingConversation) {
+      return existingConversation.id;
+    } else {
+      const newConversation =
+        await this.chatService.prismaService.conversation.create({
+          data: {
+            name: `Conversation between ${sender_id} and ${recipient_id}`,
+            Conversation_member: {
+              create: [{ user_id: sender_id }, { user_id: recipient_id }],
+            },
+          },
+        });
+      return newConversation.id;
+    }
   }
 }
