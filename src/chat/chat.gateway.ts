@@ -52,7 +52,6 @@ export class ChatGateway {
       messageData.recipient_id,
     );
 
-    // Assuming you have a method to get or create a conversation ID between two users
     const conversation_id = await this.getOrCreateConversation(
       messageData.sender_id,
       messageData.recipient_id,
@@ -63,19 +62,15 @@ export class ChatGateway {
         from: messageData.sender_id,
         message: messageData.message,
         timestamp: new Date(),
-        type: messageData.type, // Include message type
+        type: messageData.type,
       });
-      this.logger.log(
-        `Message sent from ${messageData.sender_id} to ${messageData.recipient_id}`,
-      );
 
-      // Save the message in the database
       await this.chatService.createMessage(
         messageData.sender_id,
         messageData.recipient_id,
         messageData.message,
         conversation_id,
-        messageData.type, // Pass message type
+        messageData.type,
       );
 
       return { status: 'success', message: 'Message sent' };
@@ -115,10 +110,21 @@ export class ChatGateway {
         from: messageData.sender_id,
         message: messageData.message,
         timestamp: new Date(),
-        type: messageData.type, // Include message type
+        type: messageData.type,
       });
 
-      return { status: 'success', message: 'Group message sent' };
+      try {
+        await this.chatService.createGroupMessage(
+          messageData.sender_id,
+          messageData.group_id,
+          messageData.message,
+          messageData.type,
+        );
+        return { status: 'success', message: 'Group message sent' };
+      } catch (error) {
+        this.logger.error(`Failed to create group message: ${error.message}`);
+        return { status: 'error', message: 'Failed to create group message' };
+      }
     }
 
     return { status: 'error', message: 'User not in group' };
@@ -131,6 +137,7 @@ export class ChatGateway {
     const existingConversation =
       await this.chatService.prismaService.conversation.findFirst({
         where: {
+          is_private: true,
           Conversation_member: {
             some: {
               user_id: sender_id,
@@ -153,6 +160,7 @@ export class ChatGateway {
         await this.chatService.prismaService.conversation.create({
           data: {
             name: `Conversation between ${sender_id} and ${recipient_id}`,
+            is_private: true,
             Conversation_member: {
               create: [{ user_id: sender_id }, { user_id: recipient_id }],
             },

@@ -5,4 +5,5 @@ export class GroupMessageDto {
   group_id: string;
   message: string;
   type: Message_type;
+  is_private: false;
 }

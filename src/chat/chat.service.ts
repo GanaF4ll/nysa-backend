@@ -47,9 +47,16 @@ export class ChatService {
     return group ? group.has(user_id) : false;
   }
 
-  createGroup(): string {
+  async createGroup(name: string, is_private: boolean): Promise<string> {
     const group_id = uuidv4();
     this.groupUsers.set(group_id, new Set());
+    await this.prismaService.conversation.create({
+      data: {
+        id: group_id,
+        name,
+        is_private,
+      },
+    });
     return group_id;
   }
 
@@ -62,11 +69,46 @@ export class ChatService {
   ) {
     return this.prismaService.message.create({
       data: {
-        conversation_id,
+        conversation: {
+          connect: { id: conversation_id },
+        },
+        sender: {
+          connect: { auth_id: sender_id },
+        },
         content,
-        status: 'SENT', // ou 'DELIVERED', selon votre logique métier
+        status: 'SENT',
         type,
-        // Assurez-vous de ne pas inclure la relation Conversation si elle n'est pas nécessaire
+      },
+    });
+  }
+
+  async createGroupMessage(
+    sender_id: string,
+    group_id: string,
+    content: string,
+    type: Message_type,
+  ) {
+    const conversationExists = await this.prismaService.conversation.findUnique(
+      {
+        where: { id: group_id },
+      },
+    );
+
+    if (!conversationExists) {
+      throw new Error(`Conversation with id ${group_id} not found`);
+    }
+
+    return this.prismaService.message.create({
+      data: {
+        conversation: {
+          connect: { id: group_id },
+        },
+        sender: {
+          connect: { auth_id: sender_id },
+        },
+        content,
+        status: 'SENT',
+        type,
       },
     });
   }

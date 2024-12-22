@@ -88,7 +88,7 @@ model User {
   // relation One to Many, un User peut apparaitre dans plusieurs organisations et events
   Organisation_member Organisation_member[]
   Event_member        Event_member[]
-  // Message             Message[]
+  Message             Message[]
 }
 
 // 2e modèle de user, Table dans laquelle sont stockée les informations de l'organisation après connexion
@@ -157,29 +157,26 @@ model Event_member {
 
 model Conversation {
   id         String   @id @default(cuid())
-  // event_id   String   @unique
   name       String
+  is_private Boolean  @default(true)
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
-  Message Message[]
-  // Event   Event     @relation(fields: [event_id], references: [id])
-
+  Message             Message[]
   Conversation_member Conversation_member[]
 }
 
 model Message {
-  id              String         @id @default(cuid())
+  id              String       @id @default(cuid())
   conversation_id String
-  // user_id         String
+  conversation    Conversation @relation(fields: [conversation_id], references: [id])
+  sender_id       String
+  sender          User         @relation(fields: [sender_id], references: [auth_id])
   content         String
-  status          Message_status @map("status")
-  type            Message_type   @map("type")
-  created_at      DateTime       @default(now())
-  updated_at      DateTime       @updatedAt
-  // Si une orga peut envoyer des messages, est-ce que ses membres les voient ? Est-ce qu'une orga a besoin d'envoyer des messages privés ?
-  Conversation    Conversation   @relation(fields: [conversation_id], references: [id])
-  // User         User         @relation(fields: [user_id], references: [auth_id])
+  status          String
+  type            Message_type
+  created_at      DateTime     @default(now())
+  updated_at      DateTime     @updatedAt
 }
 
 model Conversation_member {
