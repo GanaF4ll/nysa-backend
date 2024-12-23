@@ -93,7 +93,7 @@ export class ChatGateway {
 
     return { status: 'success', message: 'Joined group successfully' };
   }
-
+  // TODO: service conversation create & add user to group
   @SubscribeMessage('groupMessage')
   async handleGroupMessage(
     @ConnectedSocket() client: Socket,

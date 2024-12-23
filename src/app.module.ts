@@ -6,8 +6,9 @@ import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from './db/prisma.module';
 import { UserModule } from './user/user.module';
 import { ChatModule } from './chat/chat.module';
+import { ConversationModule } from './conversation/conversation.module';
 @Module({
-  imports: [AuthModule, PrismaModule, ConfigModule.forRoot({ isGlobal: true }), UserModule, ChatModule],
+  imports: [AuthModule, PrismaModule, ConfigModule.forRoot({ isGlobal: true }), UserModule, ChatModule, ConversationModule],
   controllers: [AppController],
   providers: [AppService],
 })
