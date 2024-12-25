@@ -16,6 +16,8 @@ import { ConversationService } from './conversation.service';
 import { CreateConversationDto } from './dto/create-conversation.dto';
 import { UpdateConversationDto } from './dto/update-conversation.dto';
 import { AuthGuard } from 'src/auth/auth.guard';
+import { ApiOperation } from '@nestjs/swagger';
+
 @Controller('conversation')
 export class ConversationController {
   constructor(private readonly conversationService: ConversationService) {}
@@ -24,6 +26,10 @@ export class ConversationController {
   @UseGuards(AuthGuard)
   @Post()
   @UsePipes(new ValidationPipe({ transform: true }))
+  @ApiOperation({
+    summary:
+      'Crée une ressource Conversation sur laquelle le socket GroupMessage pourra se connecter grâce à son id',
+  })
   create(
     @Req() request: Request,
     @Body() createConversationDto: CreateConversationDto,
