@@ -80,10 +80,6 @@ export class UserService {
   async deactivate(auth_id: string) {
     const existingUser = await this.findOne(auth_id);
 
-    if (!existingUser) {
-      throw new NotFoundException('User not found');
-    }
-
     await this.prismaService.user.update({
       where: { auth_id },
       data: {
