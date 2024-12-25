@@ -52,6 +52,7 @@ export class CreateUserDto {
     enum: Sex,
     description: "Sexe de l'utilisateur",
     example: ['MALE', 'FEMALE', 'OTHER'],
+    required: false,
   })
   readonly sex?: Sex;
 
@@ -61,6 +62,7 @@ export class CreateUserDto {
     type: String,
     description: "Numéro de téléphone de l'utilisateur",
     example: '+33612345678',
+    required: false,
   })
   readonly phone?: string;
 
@@ -70,6 +72,7 @@ export class CreateUserDto {
     type: String,
     description: "URL de l'image de profil",
     example: 'https://www.example.com/image.jpg',
+    required: false,
   })
   readonly image_url?: string;
 
@@ -79,6 +82,7 @@ export class CreateUserDto {
     type: String,
     description: "Biographie de l'utilisateur",
     example: 'Je suis un bousilleur',
+    required: false,
   })
   readonly bio?: string;
 
@@ -88,6 +92,7 @@ export class CreateUserDto {
     type: String,
     description: "Ville de l'utilisateur",
     example: 'Paris',
+    required: false,
   })
   readonly city?: string;
 }

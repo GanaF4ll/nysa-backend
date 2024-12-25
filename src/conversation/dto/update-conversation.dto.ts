@@ -24,6 +24,7 @@ export class UpdateConversationDto extends PartialType(CreateConversationDto) {
       'cm517pzt80002doxbdv68mlga',
       'cm517q3ko0003doxb3d6wy682',
     ],
+    required: false,
   })
   readonly users?: string[];
 }

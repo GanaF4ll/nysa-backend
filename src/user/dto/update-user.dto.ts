@@ -18,6 +18,7 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
     type: String,
     description: 'ID dans la table auth',
     example: 'cm48rr8fv0000ublpox84yv1y',
+    required: false,
   })
   auth_id?: string;
 
@@ -27,6 +28,7 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
     type: String,
     description: "Prénom de l'utilisateur",
     example: 'John',
+    required: false,
   })
   firstname?: string;
 
@@ -36,6 +38,7 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
     type: String,
     description: "Nom de l'utilisateur",
     example: 'Doe',
+    required: false,
   })
   lastname?: string;
 
@@ -45,6 +48,7 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
     type: String,
     description: "Date de naissance de l'utilisateur",
     example: '01/01/2000',
+    required: false,
   })
   birthdate?: string;
 
@@ -54,6 +58,7 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
     enum: Sex,
     description: "Sexe de l'utilisateur",
     example: ['MALE', 'FEMALE', 'OTHER'],
+    required: false,
   })
   sex?: Sex;
 
@@ -63,6 +68,7 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
     type: String,
     description: "Numéro de téléphone de l'utilisateur",
     example: '+33612345678',
+    required: false,
   })
   phone?: string;
 
@@ -72,6 +78,7 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
     type: String,
     description: "URL de l'image de profil",
     example: 'https://www.example.com/image.jpg',
+    required: false,
   })
   image_url?: string;
 
@@ -81,6 +88,7 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
     type: String,
     description: "Biographie de l'utilisateur",
     example: 'Je suis un bousilleur',
+    required: false,
   })
   bio?: string;
 
@@ -90,6 +98,7 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
     type: String,
     description: "Ville de l'utilisateur",
     example: 'Paris',
+    required: false,
   })
   city?: string;
 
@@ -99,6 +108,7 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
     type: Boolean,
     description: "Statut de l'utilisateur",
     example: true,
+    required: false,
   })
   active?: boolean;
 }

@@ -33,8 +33,9 @@ export class CreateAuthDto {
     enum: Auth_type,
     description: "Le type de l'utilisateur",
     example: ['USER', 'ORGANISATION'],
+    required: false,
   })
-  readonly type: Auth_type;
+  readonly type?: Auth_type;
 }
 
 export class LoginDto {

@@ -10,6 +10,7 @@ export class UpdateImageDto extends PartialType(CreateImageDto) {
     type: String,
     description: "URL de l'image",
     example: 'https://www.example.com/image.jpg',
+    required: false,
   })
   readonly url?: string;
   @IsNumber()
@@ -18,6 +19,7 @@ export class UpdateImageDto extends PartialType(CreateImageDto) {
     type: Number,
     description: "Ordre d'affichage de l'image",
     example: 1,
+    required: false,
   })
   order?: number;
 }

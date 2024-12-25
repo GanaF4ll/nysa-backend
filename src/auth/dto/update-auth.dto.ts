@@ -17,8 +17,9 @@ export class UpdateAuthDto extends PartialType(CreateAuthDto) {
     type: String,
     description: "L'email de l'utilisateur",
     example: 'test@gmail.com',
+    required: false,
   })
-  readonly email: string;
+  readonly email?: string;
 
   @IsString()
   @MinLength(8)
@@ -27,8 +28,9 @@ export class UpdateAuthDto extends PartialType(CreateAuthDto) {
     type: String,
     description: "Le mot de passe de l'utilisateur",
     example: 'Test!1234',
+    required: false,
   })
-  password: string;
+  password?: string;
 
   @IsEnum(Auth_type, { message: 'type must be either USER or ORGANISATION' })
   @IsOptional()
@@ -36,6 +38,7 @@ export class UpdateAuthDto extends PartialType(CreateAuthDto) {
     enum: Auth_type,
     description: "Le type de l'utilisateur",
     example: ['USER', 'ORGANISATION'],
+    required: false,
   })
-  type: Auth_type;
+  type?: Auth_type;
 }

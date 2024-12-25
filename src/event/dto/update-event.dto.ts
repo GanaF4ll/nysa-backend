@@ -19,6 +19,7 @@ export class UpdateEventDto extends PartialType(CreateEventDto) {
     type: String,
     description: "titre de l'événement",
     example: 'Soirée Bousilleurs',
+    required: false,
   })
   readonly title?: string;
 
@@ -28,6 +29,7 @@ export class UpdateEventDto extends PartialType(CreateEventDto) {
     type: String,
     description: "Date de l'évènement, sous format string",
     example: '01/01/2025',
+    required: false,
   })
   readonly date?: string;
 
@@ -37,6 +39,7 @@ export class UpdateEventDto extends PartialType(CreateEventDto) {
     type: String,
     description: "adresse de l'évènement",
     example: '24 rue des bousilleurs, 75000 Paris',
+    required: false,
   })
   readonly address?: string;
 
@@ -49,6 +52,7 @@ export class UpdateEventDto extends PartialType(CreateEventDto) {
     description:
       "latitude pour géolocalisation de l'évènement, MIN: -90, MAX: 90",
     example: '48.8566',
+    required: false,
   })
   readonly latitude?: number;
 
@@ -61,6 +65,7 @@ export class UpdateEventDto extends PartialType(CreateEventDto) {
     description:
       "longitude pour géolocalisation de l'évènement, MIN: -180, MAX: 180",
     example: '2.3522',
+    required: false,
   })
   readonly longitude?: number;
 
@@ -72,6 +77,7 @@ export class UpdateEventDto extends PartialType(CreateEventDto) {
     description:
       "nombre de participants maximum dans l'évènement, MIN: 1, MAX: ?",
     example: '10',
+    required: false,
   })
   readonly max_participants?: number;
 
@@ -81,6 +87,7 @@ export class UpdateEventDto extends PartialType(CreateEventDto) {
     enum: Event_visibility,
     description: "visibilité de l'évènement",
     example: ['PUBLIC', 'PRIVATE', 'FRIENDSONLY'],
+    required: false,
   })
   readonly visibility?: Event_visibility;
 
@@ -90,6 +97,7 @@ export class UpdateEventDto extends PartialType(CreateEventDto) {
     type: Number,
     description: "prix d'entrée de l'évènement, MIN: 0",
     example: '10',
+    required: false,
   })
   readonly entry_fee?: number;
 
@@ -99,6 +107,7 @@ export class UpdateEventDto extends PartialType(CreateEventDto) {
     type: String,
     description: "description de l'évènement",
     example: 'Venez nombreux à la soirée Bousilleurs !',
+    required: false,
   })
   readonly description?: string;
 
@@ -108,6 +117,7 @@ export class UpdateEventDto extends PartialType(CreateEventDto) {
     type: Number,
     description: "nombre de vues de l'évènement",
     example: '0',
+    required: false,
   })
   readonly view_count?: number;
 }
