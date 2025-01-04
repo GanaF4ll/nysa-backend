@@ -25,6 +25,7 @@ export class UserController {
     return this.userService.findAll();
   }
 
+  @UseGuards(AuthGuard)
   @Get(':id')
   @ApiOperation({
     summary: 'Récupère un utilisateur grâce à son id',
@@ -33,6 +34,7 @@ export class UserController {
     return this.userService.findOne(id);
   }
 
+  @UseGuards(AuthGuard)
   @Get('/')
   @ApiOperation({
     summary: 'Récupère un utilisateur grâce à son email',
