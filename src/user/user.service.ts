@@ -7,16 +7,12 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 
 import { PrismaService } from 'src/db/prisma.service';
-import { JwtService } from '@nestjs/jwt';
 import * as argon2 from 'argon2';
 import { CreateOrganisationDto } from './dto/create-organisation.dto';
 
 @Injectable()
 export class UserService {
-  constructor(
-    private readonly prismaService: PrismaService,
-    // private jwt: JwtService,
-  ) {}
+  constructor(private readonly prismaService: PrismaService) {}
 
   async createUser(createUserDto: CreateUserDto) {
     const { email, password } = createUserDto;
@@ -72,91 +68,75 @@ export class UserService {
     return newOrganisation;
   }
 
-  // async create(createUserDto: CreateUserDto) {
-  //   const { id } = createUserDto;
-  //   const existingUser = await this.prismaService.user.findUnique({
-  //     where: { auth_id },
-  //   });
+  async findAll() {
+    const users = await this.prismaService.user.findMany();
 
-  //   if (existingUser) {
-  //     throw new ConflictException('User already exists');
-  //   }
+    if (!users) throw new NotFoundException('No users found');
 
-  //   const newUser = await this.prismaService.user.create({
-  //     data: {
-  //       auth_id: createUserDto.auth_id,
-  //       firstname: createUserDto.firstname,
-  //       lastname: createUserDto.lastname,
-  //       birthdate: new Date(createUserDto.birthdate),
-  //       sex: createUserDto.sex,
-  //       phone: createUserDto.phone,
-  //       image_url: createUserDto.image_url,
-  //       bio: createUserDto.bio,
-  //       city: createUserDto.city,
-  //     },
-  //   });
+    return users;
+  }
 
-  //   return newUser;
-  // }
-  // async findAll() {
-  //   const users = await this.prismaService.user.findMany();
+  async findOne(id: string) {
+    const existingUser = await this.prismaService.user.findUnique({
+      where: { id },
+    });
 
-  //   if (!users) throw new NotFoundException('No users found');
+    if (!existingUser) throw new NotFoundException('User not found');
 
-  //   return users;
-  // }
+    return existingUser;
+  }
 
-  // async findOne(auth_id: string) {
-  //   const existingUser = await this.prismaService.user.findUnique({
-  //     where: { auth_id },
-  //   });
+  async findOneByEmail(email: string) {
+    const existingUser = await this.prismaService.user.findUnique({
+      where: { email },
+    });
 
-  //   if (!existingUser) throw new NotFoundException('User not found');
+    if (!existingUser) throw new NotFoundException('User not found');
 
-  //   return existingUser;
-  // }
+    return existingUser;
+  }
 
-  // async update(auth_id: string, updateUserDto: UpdateUserDto) {
-  //   const existingUser = await this.findOne(auth_id);
+  async update(id: string, updateUserDto: UpdateUserDto) {
+    const existingUser = await this.findOne(id);
 
-  //   if (!existingUser) {
-  //     throw new NotFoundException('User not found');
-  //   }
+    if (!existingUser) {
+      throw new NotFoundException('User not found');
+    }
 
-  //   const updatedUser = await this.prismaService.user.update({
-  //     where: { auth_id },
-  //     data: {
-  //       ...updateUserDto,
-  //     },
-  //   });
+    const updatedUser = await this.prismaService.user.update({
+      where: { id },
+      data: {
+        ...updateUserDto,
+      },
+    });
 
-  //   return updatedUser;
-  // }
+    return updatedUser;
+  }
 
-  // async deactivate(auth_id: string) {
-  //   const existingUser = await this.findOne(auth_id);
+  async deactivate(id: string) {
+    const existingUser = await this.findOne(id);
 
-  //   await this.prismaService.user.update({
-  //     where: { auth_id },
-  //     data: {
-  //       active: false,
-  //     },
-  //   });
+    await this.prismaService.user.update({
+      where: { id },
+      data: {
+        active: false,
+      },
+    });
 
-  //   return `User ${auth_id} has been deactivated`;
-  // }
+    return `User ${id} has been deactivated`;
+  }
 
-  // async remove(id: string) {
-  //   const existingUser = await this.findOne(id);
+  async remove(id: string) {
+    const existingUser = await this.findOne(id);
 
-  //   if (!existingUser) {
-  //     throw new NotFoundException('User not found');
-  //   }
+    if (!existingUser) {
+      throw new NotFoundException('User not found');
+    }
 
-  //   await this.prismaService.user.delete({
-  //     where: { auth_id: id },
-  //   });
+    await this.prismaService.user.delete({
+      where: { id },
+    });
 
-  //   return `User ${id} has been deleted`;
-  // }
+    return `User ${id} has been deleted`;
+  }
 }

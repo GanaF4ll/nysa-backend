@@ -1,25 +1,6 @@
-import { User_type } from '@prisma/client';
-import {
-  IsEmail,
-  IsEnum,
-  IsOptional,
-  MinLength,
-  Validate,
-} from 'class-validator';
+import { IsEmail, MinLength, Validate } from 'class-validator';
 import { IsStrongPassword } from 'src/password.validator';
 import { ApiProperty } from '@nestjs/swagger';
-
-export class CreateAuthDto {
-  @IsEnum(User_type, { message: 'type must be either USER or ORGANISATION' })
-  @IsOptional()
-  @ApiProperty({
-    enum: User_type,
-    description: "Le type de l'utilisateur",
-    example: ['USER', 'ORGANISATION'],
-    required: false,
-  })
-  readonly type?: User_type;
-}
 
 export class LoginDto {
   @IsEmail()
