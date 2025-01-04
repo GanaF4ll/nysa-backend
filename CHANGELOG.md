@@ -6,3 +6,4 @@
 # auth-refacto
 
 - suppression de la table Auth
+- la route /register renvoie l'access_token directement

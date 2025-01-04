@@ -71,7 +71,7 @@ enum Notification_type {
 
 // Table dans laquelle sont stockée les informations de l'utilisateur après connexion
 model User {
-  id         String    @id
+  id         String    @id @default(cuid())
   type       User_type @default(USER) @map("type")
   email      String    @unique
   password   String

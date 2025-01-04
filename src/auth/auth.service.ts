@@ -9,32 +9,40 @@ import { UpdateAuthDto } from './dto/update-auth.dto';
 import { PrismaService } from 'src/db/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import * as argon2 from 'argon2';
+import { UserService } from 'src/user/user.service';
+import { CreateUserDto } from 'src/user/dto/create-user.dto';
+import { CreateOrganisationDto } from 'src/user/dto/create-organisation.dto';
+import { RegisterUserDto } from './dto/register-user.dto';
 @Injectable()
 export class AuthService {
-  // constructor(
-  //   private prismaservice: PrismaService,
-  //   private jwt: JwtService,
-  // ) {}
-  // async register(createAuthDto: CreateAuthDto) {
-  //   const { email, password } = createAuthDto;
-  //   const existingUser = await this.prismaservice.auth.findUnique({
-  //     where: { email },
-  //   });
-  //   if (existingUser) {
-  //     throw new ConflictException('Email already exists');
-  //   }
-  //   const hashedPassword = await argon2.hash(password);
-  //   const user = await this.prismaservice.auth.create({
-  //     data: {
-  //       email,
-  //       password: hashedPassword,
-  //     },
-  //   });
-  //   return user;
-  // }
+  constructor(
+    private readonly prismaservice: PrismaService,
+    private readonly jwt: JwtService,
+    private readonly userService: UserService,
+  ) {}
+
+  async register(registerDto: RegisterUserDto) {
+    let newUser;
+    if (registerDto.type === 'USER') {
+      newUser = await this.userService.createUser(
+        registerDto.data as CreateUserDto,
+      );
+    } else if (registerDto.type === 'ORGANISATION') {
+      newUser = await this.userService.createOrganisation(
+        registerDto.data as CreateOrganisationDto,
+      );
+    } else {
+      throw new BadRequestException('Invalid user type');
+    }
+    const payload = { email: newUser.email, id: newUser.id };
+
+    return {
+      access_token: this.jwt.sign(payload),
+    };
+  }
   // async login(loginDto: LoginDto) {
   //   const { email, password } = loginDto;
-  //   const user = await this.prismaservice.auth.findUnique({
+  //   const user = await this.userService.findUnique({
   //     where: { email },
   //   });
   //   if (!user) {

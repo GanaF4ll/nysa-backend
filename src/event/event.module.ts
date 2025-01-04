@@ -5,10 +5,9 @@ import { PrismaModule } from 'src/db/prisma.module';
 import { AuthModule } from 'src/auth/auth.module';
 import { ImageService } from './image/image.service';
 import { MemberService } from './member/member.service';
-import { UserModule } from 'src/user/user.module';
 
 @Module({
-  imports: [PrismaModule, UserModule],
+  imports: [PrismaModule],
   controllers: [EventController],
   providers: [EventService, ImageService, MemberService],
 })

@@ -14,15 +14,6 @@ import { Sex } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateUserDto {
-  // @IsString()
-  // @IsNotEmpty()
-  // @ApiProperty({
-  //   type: String,
-  //   description: 'ID dans la table auth',
-  //   example: 'cm48rr8fv0000ublpox84yv1y',
-  // })
-  // readonly auth_id: string;
-
   @IsEmail()
   @ApiProperty({
     type: String,
