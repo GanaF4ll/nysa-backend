@@ -8,3 +8,4 @@
 - suppression de la table Auth
 - la route /register renvoie l'access_token directement
 - update des routes user pour ne plus avoir à ajouter l'id en param dans les routes patch & delete
+- les routes users findById & findByEmail sont protégées
