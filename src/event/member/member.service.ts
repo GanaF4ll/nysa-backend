@@ -25,7 +25,7 @@ export class MemberService {
     }
 
     const existingUser = await this.prismaService.user.findUnique({
-      where: { auth_id: user_id },
+      where: { id: user_id },
     });
 
     if (!existingUser) {

@@ -73,7 +73,7 @@ export class ChatService {
           connect: { id: conversation_id },
         },
         sender: {
-          connect: { auth_id: sender_id },
+          connect: { id: sender_id },
         },
         content,
         status: 'SENT',
@@ -104,7 +104,7 @@ export class ChatService {
           connect: { id: group_id },
         },
         sender: {
-          connect: { auth_id: sender_id },
+          connect: { id: sender_id },
         },
         content,
         status: 'SENT',

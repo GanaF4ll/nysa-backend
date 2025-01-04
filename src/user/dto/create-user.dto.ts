@@ -5,19 +5,40 @@ import {
   IsUrl,
   IsOptional,
   IsEnum,
+  IsEmail,
+  Validate,
+  MinLength,
 } from 'class-validator';
+import { IsStrongPassword } from 'src/password.validator';
 import { Sex } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateUserDto {
-  @IsString()
-  @IsNotEmpty()
+  // @IsString()
+  // @IsNotEmpty()
+  // @ApiProperty({
+  //   type: String,
+  //   description: 'ID dans la table auth',
+  //   example: 'cm48rr8fv0000ublpox84yv1y',
+  // })
+  // readonly auth_id: string;
+
+  @IsEmail()
   @ApiProperty({
     type: String,
-    description: 'ID dans la table auth',
-    example: 'cm48rr8fv0000ublpox84yv1y',
+    description: "L'email de l'utilisateur",
+    example: 'test@gmail.com',
   })
-  readonly auth_id: string;
+  readonly email: string;
+
+  @Validate(IsStrongPassword)
+  @MinLength(8)
+  @ApiProperty({
+    type: String,
+    description: "Le mot de passe de l'utilisateur",
+    example: 'Test!1234',
+  })
+  readonly password: string;
 
   @IsString()
   @IsNotEmpty()

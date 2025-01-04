@@ -1,4 +1,4 @@
-import { Auth_type } from '@prisma/client';
+import { User_type } from '@prisma/client';
 import {
   IsEmail,
   IsEnum,
@@ -10,32 +10,15 @@ import { IsStrongPassword } from 'src/password.validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateAuthDto {
-  @IsEmail()
-  @ApiProperty({
-    type: String,
-    description: "L'email de l'utilisateur",
-    example: 'test@gmail.com',
-  })
-  readonly email: string;
-
-  @Validate(IsStrongPassword)
-  @MinLength(8)
-  @ApiProperty({
-    type: String,
-    description: "Le mot de passe de l'utilisateur",
-    example: 'Test!1234',
-  })
-  readonly password: string;
-
-  @IsEnum(Auth_type, { message: 'type must be either USER or ORGANISATION' })
+  @IsEnum(User_type, { message: 'type must be either USER or ORGANISATION' })
   @IsOptional()
   @ApiProperty({
-    enum: Auth_type,
+    enum: User_type,
     description: "Le type de l'utilisateur",
     example: ['USER', 'ORGANISATION'],
     required: false,
   })
-  readonly type?: Auth_type;
+  readonly type?: User_type;
 }
 
 export class LoginDto {
