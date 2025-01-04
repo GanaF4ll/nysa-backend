@@ -7,7 +7,7 @@ import { ImageService } from './image/image.service';
 import { MemberService } from './member/member.service';
 
 @Module({
-  imports: [PrismaModule, AuthModule],
+  imports: [PrismaModule],
   controllers: [EventController],
   providers: [EventService, ImageService, MemberService],
 })

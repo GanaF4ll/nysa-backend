@@ -6,18 +6,17 @@ import {
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { PrismaService } from 'src/db/prisma.service';
-import { AuthService } from 'src/auth/auth.service';
+import { UserService } from 'src/user/user.service';
 
 @Injectable()
 export class EventService {
-  constructor(
-    private prismaService: PrismaService,
-    private authService: AuthService,
-  ) {}
+  constructor(private prismaService: PrismaService) {}
 
   async create(createEventDto: CreateEventDto) {
     const { creator_id, date, ...data } = createEventDto;
-    const existingUser = await this.authService.findOne(creator_id);
+    const existingUser = await this.prismaService.user.findUnique({
+      where: { id: creator_id },
+    });
 
     if (!existingUser) {
       throw new NotFoundException('User not found');
@@ -60,7 +59,9 @@ export class EventService {
   }
 
   async findByCreator(creator_id: string) {
-    const creator = await this.authService.findOne(creator_id);
+    const creator = await this.prismaService.user.findUnique({
+      where: { id: creator_id },
+    });
 
     const events = this.prismaService.event.findMany({ where: { creator_id } });
 
