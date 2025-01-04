@@ -106,4 +106,10 @@ export class AuthService {
 
     return deletedUser;
   }
+
+  // async validateGoogleUser(googleUser: LoginDto) {
+  //   const user = await this.userService.findByEmail(googleUser.email);
+  //   if (user) return user;
+  //   return await this.userService.create(googleUser);
+  // }
 }
