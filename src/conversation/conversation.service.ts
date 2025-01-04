@@ -13,7 +13,7 @@ export class ConversationService {
   constructor(private prismaService: PrismaService) {}
   private logger = new Logger('ConversationService');
 
-  async create(auth_id: string, createConversationDto: CreateConversationDto) {
+  async create(id: string, createConversationDto: CreateConversationDto) {
     this.logger.log(
       'createConversationDto:',
       JSON.stringify(createConversationDto),
@@ -34,7 +34,7 @@ export class ConversationService {
     let is_private = users.length <= 2;
 
     const existingAdmin = await this.prismaService.user.findUnique({
-      where: { auth_id: auth_id },
+      where: { id: id },
     });
 
     if (!existingAdmin) {
@@ -47,7 +47,7 @@ export class ConversationService {
 
     for (const user_id of users) {
       const existingUser = await this.prismaService.user.findUnique({
-        where: { auth_id: user_id },
+        where: { id: user_id },
       });
 
       if (!existingUser) {

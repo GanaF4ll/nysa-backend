@@ -7,7 +7,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum Auth_type {
+enum User_type {
   USER
   ORGANISATION
 }
@@ -53,70 +53,74 @@ enum Notification_type {
 }
 
 // Table vérifiée lors de la connexion
-model Auth {
-  id                  String                @id @default(cuid())
-  email               String                @unique
-  password            String
-  type                Auth_type             @default(USER) @map("type")
-  created_at          DateTime              @default(now())
-  updated_at          DateTime              @updatedAt
-  // relation One to One
-  user                User?
-  organisation        Organisation?
-  // relation One to Many, un utilisateur peut être membre de plusieurs conversations
-  Conversation_member Conversation_member[]
+// model Auth {
+//   id                  String                @id @default(cuid())
+//   email               String                @unique
+//   password            String
+//   type                Auth_type             @default(USER) @map("type")
+//   created_at          DateTime              @default(now())
+//   updated_at          DateTime              @updatedAt
+//   // relation One to One
+//   user                User?
+//   organisation        Organisation?
+//   // relation One to Many, un utilisateur peut être membre de plusieurs conversations
+//   Conversation_member Conversation_member[]
 
-  Get_notification Get_notification[]
-}
+//   Get_notification Get_notification[]
+// }
 
 // Table dans laquelle sont stockée les informations de l'utilisateur après connexion
 model User {
-  auth_id             String                @id
-  firstname           String
-  lastname            String
-  birthdate           DateTime
-  sex                 Sex?                  @map("sex")
-  phone               String?
-  image_url           String?
-  bio                 String?
-  city                String?
-  active              Boolean               @default(true)
-  created_at          DateTime              @default(now())
-  updated_at          DateTime              @updatedAt
-  // relation One to One, on référence le champ id de la table Auth dans la table User
-  auth                Auth                  @relation(fields: [auth_id], references: [id])
-  // relation One to Many, un User peut apparaitre dans plusieurs organisations et events
-  Organisation_member Organisation_member[]
+  id         String    @id @default(cuid())
+  type       User_type @default(USER) @map("type")
+  email      String    @unique
+  password   String
+  name       String?
+  firstname  String?
+  lastname   String?
+  birthdate  DateTime?
+  sex        Sex?      @map("sex")
+  phone      String?
+  image_url  String?
+  bio        String?
+  city       String?
+  active     Boolean   @default(true)
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+
   Event_member        Event_member[]
   Message             Message[]
+  Event               Event[]
+  Conversation_member Conversation_member[]
+  Get_notification    Get_notification[]
 }
 
 // 2e modèle de user, Table dans laquelle sont stockée les informations de l'organisation après connexion
-model Organisation {
-  auth_id    String   @id
-  name       String
-  image_url  String
-  bio        String
-  city       String
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+// model Organisation {
+//   auth_id    String   @id
+//   name       String
+//   image_url  String
+//   bio        String
+//   city       String
+//   created_at DateTime @default(now())
+//   updated_at DateTime @updatedAt
 
-  auth                Auth                  @relation(fields: [auth_id], references: [id])
-  // relation One to Many, une organisation peut avoir plusieurs membres
-  organisationMembers Organisation_member[]
-}
+//   auth                Auth                  @relation(fields: [auth_id], references: [id])
+//   // relation One to Many, une organisation peut avoir plusieurs membres
+//   organisationMembers Organisation_member[]
+// }
 
 // Table de liaison entre les membres d'une organisation et l'organisation
-model Organisation_member {
-  organisation_id String
-  user_id         String
+// model Organisation_member {
+//   organisation_id String
+//   user_id         String
 
-  organisation Organisation @relation(fields: [organisation_id], references: [auth_id])
-  // ici, relation avec user directement plutôt qu'avec auth, car une orga ne peut pas faire partie d'une autre ?
-  user         User         @relation(fields: [user_id], references: [auth_id])
+//   organisation Organisation @relation(fields: [organisation_id], references: [auth_id])
+//   // ici, relation avec user directement plutôt qu'avec auth, car une orga ne peut pas faire partie d'une autre ?
+//   user         User         @relation(fields: [user_id], references: [auth_id])
 
-  @@id([organisation_id, user_id]) // La clé primaire est la combinaison des deux champs, obligé d'avoir une clé primaire ici
-}
+//   @@id([organisation_id, user_id]) // La clé primaire est la combinaison des deux champs, obligé d'avoir une clé primaire ici
+// }
 
 model Event {
   id               String           @id @default(cuid())
@@ -139,6 +143,7 @@ model Event {
   Event_member     Event_member[]
   // Conversation     Conversation?
   Event_images     Event_images[]
+  user             User             @relation(fields: [creator_id], references: [id])
 }
 
 model Event_member {
@@ -146,7 +151,7 @@ model Event_member {
   user_id  String
   status   Member_status @map("status")
   event    Event         @relation(fields: [event_id], references: [id])
-  user     User          @relation(fields: [user_id], references: [auth_id])
+  user     User          @relation(fields: [user_id], references: [id])
 
   @@id([event_id, user_id])
 }
@@ -167,7 +172,7 @@ model Message {
   conversation_id String
   conversation    Conversation @relation(fields: [conversation_id], references: [id])
   sender_id       String
-  sender          User         @relation(fields: [sender_id], references: [auth_id])
+  sender          User         @relation(fields: [sender_id], references: [id])
   content         String
   status          String
   type            Message_type
@@ -182,7 +187,7 @@ model Conversation_member {
 
   conversation Conversation @relation(fields: [conversation_id], references: [id])
   // relation avec Auth ou User en fonction de si une orga peut être membre d'une conversation
-  auth         Auth         @relation(fields: [user_id], references: [id])
+  user         User         @relation(fields: [user_id], references: [id])
 
   @@id([conversation_id, user_id])
 }
@@ -201,12 +206,12 @@ model Notification {
 model Get_notification {
   id              String   @id @default(cuid())
   notification_id String
-  auth_id         String
+  user_id         String
   content         String
   created_at      DateTime @default(now())
   updated_at      DateTime @updatedAt
 
-  Auth Auth @relation(fields: [auth_id], references: [id])
+  user User @relation(fields: [id], references: [id])
 
   Notification Notification @relation(fields: [notification_id], references: [id])
 }

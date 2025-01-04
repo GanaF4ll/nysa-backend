@@ -4,20 +4,19 @@ import {
   IsPhoneNumber,
   IsUrl,
   IsOptional,
-  IsEnum,
   IsEmail,
   Validate,
   MinLength,
 } from 'class-validator';
-import { IsStrongPassword } from 'src/password.validator';
 import { Sex } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
+import { IsStrongPassword } from 'src/password.validator';
 
-export class CreateUserDto {
+export class CreateOrganisationDto {
   @IsEmail()
   @ApiProperty({
     type: String,
-    description: "L'email de l'utilisateur",
+    description: "L'email de l'organisation",
     example: 'test@gmail.com',
   })
   readonly email: string;
@@ -26,7 +25,7 @@ export class CreateUserDto {
   @MinLength(8)
   @ApiProperty({
     type: String,
-    description: "Le mot de passe de l'utilisateur",
+    description: "Le mot de passe de l'organisation",
     example: 'Test!1234',
   })
   readonly password: string;
@@ -35,44 +34,16 @@ export class CreateUserDto {
   @IsNotEmpty()
   @ApiProperty({
     type: String,
-    description: "Prénom de l'utilisateur",
-    example: 'John',
+    description: "nom de l'organisation",
+    example: 'Nysa',
   })
-  readonly firstname: string;
-
-  @IsString()
-  @IsNotEmpty()
-  @ApiProperty({
-    type: String,
-    description: "Nom de l'utilisateur",
-    example: 'Doe',
-  })
-  readonly lastname: string;
-
-  @IsString()
-  @IsNotEmpty()
-  @ApiProperty({
-    type: String,
-    description: "Date de naissance de l'utilisateur",
-    example: '01/01/2000',
-  })
-  readonly birthdate: string;
-
-  @IsEnum(Sex, { message: 'Unknown Sex' })
-  @IsOptional()
-  @ApiProperty({
-    enum: Sex,
-    description: "Sexe de l'utilisateur",
-    example: ['MALE', 'FEMALE', 'OTHER'],
-    required: false,
-  })
-  readonly sex?: Sex;
+  readonly name: string;
 
   @IsPhoneNumber('FR')
   @IsOptional()
   @ApiProperty({
     type: String,
-    description: "Numéro de téléphone de l'utilisateur",
+    description: "Numéro de téléphone de l'organisation",
     example: '+33612345678',
     required: false,
   })
@@ -92,7 +63,7 @@ export class CreateUserDto {
   @IsOptional()
   @ApiProperty({
     type: String,
-    description: "Biographie de l'utilisateur",
+    description: "Biographie de l'organisation",
     example: 'Je suis un bousilleur',
     required: false,
   })
@@ -102,7 +73,7 @@ export class CreateUserDto {
   @IsOptional()
   @ApiProperty({
     type: String,
-    description: "Ville de l'utilisateur",
+    description: "Ville de l'organisation",
     example: 'Paris',
     required: false,
   })
