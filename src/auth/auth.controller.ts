@@ -9,8 +9,6 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { CreateAuthDto, LoginDto } from './dto/create-auth.dto';
-import { UpdateAuthDto } from './dto/update-auth.dto';
 import { AuthGuard } from './auth.guard';
 import { ApiBody, ApiOperation } from '@nestjs/swagger';
 import { RegisterUserDto } from './dto/register-user.dto';
@@ -18,14 +16,13 @@ import { RegisterUserDto } from './dto/register-user.dto';
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
-  // !!
+
   @Post('register')
-  @ApiOperation({ summary: 'Register a new user or organisation' })
+  @ApiOperation({ summary: 'Créer un compte utilisateur ou organisation' })
   @ApiBody({ type: RegisterUserDto })
   async register(@Body() registerDto: RegisterUserDto) {
     return this.authService.register(registerDto);
   }
-  //  !!
   // @Post('/register')
   // @ApiOperation({
   //   summary:
