@@ -52,24 +52,6 @@ enum Notification_type {
   ORGANISATION
 }
 
-// Table vérifiée lors de la connexion
-// model Auth {
-//   id                  String                @id @default(cuid())
-//   email               String                @unique
-//   password            String
-//   type                Auth_type             @default(USER) @map("type")
-//   created_at          DateTime              @default(now())
-//   updated_at          DateTime              @updatedAt
-//   // relation One to One
-//   user                User?
-//   organisation        Organisation?
-//   // relation One to Many, un utilisateur peut être membre de plusieurs conversations
-//   Conversation_member Conversation_member[]
-
-//   Get_notification Get_notification[]
-// }
-
-// Table dans laquelle sont stockée les informations de l'utilisateur après connexion
 model User {
   id         String    @id @default(cuid())
   type       User_type @default(USER) @map("type")
@@ -94,33 +76,6 @@ model User {
   Conversation_member Conversation_member[]
   Get_notification    Get_notification[]
 }
-
-// 2e modèle de user, Table dans laquelle sont stockée les informations de l'organisation après connexion
-// model Organisation {
-//   auth_id    String   @id
-//   name       String
-//   image_url  String
-//   bio        String
-//   city       String
-//   created_at DateTime @default(now())
-//   updated_at DateTime @updatedAt
-
-//   auth                Auth                  @relation(fields: [auth_id], references: [id])
-//   // relation One to Many, une organisation peut avoir plusieurs membres
-//   organisationMembers Organisation_member[]
-// }
-
-// Table de liaison entre les membres d'une organisation et l'organisation
-// model Organisation_member {
-//   organisation_id String
-//   user_id         String
-
-//   organisation Organisation @relation(fields: [organisation_id], references: [auth_id])
-//   // ici, relation avec user directement plutôt qu'avec auth, car une orga ne peut pas faire partie d'une autre ?
-//   user         User         @relation(fields: [user_id], references: [auth_id])
-
-//   @@id([organisation_id, user_id]) // La clé primaire est la combinaison des deux champs, obligé d'avoir une clé primaire ici
-// }
 
 model Event {
   id               String           @id @default(cuid())

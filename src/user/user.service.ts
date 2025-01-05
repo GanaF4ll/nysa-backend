@@ -1,7 +1,7 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
-  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -14,7 +14,6 @@ import { CreateGoogleUserDto } from './dto/create-google-user.dto';
 
 @Injectable()
 export class UserService {
-  private readonly logger = new Logger(UserService.name);
   constructor(private readonly prismaService: PrismaService) {}
 
   async createUser(createUserDto: CreateUserDto) {
@@ -73,7 +72,6 @@ export class UserService {
 
   async createGoogleUser(createGoogleUserDto: CreateGoogleUserDto) {
     const { email, firstname, lastname, image_url } = createGoogleUserDto;
-    this.logger.log(`Attempting to create Google user with email: ${email}`);
 
     try {
       const existingUser = await this.prismaService.user.findUnique({
@@ -81,11 +79,12 @@ export class UserService {
       });
 
       if (existingUser) {
-        this.logger.log(`User already exists: ${JSON.stringify(existingUser)}`);
+        throw new ConflictException(
+          `User already exists: ${JSON.stringify(existingUser)}`,
+        );
         return existingUser; // Retourner l'utilisateur existant au lieu de throw une erreur
       }
 
-      this.logger.log('Creating new user...');
       const newUser = await this.prismaService.user.create({
         data: {
           email,
@@ -95,11 +94,11 @@ export class UserService {
         },
       });
 
-      this.logger.log(`User created successfully: ${JSON.stringify(newUser)}`);
       return newUser;
     } catch (error) {
-      this.logger.error(`Error creating Google user: ${error.message}`);
-      throw error;
+      throw new BadRequestException(
+        `Error creating Google user: ${error.message}`,
+      );
     }
   }
 
@@ -122,23 +121,20 @@ export class UserService {
   }
 
   async findOneByEmail(email: string) {
-    this.logger.log(`Searching for user with email: ${email}`);
-
     try {
       const user = await this.prismaService.user.findUnique({
         where: { email },
       });
 
       if (user) {
-        this.logger.log(`Found user: ${JSON.stringify(user)}`);
       } else {
-        this.logger.log(`No user found with email: ${email}`);
       }
 
       return user;
     } catch (error) {
-      this.logger.error(`Error finding user by email: ${error.message}`);
-      throw error;
+      throw new NotFoundException(
+        `Error finding user by email: ${error.message}`,
+      );
     }
   }
   async update(id: string, updateUserDto: UpdateUserDto) {
