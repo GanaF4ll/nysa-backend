@@ -13,6 +13,7 @@ import { ApiBody, ApiOperation } from '@nestjs/swagger';
 import { RegisterUserDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { GoogleAuthGuard } from './guards/google-auth.guard';
+import { AuthGuard } from './guards/auth.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -32,6 +33,20 @@ export class AuthController {
   login(@Body() loginDto: LoginDto) {
     return this.authService.login(loginDto);
   }
+
+  @UseGuards(AuthGuard)
+  @Get('verify')
+  async verifyToken(@Req() request: Request) {
+    console.log(request['user']);
+    return this.authService.verifyToken(
+      request['user'].id,
+      request['user'].email,
+    );
+  }
+
+  // **************************/
+  // ** GOOGLE AUTHENTICATION *
+  // **************************/
 
   @UseGuards(GoogleAuthGuard)
   @Get('google/login')
