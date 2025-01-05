@@ -11,6 +11,7 @@ import { UserService } from 'src/user/user.service';
 import { CreateUserDto } from 'src/user/dto/create-user.dto';
 import { CreateOrganisationDto } from 'src/user/dto/create-organisation.dto';
 import { RegisterUserDto } from './dto/register.dto';
+import { CreateGoogleUserDto } from 'src/user/dto/create-google-user.dto';
 
 @Injectable()
 export class AuthService {
@@ -54,5 +55,30 @@ export class AuthService {
     return {
       access_token: this.jwt.sign(payload),
     };
+  }
+
+  async validateGoogleUser(googleUser: CreateGoogleUserDto) {
+    try {
+      let user = await this.userService.findOneByEmail(googleUser.email);
+
+      if (user) {
+        return user;
+      }
+
+      user = await this.userService.createGoogleUser(googleUser);
+      return user;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async googleLogin(id: string) {
+    const user = await this.userService.findOne(id);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    const payload = { email: user.email, id: user.id };
+    const token = this.jwt.sign(payload);
+    return { access_token: token };
   }
 }

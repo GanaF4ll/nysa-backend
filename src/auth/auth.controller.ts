@@ -1,8 +1,18 @@
-import { Controller, Post, Body } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Get,
+  UseGuards,
+  Req,
+  Res,
+  NotFoundException,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { ApiBody, ApiOperation } from '@nestjs/swagger';
 import { RegisterUserDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { GoogleAuthGuard } from './guards/google-auth.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -21,5 +31,32 @@ export class AuthController {
   })
   login(@Body() loginDto: LoginDto) {
     return this.authService.login(loginDto);
+  }
+
+  @UseGuards(GoogleAuthGuard)
+  @Get('google/login')
+  @ApiOperation({
+    summary: "Permet à l'utilisateur de se connecter avec Google",
+  })
+  async googleLogin() {
+    console.log(process.env.GOOGLE_CLIENT_SECRET);
+  }
+
+  @UseGuards(GoogleAuthGuard)
+  @Get('google/callback')
+  async googleCallback(@Req() req, @Res() res) {
+    try {
+      if (!req.user || !req.user.id) {
+        throw new NotFoundException('User not found in request');
+      }
+
+      const response = await this.authService.googleLogin(req.user.id);
+      // !! changer l'addresse de redirection pour le front
+      return res.redirect(
+        `http://localhost:3000?token=${response.access_token}`,
+      );
+    } catch (error) {
+      throw error;
+    }
   }
 }

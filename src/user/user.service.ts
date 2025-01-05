@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
@@ -9,6 +10,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from 'src/db/prisma.service';
 import * as argon2 from 'argon2';
 import { CreateOrganisationDto } from './dto/create-organisation.dto';
+import { CreateGoogleUserDto } from './dto/create-google-user.dto';
 
 @Injectable()
 export class UserService {
@@ -68,6 +70,40 @@ export class UserService {
     return newOrganisation;
   }
 
+  async createGoogleUser(createGoogleUserDto: CreateGoogleUserDto) {
+    const { email, firstname, lastname, image_url, provider } =
+      createGoogleUserDto;
+
+    try {
+      const existingUser = await this.prismaService.user.findUnique({
+        where: { email },
+      });
+
+      if (existingUser) {
+        throw new ConflictException(
+          `User already exists: ${JSON.stringify(existingUser)}`,
+        );
+        return existingUser;
+      }
+
+      const newUser = await this.prismaService.user.create({
+        data: {
+          email,
+          firstname,
+          lastname,
+          image_url,
+          provider,
+        },
+      });
+
+      return newUser;
+    } catch (error) {
+      throw new BadRequestException(
+        `Error creating Google user: ${error.message}`,
+      );
+    }
+  }
+
   async findAll() {
     const users = await this.prismaService.user.findMany();
 
@@ -87,15 +123,22 @@ export class UserService {
   }
 
   async findOneByEmail(email: string) {
-    const existingUser = await this.prismaService.user.findUnique({
-      where: { email },
-    });
+    try {
+      const user = await this.prismaService.user.findUnique({
+        where: { email },
+      });
 
-    if (!existingUser) throw new NotFoundException('User not found');
+      if (user) {
+      } else {
+      }
 
-    return existingUser;
+      return user;
+    } catch (error) {
+      throw new NotFoundException(
+        `Error finding user by email: ${error.message}`,
+      );
+    }
   }
-
   async update(id: string, updateUserDto: UpdateUserDto) {
     const existingUser = await this.findOne(id);
 

@@ -7,15 +7,22 @@ import {
   Delete,
   UseGuards,
   Req,
+  Post,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { AuthGuard } from 'src/auth/auth.guard';
+import { AuthGuard } from 'src/auth/guards/auth.guard';
 import { ApiOperation } from '@nestjs/swagger';
+import { CreateGoogleUserDto } from './dto/create-google-user.dto';
 
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
+
+  @Post('/google')
+  createGoogleUser(@Body() createGoogleUserDto: CreateGoogleUserDto) {
+    return this.userService.createGoogleUser(createGoogleUserDto);
+  }
 
   @Get('/all')
   @ApiOperation({
