@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { LoginDto } from './dto/login.dto';
 import { PrismaService } from 'src/db/prisma.service';
@@ -80,5 +81,18 @@ export class AuthService {
     const payload = { email: user.email, id: user.id };
     const token = this.jwt.sign(payload);
     return { access_token: token };
+  }
+
+  async verifyToken(id: string, email: string) {
+    const user = await this.userService.findOne(id);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    if (user.active !== true) {
+      throw new UnauthorizedException('User not active');
+    }
+    if (user.email === email && user.active === true) {
+      return true;
+    }
   }
 }

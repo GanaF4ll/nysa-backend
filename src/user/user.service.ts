@@ -139,6 +139,7 @@ export class UserService {
       );
     }
   }
+
   async update(id: string, updateUserDto: UpdateUserDto) {
     const existingUser = await this.findOne(id);
 
