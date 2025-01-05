@@ -13,6 +13,7 @@ import { CreateUserDto } from 'src/user/dto/create-user.dto';
 import { CreateOrganisationDto } from 'src/user/dto/create-organisation.dto';
 import { RegisterUserDto } from './dto/register.dto';
 import { CreateGoogleUserDto } from 'src/user/dto/create-google-user.dto';
+import { VerifyTokenDto } from 'src/user/dto/verify-token.dto';
 
 @Injectable()
 export class AuthService {
@@ -83,7 +84,8 @@ export class AuthService {
     return { access_token: token };
   }
 
-  async verifyToken(id: string, email: string) {
+  async verifyToken(verifyTokenDto: VerifyTokenDto) {
+    const { id, email } = verifyTokenDto;
     const user = await this.userService.findOne(id);
     if (!user) {
       throw new NotFoundException('User not found');

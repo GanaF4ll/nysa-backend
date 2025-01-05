@@ -14,6 +14,7 @@ import { RegisterUserDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { GoogleAuthGuard } from './guards/google-auth.guard';
 import { AuthGuard } from './guards/auth.guard';
+import { cpSync } from 'fs';
 
 @Controller('auth')
 export class AuthController {
@@ -36,12 +37,15 @@ export class AuthController {
 
   @UseGuards(AuthGuard)
   @Get('verify')
+  @ApiOperation({
+    summary: 'Vérifie la validité du token & du compte user',
+  })
   async verifyToken(@Req() request: Request) {
-    console.log(request['user']);
-    return this.authService.verifyToken(
-      request['user'].id,
-      request['user'].email,
-    );
+    const verifyTokenDto = {
+      id: request['user'].id,
+      email: request['user'].email,
+    };
+    return this.authService.verifyToken(verifyTokenDto);
   }
 
   // **************************/
