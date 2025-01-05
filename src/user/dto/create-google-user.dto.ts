@@ -1,11 +1,12 @@
 import {
   IsEmail,
+  IsEnum,
   IsNotEmpty,
   IsOptional,
   IsString,
   IsUrl,
 } from 'class-validator';
-
+import { Provider } from '@prisma/client';
 export class CreateGoogleUserDto {
   @IsEmail()
   readonly email: string;
@@ -21,4 +22,7 @@ export class CreateGoogleUserDto {
   @IsUrl()
   @IsOptional()
   readonly image_url?: string;
+
+  @IsEnum(Provider)
+  readonly provider: Provider;
 }

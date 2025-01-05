@@ -71,7 +71,8 @@ export class UserService {
   }
 
   async createGoogleUser(createGoogleUserDto: CreateGoogleUserDto) {
-    const { email, firstname, lastname, image_url } = createGoogleUserDto;
+    const { email, firstname, lastname, image_url, provider } =
+      createGoogleUserDto;
 
     try {
       const existingUser = await this.prismaService.user.findUnique({
@@ -82,7 +83,7 @@ export class UserService {
         throw new ConflictException(
           `User already exists: ${JSON.stringify(existingUser)}`,
         );
-        return existingUser; // Retourner l'utilisateur existant au lieu de throw une erreur
+        return existingUser;
       }
 
       const newUser = await this.prismaService.user.create({
@@ -91,6 +92,7 @@ export class UserService {
           firstname,
           lastname,
           image_url,
+          provider,
         },
       });
 

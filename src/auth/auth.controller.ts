@@ -51,7 +51,7 @@ export class AuthController {
       }
 
       const response = await this.authService.googleLogin(req.user.id);
-
+      // !! changer l'addresse de redirection pour le front
       return res.redirect(
         `http://localhost:3000?token=${response.access_token}`,
       );
