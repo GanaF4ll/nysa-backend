@@ -56,9 +56,10 @@ export class AuthService {
     };
   }
 
-  // async validateGoogleUser(googleUser: LoginDto) {
-  //   const user = await this.userService.findByEmail(googleUser.email);
-  //   if (user) return user;
-  //   return await this.userService.create(googleUser);
-  // }
+  async validateGoogleUser(googleUser: CreateUserDto) {
+    const user = await this.userService.findOneByEmail(googleUser.email);
+    if (user) return user;
+    return await this.userService.createUser(googleUser);
+  }
+  // TODO: method GoogleLogin pour gérer la connexion avec Google
 }

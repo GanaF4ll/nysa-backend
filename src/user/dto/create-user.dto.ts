@@ -51,12 +51,13 @@ export class CreateUserDto {
 
   @IsString()
   @IsNotEmpty()
+  @IsOptional()
   @ApiProperty({
     type: String,
     description: "Date de naissance de l'utilisateur",
     example: '01/01/2000',
   })
-  readonly birthdate: string;
+  readonly birthdate?: string;
 
   @IsEnum(Sex, { message: 'Unknown Sex' })
   @IsOptional()

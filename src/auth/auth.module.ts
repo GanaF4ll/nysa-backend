@@ -7,6 +7,7 @@ import googleOauthConfig from './config/google-oauth.config';
 import { UserModule } from 'src/user/user.module';
 import { PrismaService } from 'src/db/prisma.service';
 import { UserService } from 'src/user/user.service';
+import { GoogleStrategy } from './strategies/google.strategy';
 @Module({
   imports: [
     JwtModule.register({
@@ -18,7 +19,7 @@ import { UserService } from 'src/user/user.service';
     UserModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, UserService, PrismaService],
+  providers: [AuthService, UserService, PrismaService, GoogleStrategy],
   exports: [AuthService],
 })
 export class AuthModule {}
