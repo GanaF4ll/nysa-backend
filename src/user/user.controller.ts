@@ -44,6 +44,16 @@ export class UserController {
   @UseGuards(AuthGuard)
   @Get('/')
   @ApiOperation({
+    summary: 'Récupère un utilisateur grâce à son token',
+  })
+  findMe(@Req() request: Request) {
+    const id = request['user'].id;
+    return this.userService.findOne(id);
+  }
+
+  @UseGuards(AuthGuard)
+  @Get('/email')
+  @ApiOperation({
     summary: 'Récupère un utilisateur grâce à son email',
   })
   async findOneByEmail(@Body('email') email: string) {
