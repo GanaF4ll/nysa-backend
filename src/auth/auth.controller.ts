@@ -6,6 +6,8 @@ import {
   UseGuards,
   Req,
   Res,
+  Logger,
+  NotFoundException,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { ApiBody, ApiOperation } from '@nestjs/swagger';
@@ -15,6 +17,7 @@ import { GoogleAuthGuard } from './guards/google-auth.guard';
 
 @Controller('auth')
 export class AuthController {
+  private readonly logger = new Logger(AuthController.name);
   constructor(private readonly authService: AuthService) {}
 
   @Post('register')
@@ -43,11 +46,26 @@ export class AuthController {
 
   @UseGuards(GoogleAuthGuard)
   @Get('google/callback')
-  @ApiOperation({
-    summary: 'Callback de connexion avec Google',
-  })
   async googleCallback(@Req() req, @Res() res) {
-    const response = await this.authService.login(req.user.id);
-    res.redirect(`http://localhost:5173?token=${response.access_token}`);
+    this.logger.log('Entering googleCallback');
+    this.logger.log(`Request object: ${JSON.stringify(req.user)}`);
+
+    try {
+      if (!req.user || !req.user.id) {
+        this.logger.error('No user found in request');
+        throw new NotFoundException('User not found in request');
+      }
+
+      const response = await this.authService.googleLogin(req.user.id);
+      this.logger.log(
+        `Login successful, redirecting with token: ${response.access_token}`,
+      );
+      return res.redirect(
+        `http://localhost:3000?token=${response.access_token}`,
+      );
+    } catch (error) {
+      this.logger.error(`Error in googleCallback: ${error.message}`);
+      throw error;
+    }
   }
 }

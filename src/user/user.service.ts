@@ -1,6 +1,7 @@
 import {
   ConflictException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -9,9 +10,11 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from 'src/db/prisma.service';
 import * as argon2 from 'argon2';
 import { CreateOrganisationDto } from './dto/create-organisation.dto';
+import { CreateGoogleUserDto } from './dto/create-google-user.dto';
 
 @Injectable()
 export class UserService {
+  private readonly logger = new Logger(UserService.name);
   constructor(private readonly prismaService: PrismaService) {}
 
   async createUser(createUserDto: CreateUserDto) {
@@ -68,6 +71,38 @@ export class UserService {
     return newOrganisation;
   }
 
+  async createGoogleUser(createGoogleUserDto: CreateGoogleUserDto) {
+    const { email, firstname, lastname, image_url } = createGoogleUserDto;
+    this.logger.log(`Attempting to create Google user with email: ${email}`);
+
+    try {
+      const existingUser = await this.prismaService.user.findUnique({
+        where: { email },
+      });
+
+      if (existingUser) {
+        this.logger.log(`User already exists: ${JSON.stringify(existingUser)}`);
+        return existingUser; // Retourner l'utilisateur existant au lieu de throw une erreur
+      }
+
+      this.logger.log('Creating new user...');
+      const newUser = await this.prismaService.user.create({
+        data: {
+          email,
+          firstname,
+          lastname,
+          image_url,
+        },
+      });
+
+      this.logger.log(`User created successfully: ${JSON.stringify(newUser)}`);
+      return newUser;
+    } catch (error) {
+      this.logger.error(`Error creating Google user: ${error.message}`);
+      throw error;
+    }
+  }
+
   async findAll() {
     const users = await this.prismaService.user.findMany();
 
@@ -87,15 +122,25 @@ export class UserService {
   }
 
   async findOneByEmail(email: string) {
-    const existingUser = await this.prismaService.user.findUnique({
-      where: { email },
-    });
+    this.logger.log(`Searching for user with email: ${email}`);
 
-    if (!existingUser) throw new NotFoundException('User not found');
+    try {
+      const user = await this.prismaService.user.findUnique({
+        where: { email },
+      });
 
-    return existingUser;
+      if (user) {
+        this.logger.log(`Found user: ${JSON.stringify(user)}`);
+      } else {
+        this.logger.log(`No user found with email: ${email}`);
+      }
+
+      return user;
+    } catch (error) {
+      this.logger.error(`Error finding user by email: ${error.message}`);
+      throw error;
+    }
   }
-
   async update(id: string, updateUserDto: UpdateUserDto) {
     const existingUser = await this.findOne(id);
 

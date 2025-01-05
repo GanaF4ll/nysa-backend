@@ -24,17 +24,16 @@ export class GoogleStrategy extends PassportStrategy(Strategy) {
     accessToken: string,
     refreshToken: string,
     profile: any,
-    done: VerifyCallback,
-  ) {
+  ): Promise<any> {
     this.logger.log({ profile });
+
     const user = await this.authService.validateGoogleUser({
       email: profile.emails[0].value,
       firstname: profile.name.givenName,
       lastname: profile.name.familyName,
       image_url: profile.photos[0].value,
-      password: '',
     });
-    done(null, user);
-    // return user;
+
+    return { id: user.id, email: user.email };
   }
 }
