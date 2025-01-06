@@ -53,6 +53,7 @@ export class AuthController {
   // ** GOOGLE AUTHENTICATION *
   // **************************/
 
+  @Public() // ? décorateur @Public() pour ignorer le middleware d'authentification
   @UseGuards(GoogleAuthGuard)
   @Get('google/login')
   @ApiOperation({
@@ -61,7 +62,7 @@ export class AuthController {
   async googleLogin() {
     console.log(process.env.GOOGLE_CLIENT_SECRET);
   }
-
+  @Public() // ? décorateur @Public() pour ignorer le middleware d'authentification
   @UseGuards(GoogleAuthGuard)
   @Get('google/callback')
   async googleCallback(@Req() req, @Res() res) {
