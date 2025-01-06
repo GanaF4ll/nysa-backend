@@ -6,12 +6,15 @@ import {
   Patch,
   Param,
   Delete,
+  UseGuards,
+  Req,
 } from '@nestjs/common';
 import { EventService } from './event.service';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { ApiOperation } from '@nestjs/swagger';
 import { ImageService } from './image/image.service';
+import { AuthGuard } from 'src/auth/guards/auth.guard';
 
 @Controller('event')
 export class EventController {
@@ -21,11 +24,13 @@ export class EventController {
   ) {}
 
   @Post()
+  @UseGuards(AuthGuard)
   @ApiOperation({
     summary: 'Crée une ressource Event',
   })
-  create(@Body() createEventDto: CreateEventDto) {
-    return this.eventService.create(createEventDto);
+  create(@Req() request: Request, @Body() createEventDto: CreateEventDto) {
+    const creator_id = request['user'].id;
+    return this.eventService.create(creator_id, createEventDto);
   }
 
   @Get()

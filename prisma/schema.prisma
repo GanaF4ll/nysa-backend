@@ -98,7 +98,7 @@ model Event {
   max_participants Int
   visibility       Event_visibility @map("visibility")
   entry_fee        Float
-  view_count       Int
+  view_count       Int?             @default(0)
   created_at       DateTime         @default(now())
   updated_at       DateTime         @updatedAt
   // relation One to Many, un évènement peut avoir plusieurs participants

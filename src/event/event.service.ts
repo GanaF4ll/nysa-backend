@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Injectable,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
@@ -12,14 +13,18 @@ import { UserService } from 'src/user/user.service';
 export class EventService {
   constructor(private prismaService: PrismaService) {}
 
-  async create(createEventDto: CreateEventDto) {
-    const { creator_id, date, ...data } = createEventDto;
+  async create(creator_id, createEventDto: CreateEventDto) {
+    const { date, ...data } = createEventDto;
     const existingUser = await this.prismaService.user.findUnique({
       where: { id: creator_id },
     });
 
     if (!existingUser) {
       throw new NotFoundException('User not found');
+    }
+
+    if (existingUser.active !== true) {
+      throw new UnauthorizedException('User is not active');
     }
 
     const eventDate = new Date(date);
