@@ -9,7 +9,7 @@ import {
   Validate,
   MinLength,
 } from 'class-validator';
-import { IsStrongPassword } from 'src/password.validator';
+import { IsStrongPassword } from 'src/user/password.validator';
 import { Sex } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
 

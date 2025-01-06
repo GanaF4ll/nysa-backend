@@ -10,7 +10,7 @@ import {
 } from 'class-validator';
 import { Sex } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsStrongPassword } from 'src/password.validator';
+import { IsStrongPassword } from 'src/user/password.validator';
 
 export class CreateOrganisationDto {
   @IsEmail()

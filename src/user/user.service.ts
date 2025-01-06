@@ -154,7 +154,11 @@ export class UserService {
       },
     });
 
-    return updatedUser;
+    if (updatedUser) {
+      ('User updated successfully');
+    } else {
+      throw new BadRequestException('User not updated');
+    }
   }
 
   async deactivate(id: string) {

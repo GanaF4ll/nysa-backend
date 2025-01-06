@@ -62,13 +62,9 @@ export class ConversationService {
       });
     }
 
-    return {
-      newConversation,
-      status: 'success',
-      message: 'Conversation created',
-    };
+    return 'Conversation created';
   }
-
+  //  TODO: finir service conversation
   findAll() {
     return `This action returns all conversation`;
   }

@@ -1,5 +1,5 @@
 import { IsEmail, MinLength, Validate } from 'class-validator';
-import { IsStrongPassword } from 'src/password.validator';
+import { IsStrongPassword } from 'src/user/password.validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class LoginDto {

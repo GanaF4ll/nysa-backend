@@ -41,7 +41,11 @@ export class EventService {
       },
     });
 
-    return newEvent;
+    if (newEvent) {
+      return 'Event created successfully';
+    }
+
+    throw new BadRequestException('Event not created');
   }
 
   async findAll() {
@@ -95,7 +99,11 @@ export class EventService {
       where: { id },
     });
 
-    return updatedEvent;
+    if (updatedEvent) {
+      return 'Event updated successfully';
+    } else {
+      throw new BadRequestException('Event not updated');
+    }
   }
 
   // async disableEvent(id: string) {
