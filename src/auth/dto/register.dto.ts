@@ -6,6 +6,7 @@ import { CreateUserDto } from 'src/user/dto/create-user.dto';
 import { CreateOrganisationDto } from 'src/user/dto/create-organisation.dto';
 
 export class RegisterUserDto {
+  @IsEnum(User_type)
   @ApiProperty({
     enum: User_type,
     description: "Le type de l'utilisateur",
