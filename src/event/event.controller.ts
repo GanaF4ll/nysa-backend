@@ -24,7 +24,6 @@ export class EventController {
   ) {}
 
   @Post()
-  @UseGuards(AuthGuard)
   @ApiOperation({
     summary: 'Crée une ressource Event',
   })

@@ -23,7 +23,6 @@ export class ConversationController {
   constructor(private readonly conversationService: ConversationService) {}
   private readonly logger = new Logger(ConversationController.name);
 
-  @UseGuards(AuthGuard)
   @Post()
   @UsePipes(new ValidationPipe({ transform: true }))
   @ApiOperation({

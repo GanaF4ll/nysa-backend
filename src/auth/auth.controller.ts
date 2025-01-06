@@ -14,12 +14,13 @@ import { RegisterUserDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { GoogleAuthGuard } from './guards/google-auth.guard';
 import { AuthGuard } from './guards/auth.guard';
-import { cpSync } from 'fs';
+import { Public } from './decorators/public.decorator';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  @Public()
   @Post('register')
   @ApiOperation({ summary: 'Créer un compte utilisateur ou organisation' })
   @ApiBody({ type: RegisterUserDto })
@@ -27,6 +28,7 @@ export class AuthController {
     return this.authService.register(registerDto);
   }
 
+  @Public()
   @Post('/login')
   @ApiOperation({
     summary: "Permet à l'utilisateur de se connecter",
@@ -35,7 +37,6 @@ export class AuthController {
     return this.authService.login(loginDto);
   }
 
-  @UseGuards(AuthGuard)
   @Get('verify')
   @ApiOperation({
     summary: 'Vérifie la validité du token & du compte user',
@@ -70,7 +71,7 @@ export class AuthController {
       }
 
       const response = await this.authService.googleLogin(req.user.id);
-      // !! changer l'addresse de redirection pour le front
+      // !! changerS l'addresse de redirection pour le front
       return res.redirect(
         `http://localhost:3000?token=${response.access_token}`,
       );
