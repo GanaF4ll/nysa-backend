@@ -34,14 +34,14 @@ export class EventController {
 
   @Get()
   async findAll(@Query() eventFilterDto: EventFilterDto) {
-    const { page = 1, limit = 10, ...filters } = eventFilterDto;
+    const { offset = 1, limit = 10, ...filters } = eventFilterDto;
 
-    const skip = (page - 1) * limit;
+    const skip = (offset - 1) * limit;
     const where = this.buildWhereClause(filters);
 
     return this.eventService.findAll({
-      page,
-      take: limit,
+      offset: skip,
+      limit,
       where,
       orderBy: {
         date: 'asc',

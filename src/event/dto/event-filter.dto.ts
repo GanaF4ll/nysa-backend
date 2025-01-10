@@ -14,8 +14,8 @@ export class EventFilterDto {
   @IsOptional()
   @Type(() => Number)
   @IsInt()
-  @Min(1)
-  page?: number;
+  @Min(0)
+  offset?: number;
 
   @IsOptional()
   @Type(() => Number)
