@@ -6,7 +6,6 @@ import {
   Patch,
   Param,
   Delete,
-  UseGuards,
   Req,
   Query,
 } from '@nestjs/common';
@@ -15,7 +14,6 @@ import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { ApiOperation } from '@nestjs/swagger';
 import { ImageService } from './image/image.service';
-import { AuthGuard } from 'src/auth/guards/auth.guard';
 import { EventFilterDto } from './dto/event-filter.dto';
 
 @Controller('event')

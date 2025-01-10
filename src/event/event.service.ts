@@ -7,10 +7,8 @@ import {
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { PrismaService } from 'src/db/prisma.service';
-import { UserService } from 'src/user/user.service';
-import { EventFilterDto } from './dto/event-filter.dto';
 import { PaginatedResponse } from 'src/interface/paginated-response';
-import { Prisma, Event as PrismaEvent } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class EventService {
