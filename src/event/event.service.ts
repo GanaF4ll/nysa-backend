@@ -52,20 +52,42 @@ export class EventService {
   }
 
   async findAll(params: {
-    skip?: number;
+    page?: number;
     take?: number;
     cursor?: Prisma.EventWhereUniqueInput;
     where?: Prisma.EventWhereInput;
     orderBy?: Prisma.EventOrderByWithRelationInput;
-  }): Promise<PrismaEvent[]> {
-    const { skip, take, cursor, where, orderBy } = params;
-    return this.prismaService.event.findMany({
-      skip,
-      take,
-      cursor,
-      where,
-      orderBy,
-    });
+  }): Promise<PaginatedResponse<Event>> {
+    const { page = 1, take = 10, cursor, where, orderBy } = params;
+
+    // Calculer le skip basé sur la page
+    const skip = (page - 1) * take;
+
+    // Récupérer les données avec pagination
+    const [data, total] = await Promise.all([
+      this.prismaService.event.findMany({
+        skip,
+        take,
+        cursor,
+        where,
+        orderBy,
+      }),
+      this.prismaService.event.count({ where }),
+    ]);
+
+    const lastPage = Math.ceil(total / take);
+
+    const hasNextPage = page < lastPage;
+
+    return {
+      data,
+      meta: {
+        total,
+        page,
+        lastPage,
+        hasNextPage,
+      },
+    };
   }
 
   async findOne(id: string) {

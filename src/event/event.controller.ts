@@ -42,7 +42,7 @@ export class EventController {
     const where = this.buildWhereClause(filters);
 
     return this.eventService.findAll({
-      skip,
+      page,
       take: limit,
       where,
       orderBy: {
