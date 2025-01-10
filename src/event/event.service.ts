@@ -8,6 +8,9 @@ import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { PrismaService } from 'src/db/prisma.service';
 import { UserService } from 'src/user/user.service';
+import { EventFilterDto } from './dto/event-filter.dto';
+import { PaginatedResponse } from 'src/interface/paginated-response';
+import { Prisma, Event as PrismaEvent } from '@prisma/client';
 
 @Injectable()
 export class EventService {
@@ -48,14 +51,21 @@ export class EventService {
     throw new BadRequestException('Event not created');
   }
 
-  async findAll() {
-    const events = this.prismaService.event.findMany();
-
-    if (!events) {
-      throw new NotFoundException('No events found');
-    }
-
-    return events;
+  async findAll(params: {
+    skip?: number;
+    take?: number;
+    cursor?: Prisma.EventWhereUniqueInput;
+    where?: Prisma.EventWhereInput;
+    orderBy?: Prisma.EventOrderByWithRelationInput;
+  }): Promise<PrismaEvent[]> {
+    const { skip, take, cursor, where, orderBy } = params;
+    return this.prismaService.event.findMany({
+      skip,
+      take,
+      cursor,
+      where,
+      orderBy,
+    });
   }
 
   async findOne(id: string) {
