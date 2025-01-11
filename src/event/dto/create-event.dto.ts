@@ -11,14 +11,6 @@ import { Event_visibility } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateEventDto {
-  // @IsString()
-  // @ApiProperty({
-  //   type: String,
-  //   description: "ID du créateur de l'événement",
-  //   example: 'cm48rr8fv0000ublpox84yv1y',
-  // })
-  // readonly creator_id: string;
-
   @IsString()
   @ApiProperty({
     type: String,

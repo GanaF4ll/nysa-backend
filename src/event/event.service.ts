@@ -55,9 +55,80 @@ export class EventService {
     cursor?: Prisma.EventWhereUniqueInput;
     where?: Prisma.EventWhereInput;
     orderBy?: Prisma.EventOrderByWithRelationInput;
+    latitude?: number;
+    longitude?: number;
+    maxDistance?: number; // en mètres
   }): Promise<PaginatedResponse<Event>> {
-    const { offset = 0, limit = 10, cursor, where, orderBy } = params;
+    const {
+      offset = 0,
+      limit = 10,
+      cursor,
+      where,
+      orderBy,
+      latitude,
+      longitude,
+      maxDistance,
+    } = params;
 
+    if (latitude && longitude && maxDistance) {
+      const whereClause = where
+        ? sql`AND (${sql.join(
+            Object.keys(where).map(
+              (key) => sql`${sql.raw(`"${key}"`)} = ${where[key]}`,
+            ),
+            sql` AND `,
+          )})`
+        : sql``;
+
+      const events = await this.prismaService.$queryRaw<Event[]>(sql`
+        SELECT *, 
+               ST_DistanceSphere(
+                 ST_MakePoint(longitude, latitude), 
+                 ST_MakePoint(${longitude}, ${latitude})
+               ) AS distance
+        FROM "Event"
+        WHERE 1 = 1
+          ${whereClause}
+          AND ST_DistanceSphere(
+                ST_MakePoint(longitude, latitude), 
+                ST_MakePoint(${longitude}, ${latitude})
+              ) <= ${maxDistance}
+        ORDER BY ${orderBy ? sql`${sql.raw(`"${Object.keys(orderBy)[0]}"`)} ${sql.raw(Object.values(orderBy)[0])}` : sql`distance`}
+        LIMIT ${limit}
+        OFFSET ${offset}
+      `);
+
+      const totalResult = await this.prismaService.$queryRaw<
+        { count: number }[]
+      >(sql`
+        SELECT COUNT(*) AS count
+        FROM "Event"
+        WHERE 1 = 1
+          ${whereClause}
+          AND ST_DistanceSphere(
+                ST_MakePoint(longitude, latitude), 
+                ST_MakePoint(${longitude}, ${latitude})
+              ) <= ${maxDistance}
+      `);
+
+      const total = totalResult[0]?.count || 0;
+
+      const currentPage = Math.floor(offset / limit) + 1;
+      const lastPage = Math.ceil(total / limit);
+      const hasNextPage = offset + limit < total;
+
+      return {
+        data: events,
+        meta: {
+          total,
+          page: currentPage,
+          lastPage,
+          hasNextPage,
+        },
+      };
+    }
+
+    // Cas sans filtre géographique
     const [data, total] = await Promise.all([
       this.prismaService.event.findMany({
         skip: offset,
@@ -97,6 +168,10 @@ export class EventService {
     const creator = await this.prismaService.user.findUnique({
       where: { id: creator_id },
     });
+
+    if (!creator) {
+      throw new NotFoundException(`User with id ${creator_id} not found`);
+    }
 
     const events = this.prismaService.event.findMany({ where: { creator_id } });
 

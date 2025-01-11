@@ -34,7 +34,14 @@ export class EventController {
 
   @Get()
   async findAll(@Query() eventFilterDto: EventFilterDto) {
-    const { offset = 1, limit = 10, ...filters } = eventFilterDto;
+    const {
+      offset = 1,
+      limit = 10,
+      latitude,
+      longitude,
+      maxDistance,
+      ...filters
+    } = eventFilterDto;
 
     const skip = (offset - 1) * limit;
     const where = this.buildWhereClause(filters);
@@ -46,6 +53,9 @@ export class EventController {
       orderBy: {
         date: 'asc',
       },
+      latitude,
+      longitude,
+      maxDistance,
     });
   }
 
