@@ -18,7 +18,9 @@ services:
       - postgres
 
   postgres:
-    image: postgis/postgis:17-3.5-alpine
+    build:
+      context: .
+      dockerfile: docker/postgres/Dockerfile
     ports:
       - '5432:5432'
     environment:
