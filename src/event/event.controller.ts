@@ -6,15 +6,15 @@ import {
   Patch,
   Param,
   Delete,
-  UseGuards,
   Req,
+  Query,
 } from '@nestjs/common';
 import { EventService } from './event.service';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { ApiOperation } from '@nestjs/swagger';
 import { ImageService } from './image/image.service';
-import { AuthGuard } from 'src/auth/guards/auth.guard';
+import { EventFilterDto } from './dto/event-filter.dto';
 
 @Controller('event')
 export class EventController {
@@ -33,11 +33,30 @@ export class EventController {
   }
 
   @Get()
-  @ApiOperation({
-    summary: 'Retourne toutes les ressources Event',
-  })
-  findAll() {
-    return this.eventService.findAll();
+  async findAll(@Query() eventFilterDto: EventFilterDto) {
+    const {
+      offset = 1,
+      limit = 10,
+      latitude,
+      longitude,
+      maxDistance,
+      ...filters
+    } = eventFilterDto;
+
+    const skip = (offset - 1) * limit;
+    const where = this.buildWhereClause(filters);
+
+    return this.eventService.findAll({
+      offset: skip,
+      limit,
+      where,
+      orderBy: {
+        date: 'asc',
+      },
+      latitude,
+      longitude,
+      maxDistance,
+    });
   }
 
   @Get(':id')
@@ -106,5 +125,50 @@ export class EventController {
   })
   deleteImage(@Param('image_id') image_id: string) {
     return this.imageService.delete(image_id);
+  }
+
+  /**
+   * @description Builds the where clause for the query
+   * @param filters
+   * @returns where clause
+   */
+  private buildWhereClause(filters: Partial<EventFilterDto>) {
+    const where: any = {};
+
+    if (filters.title) {
+      where.title = {
+        contains: filters.title,
+        mode: 'insensitive',
+      };
+    }
+
+    if (filters.dateFrom || filters.dateTo) {
+      where.date = {};
+      if (filters.dateFrom) {
+        where.date.gte = filters.dateFrom;
+      }
+      if (filters.dateTo) {
+        where.date.lte = filters.dateTo;
+      }
+    }
+
+    if (filters.visibility) {
+      where.visibility = filters.visibility;
+    }
+
+    if (filters.maxEntryFee) {
+      where.entry_fee = {
+        lte: filters.maxEntryFee,
+      };
+    }
+
+    if (filters.address) {
+      where.address = {
+        contains: filters.address,
+        mode: 'insensitive',
+      };
+    }
+
+    return where;
   }
 }

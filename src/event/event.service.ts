@@ -8,6 +8,8 @@ import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { PrismaService } from 'src/db/prisma.service';
 import { ResponseType } from 'src/interfaces/response-type';
+import { PaginatedResponse } from 'src/interface/paginated-response';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class EventService {
@@ -58,14 +60,111 @@ export class EventService {
     throw new BadRequestException('Event not created');
   }
 
-  async findAll(): Promise<ResponseType> {
-    const events = await this.prismaService.event.findMany();
 
-    if (!events) {
-      throw new NotFoundException('No events found');
+  async findAll(params: {
+    offset?: number;
+    limit?: number;
+    cursor?: Prisma.EventWhereUniqueInput;
+    where?: Prisma.EventWhereInput;
+    orderBy?: Prisma.EventOrderByWithRelationInput;
+    latitude?: number;
+    longitude?: number;
+    maxDistance?: number; // en mètres
+  }): Promise<PaginatedResponse<Event>> {
+    const {
+      offset = 0,
+      limit = 10,
+      cursor,
+      where,
+      orderBy,
+      latitude,
+      longitude,
+      maxDistance,
+    } = params;
+
+    if (latitude && longitude && maxDistance) {
+      const whereClause = where
+        ? sql`AND (${sql.join(
+            Object.keys(where).map(
+              (key) => sql`${sql.raw(`"${key}"`)} = ${where[key]}`,
+            ),
+            sql` AND `,
+          )})`
+        : sql``;
+
+      const events = await this.prismaService.$queryRaw<Event[]>(sql`
+        SELECT *, 
+               ST_DistanceSphere(
+                 ST_MakePoint(longitude, latitude), 
+                 ST_MakePoint(${longitude}, ${latitude})
+               ) AS distance
+        FROM "Event"
+        WHERE 1 = 1
+          ${whereClause}
+          AND ST_DistanceSphere(
+                ST_MakePoint(longitude, latitude), 
+                ST_MakePoint(${longitude}, ${latitude})
+              ) <= ${maxDistance}
+        ORDER BY ${orderBy ? sql`${sql.raw(`"${Object.keys(orderBy)[0]}"`)} ${sql.raw(Object.values(orderBy)[0])}` : sql`distance`}
+        LIMIT ${limit}
+        OFFSET ${offset}
+      `);
+
+      const totalResult = await this.prismaService.$queryRaw<
+        { count: number }[]
+      >(sql`
+        SELECT COUNT(*) AS count
+        FROM "Event"
+        WHERE 1 = 1
+          ${whereClause}
+          AND ST_DistanceSphere(
+                ST_MakePoint(longitude, latitude), 
+                ST_MakePoint(${longitude}, ${latitude})
+              ) <= ${maxDistance}
+      `);
+
+      const total = totalResult[0]?.count || 0;
+
+      const currentPage = Math.floor(offset / limit) + 1;
+      const lastPage = Math.ceil(total / limit);
+      const hasNextPage = offset + limit < total;
+
+      return {
+        data: events,
+        meta: {
+          total,
+          page: currentPage,
+          lastPage,
+          hasNextPage,
+        },
+      };
     }
 
-    return { message: 'Events found', data: events, status: 200 };
+    // Cas sans filtre géographique
+    const [data, total] = await Promise.all([
+      this.prismaService.event.findMany({
+        skip: offset,
+        take: limit,
+        cursor,
+        where,
+        orderBy,
+      }),
+      this.prismaService.event.count({ where }),
+    ]);
+
+    const currentPage = Math.floor(offset / limit) + 1;
+    const lastPage = Math.ceil(total / limit);
+    const hasNextPage = offset + limit < total;
+
+    return {
+      data,
+      meta: {
+        total,
+        page: currentPage,
+        lastPage,
+        hasNextPage,
+      },
+    };
   }
 
   async findOne(id: string): Promise<ResponseType> {
@@ -85,6 +184,7 @@ export class EventService {
     if (!creator) {
       throw new NotFoundException(`No user found with id ${creator_id}`);
     }
+
 
     const events = await this.prismaService.event.findMany({
       where: { creator_id },
