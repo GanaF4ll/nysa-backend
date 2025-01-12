@@ -175,10 +175,17 @@ export class UserService {
   }
 
   async update(id: string, updateUserDto: UpdateUserDto) {
+    const { email } = updateUserDto;
     const existingUser = await this.findOne(id);
 
     if (!existingUser) {
       throw new NotFoundException('User not found');
+    }
+
+    const emailExists = await this.findOneByEmail(email);
+
+    if (emailExists) {
+      throw new ConflictException('Email is already taken');
     }
 
     const updatedUser = await this.prismaService.user.update({
