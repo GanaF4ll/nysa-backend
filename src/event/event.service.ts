@@ -103,18 +103,47 @@ export class EventService {
     id: string,
     updateEventDto: UpdateEventDto,
   ): Promise<ResponseType> {
-    const existingEvent = await this.findOne(id);
+    const { start_time, end_time, ...data } = updateEventDto;
+    const existingEvent = await this.prismaService.event.findUnique({
+      where: { id },
+    });
+    const currentDate = new Date();
 
-    if (updateEventDto.date) {
-      const eventDate = new Date(updateEventDto.date);
-      const currentDate = new Date();
-      if (eventDate < currentDate) {
+    if (start_time && end_time) {
+      const eventStartTime = new Date(start_time);
+      const eventEndTime = new Date(end_time);
+
+      if (eventStartTime < currentDate) {
+        throw new BadRequestException('Event date cannot be in the past');
+      }
+
+      if (eventEndTime < eventStartTime) {
+        throw new BadRequestException('End time cannot be before start time');
+      }
+    }
+
+    if (start_time && !end_time) {
+      const eventStartTime = new Date(start_time);
+      if (eventStartTime < currentDate) {
         throw new BadRequestException('Event date cannot be in the past');
       }
     }
 
+    if (end_time && !start_time) {
+      const eventEndTime = new Date(end_time);
+      if (eventEndTime < currentDate) {
+        throw new BadRequestException('Event date cannot be in the past');
+      }
+
+      if (eventEndTime < existingEvent.start_time) {
+        throw new BadRequestException('End time cannot be before start time');
+      }
+    }
+
     const updatedEvent = await this.prismaService.event.update({
-      data: { ...updateEventDto },
+      data: {
+        ...updateEventDto,
+      },
       where: { id },
     });
 

@@ -25,16 +25,6 @@ export class UpdateEventDto extends PartialType(CreateEventDto) {
   readonly title?: string;
 
   @IsOptional()
-  @IsDateString()
-  @ApiProperty({
-    type: String,
-    description: "Date de l'évènement, sous format string",
-    example: '01/01/2025',
-    required: false,
-  })
-  readonly date?: string;
-
-  @IsOptional()
   @IsString()
   @ApiProperty({
     type: String,

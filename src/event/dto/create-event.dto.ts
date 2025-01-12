@@ -28,15 +28,6 @@ export class CreateEventDto {
   })
   readonly title: string;
 
-  // @IsDateString()
-  // @ApiProperty({
-  //   type: String,
-  //   description:
-  //     "Date de l'évènement, sous format string, conversion en format date faite dans le service",
-  //   example: '01/01/2025',
-  // })
-  // readonly date: string;
-
   @IsString()
   @ApiProperty({
     type: String,
