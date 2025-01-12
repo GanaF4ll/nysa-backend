@@ -158,17 +158,6 @@ export class EventService {
     }
   }
 
-  // async disableEvent(id: string) {
-  //   const existingEvent = await this.findOne(id);
-
-  //   const disabledEvent = await this.prismaService.event.update({
-  //     data: { active: false },
-  //     where: { id },
-  //   });
-
-  //   return disabledEvent;
-  // }
-
   async remove(id: string): Promise<ResponseType> {
     const existingEvent = await this.findOne(id);
 
