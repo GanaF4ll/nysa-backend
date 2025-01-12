@@ -11,6 +11,7 @@ import { PrismaService } from 'src/db/prisma.service';
 import * as argon2 from 'argon2';
 import { CreateOrganisationDto } from './dto/create-organisation.dto';
 import { CreateGoogleUserDto } from './dto/create-google-user.dto';
+import { UpdatePasswordDto } from './dto/update-password.dto';
 
 @Injectable()
 export class UserService {
@@ -178,10 +179,6 @@ export class UserService {
     const { email } = updateUserDto;
     const existingUser = await this.findOne(id);
 
-    if (!existingUser) {
-      throw new NotFoundException('User not found');
-    }
-
     const emailExists = await this.findOneByEmail(email);
 
     if (emailExists) {
@@ -192,6 +189,37 @@ export class UserService {
       where: { id },
       data: {
         ...updateUserDto,
+      },
+    });
+
+    if (updatedUser) {
+      ('User updated successfully');
+    } else {
+      throw new BadRequestException('User not updated');
+    }
+  }
+
+  async updatePassword(id: string, updatePasswordDto: UpdatePasswordDto) {
+    const { oldPassword, newPassword } = updatePasswordDto;
+    const existingUser = await this.prismaService.user.findUnique({
+      where: { id },
+    });
+
+    const isPasswordValid = await argon2.verify(
+      existingUser.password,
+      oldPassword,
+    );
+
+    if (!isPasswordValid) {
+      throw new BadRequestException('Invalid credentials');
+    }
+
+    const hashedPassword = await argon2.hash(newPassword);
+
+    const updatedUser = await this.prismaService.user.update({
+      where: { id },
+      data: {
+        password: hashedPassword,
       },
     });
 

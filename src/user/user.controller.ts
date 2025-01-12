@@ -14,6 +14,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
 import { ApiOperation } from '@nestjs/swagger';
 import { CreateGoogleUserDto } from './dto/create-google-user.dto';
+import { UpdatePasswordDto } from './dto/update-password.dto';
 
 @Controller('user')
 export class UserController {
@@ -57,7 +58,6 @@ export class UserController {
     return this.userService.findOneByEmail(email);
   }
 
-  @UseGuards(AuthGuard)
   @Patch('/update')
   @ApiOperation({
     summary:
@@ -66,6 +66,19 @@ export class UserController {
   update(@Req() request: Request, @Body() updateUserDto: UpdateUserDto) {
     const id = request['user'].id;
     return this.userService.update(id, updateUserDto);
+  }
+
+  @Patch('/update-password')
+  @ApiOperation({
+    summary:
+      "Met à jour le mot de passe d'un utilisateur, seul l'utilisateur authentifié peut le faire",
+  })
+  updatePassword(
+    @Req() request: Request,
+    @Body() updatePasswordDto: UpdatePasswordDto,
+  ) {
+    const id = request['user'].id;
+    return this.userService.updatePassword(id, updatePasswordDto);
   }
 
   @Patch('/deactivate')
