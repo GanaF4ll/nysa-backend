@@ -193,7 +193,7 @@ export class UserService {
     });
 
     if (updatedUser) {
-      ('User updated successfully');
+      return { message: 'User updated successfully' };
     } else {
       throw new BadRequestException('User not updated');
     }
@@ -224,7 +224,7 @@ export class UserService {
     });
 
     if (updatedUser) {
-      ('User updated successfully');
+      return { message: 'User password updated successfully' };
     } else {
       throw new BadRequestException('User not updated');
     }
