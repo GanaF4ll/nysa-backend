@@ -17,7 +17,7 @@ export class EventService {
     creator_id,
     createEventDto: CreateEventDto,
   ): Promise<ResponseType> {
-    const { date, ...data } = createEventDto;
+    const { start_time, end_time, ...data } = createEventDto;
     const existingUser = await this.prismaService.user.findUnique({
       where: { id: creator_id },
     });
@@ -30,16 +30,23 @@ export class EventService {
       throw new UnauthorizedException('User is not active');
     }
 
-    const eventDate = new Date(date);
+    const eventStartTime = new Date(start_time);
+    const eventEndTime = new Date(end_time);
+
     const currentDate = new Date();
-    if (eventDate < currentDate) {
+    if (eventStartTime < currentDate) {
       throw new BadRequestException('Event date cannot be in the past');
+    }
+
+    if (eventEndTime < eventStartTime) {
+      throw new BadRequestException('End time cannot be before start time');
     }
 
     const newEvent = await this.prismaService.event.create({
       data: {
         creator_id,
-        date: eventDate.toISOString(),
+        start_time: eventStartTime.toISOString(),
+        end_time: eventEndTime.toISOString(),
         ...data,
       },
     });

@@ -8,6 +8,7 @@ import {
   IsDateString,
   Min,
   Max,
+  IsNotEmpty,
 } from 'class-validator';
 import { Event_visibility } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
@@ -68,6 +69,24 @@ export class UpdateEventDto extends PartialType(CreateEventDto) {
     required: false,
   })
   readonly longitude?: number;
+
+  @IsOptional()
+  @IsDateString()
+  @ApiProperty({
+    type: String,
+    description: "Date de début de l'évènement",
+    example: '01/01/2000',
+  })
+  readonly start_time?: string;
+
+  @IsOptional()
+  @IsDateString()
+  @ApiProperty({
+    type: String,
+    description: "Date de début de l'évènement",
+    example: '01/01/2000',
+  })
+  readonly end_time?: string;
 
   @IsOptional()
   @IsNumber()

@@ -8,6 +8,7 @@ import {
   IsOptional,
   IsEnum,
   IsBoolean,
+  IsDateString,
 } from 'class-validator';
 import { Sex } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
@@ -42,7 +43,7 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
   })
   lastname?: string;
 
-  @IsString()
+  @IsDateString()
   @IsOptional()
   @ApiProperty({
     type: String,

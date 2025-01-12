@@ -88,21 +88,18 @@ model Event {
   creator_id       String
   title            String
   description      String
-  date             DateTime         @db.Timestamp()
-  // image_url   String  pour avoir une cover image 
   address          String
-  // type POINT pas supporté par Prisma, on utilise deux champs pour stocker la latitude et la longitude ?
   latitude         Float
   longitude        Float
+  start_time       DateTime         @db.Timestamp()
+  end_time         DateTime         @db.Timestamp()
   max_participants Int
   visibility       Event_visibility @map("visibility")
   entry_fee        Float
   view_count       Int?             @default(0)
   created_at       DateTime         @default(now())
   updated_at       DateTime         @updatedAt
-  // relation One to Many, un évènement peut avoir plusieurs participants
   Event_member     Event_member[]
-  // Conversation     Conversation?
   Event_images     Event_images[]
   user             User             @relation(fields: [creator_id], references: [id])
 }

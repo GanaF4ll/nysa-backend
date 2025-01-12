@@ -9,6 +9,7 @@ import {
   Validate,
   MinLength,
   IsAlpha,
+  IsDateString,
 } from 'class-validator';
 import { IsStrongPassword } from 'src/user/password.validator';
 import { Sex } from '@prisma/client';
@@ -50,8 +51,7 @@ export class CreateUserDto {
   })
   readonly lastname: string;
 
-  @IsString()
-  @IsNotEmpty()
+  @IsDateString()
   @IsOptional()
   @ApiProperty({
     type: String,
