@@ -36,7 +36,7 @@ export class AuthService {
     } else {
       throw new BadRequestException('Invalid user type');
     }
-    const payload = { email: newUser.email, id: newUser.id };
+    const payload = { id: newUser.id };
 
     return {
       access_token: this.jwt.sign(payload),
@@ -45,7 +45,8 @@ export class AuthService {
 
   async login(loginDto: LoginDto) {
     const { email, password } = loginDto;
-    const user = await this.userService.findOneByEmail(email);
+    const formattedEmail = email.toLowerCase();
+    const user = await this.userService.findOneByEmail(formattedEmail);
     if (!user) {
       throw new NotFoundException('User not found');
     }
@@ -53,7 +54,7 @@ export class AuthService {
     if (!isPasswordValid) {
       throw new BadRequestException('Invalid credentials');
     }
-    const payload = { email: user.email, id: user.id };
+    const payload = { id: user.id };
     return {
       access_token: this.jwt.sign(payload),
     };
@@ -79,7 +80,7 @@ export class AuthService {
     if (!user) {
       throw new NotFoundException('User not found');
     }
-    const payload = { email: user.email, id: user.id };
+    const payload = { id: user.id };
     const token = this.jwt.sign(payload);
     return { access_token: token };
   }
