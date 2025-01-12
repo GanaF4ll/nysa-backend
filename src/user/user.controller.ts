@@ -32,7 +32,6 @@ export class UserController {
     return this.userService.findAll();
   }
 
-  @UseGuards(AuthGuard)
   @Get(':id')
   @ApiOperation({
     summary: 'Récupère un utilisateur grâce à son id',
@@ -41,7 +40,6 @@ export class UserController {
     return this.userService.findOne(id);
   }
 
-  @UseGuards(AuthGuard)
   @Get('/')
   @ApiOperation({
     summary: 'Récupère un utilisateur grâce à son token',
@@ -51,7 +49,6 @@ export class UserController {
     return this.userService.findOne(id);
   }
 
-  @UseGuards(AuthGuard)
   @Get('/email')
   @ApiOperation({
     summary: 'Récupère un utilisateur grâce à son email',
@@ -71,7 +68,6 @@ export class UserController {
     return this.userService.update(id, updateUserDto);
   }
 
-  @UseGuards(AuthGuard)
   @Patch('/deactivate')
   @ApiOperation({
     summary:
@@ -82,7 +78,6 @@ export class UserController {
     return this.userService.deactivate(id);
   }
 
-  @UseGuards(AuthGuard)
   @Delete('/delete')
   @ApiOperation({
     summary:

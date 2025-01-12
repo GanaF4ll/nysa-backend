@@ -17,9 +17,13 @@ export class UserService {
   constructor(private readonly prismaService: PrismaService) {}
 
   async createUser(createUserDto: CreateUserDto) {
-    const { email, password } = createUserDto;
+    const { email, password, firstname, lastname } = createUserDto;
+    const formattedFirst =
+      firstname.charAt(0).toUpperCase() + firstname.slice(1);
+    const formattedLast = lastname.charAt(0).toUpperCase() + lastname.slice(1);
+    const formattedEmail = email.toLowerCase();
     const existingUser = await this.prismaService.user.findUnique({
-      where: { email },
+      where: { email: formattedEmail },
     });
 
     if (existingUser) {
@@ -29,10 +33,10 @@ export class UserService {
 
     const newUser = await this.prismaService.user.create({
       data: {
-        email: createUserDto.email,
+        email: formattedEmail,
         password: hashedPassword,
-        firstname: createUserDto.firstname,
-        lastname: createUserDto.lastname,
+        firstname: formattedFirst,
+        lastname: formattedLast,
         birthdate: new Date(createUserDto.birthdate),
         sex: createUserDto.sex,
         phone: createUserDto.phone,
@@ -47,8 +51,9 @@ export class UserService {
 
   async createOrganisation(createOrganisationDto: CreateOrganisationDto) {
     const { email, password } = createOrganisationDto;
+    const formattedEmail = email.toLowerCase();
     const existingOrganisation = await this.prismaService.user.findUnique({
-      where: { email },
+      where: { email: formattedEmail },
     });
     if (existingOrganisation) {
       throw new ConflictException('User already exists');
@@ -56,15 +61,14 @@ export class UserService {
     const hashedPassword = await argon2.hash(password);
     const newOrganisation = await this.prismaService.user.create({
       data: {
-        // Ajout de 'data'
-        email: createOrganisationDto.email,
+        email: formattedEmail,
         password: hashedPassword,
         name: createOrganisationDto.name,
         phone: createOrganisationDto.phone,
         image_url: createOrganisationDto.image_url,
         bio: createOrganisationDto.bio,
         city: createOrganisationDto.city,
-        type: 'ORGANISATION', // Vous voudrez probablement définir le type aussi
+        type: 'ORGANISATION',
       },
     });
     return newOrganisation;
@@ -105,7 +109,25 @@ export class UserService {
   }
 
   async findAll() {
-    const users = await this.prismaService.user.findMany();
+    const users = await this.prismaService.user.findMany({
+      select: {
+        id: true,
+        type: true,
+        email: true,
+        firstname: true,
+        lastname: true,
+        name: true,
+        birthdate: true,
+        sex: true,
+        phone: true,
+        image_url: true,
+        bio: true,
+        provider: true,
+        active: true,
+        updated_at: true,
+        created_at: true,
+      },
+    });
 
     if (!users) throw new NotFoundException('No users found');
 
