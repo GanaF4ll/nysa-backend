@@ -100,13 +100,13 @@ export class CreateUserDto {
   })
   readonly bio?: string;
 
-  @IsString()
-  @IsOptional()
-  @ApiProperty({
-    type: String,
-    description: "Ville de l'utilisateur",
-    example: 'Paris',
-    required: false,
-  })
-  readonly city?: string;
+  // @IsString()
+  // @IsOptional()
+  // @ApiProperty({
+  //   type: String,
+  //   description: "Ville de l'utilisateur",
+  //   example: 'Paris',
+  //   required: false,
+  // })
+  // readonly city?: string;
 }

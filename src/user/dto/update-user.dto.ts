@@ -92,16 +92,6 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
   })
   bio?: string;
 
-  @IsString()
-  @IsOptional()
-  @ApiProperty({
-    type: String,
-    description: "Ville de l'utilisateur",
-    example: 'Paris',
-    required: false,
-  })
-  city?: string;
-
   @IsOptional()
   @IsBoolean()
   @ApiProperty({

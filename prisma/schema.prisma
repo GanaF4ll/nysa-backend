@@ -71,7 +71,6 @@ model User {
   phone      String?
   image_url  String?
   bio        String?
-  city       String?
   provider   Provider  @default(NYSA)
   active     Boolean   @default(true)
   created_at DateTime  @default(now())

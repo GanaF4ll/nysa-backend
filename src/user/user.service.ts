@@ -42,7 +42,6 @@ export class UserService {
         phone: createUserDto.phone,
         image_url: createUserDto.image_url,
         bio: createUserDto.bio,
-        city: createUserDto.city,
       },
     });
 
@@ -67,7 +66,6 @@ export class UserService {
         phone: createOrganisationDto.phone,
         image_url: createOrganisationDto.image_url,
         bio: createOrganisationDto.bio,
-        city: createOrganisationDto.city,
         type: 'ORGANISATION',
       },
     });
