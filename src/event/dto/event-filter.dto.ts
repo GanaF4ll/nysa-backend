@@ -24,18 +24,14 @@ export class EventFilterDto {
   limit?: number;
 
   @IsOptional()
-  @IsString()
-  title?: string;
+  @Transform(({ value }) => new Date(value))
+  @IsDate()
+  minStart?: Date;
 
   @IsOptional()
   @Transform(({ value }) => new Date(value))
   @IsDate()
-  dateFrom?: Date;
-
-  @IsOptional()
-  @Transform(({ value }) => new Date(value))
-  @IsDate()
-  dateTo?: Date;
+  maxStart?: Date;
 
   @IsOptional()
   @IsEnum(Event_visibility)
@@ -47,8 +43,9 @@ export class EventFilterDto {
   maxEntryFee?: number;
 
   @IsOptional()
-  @IsString()
-  address?: string;
+  @Type(() => Number)
+  @IsNumber()
+  minEntryFee?: number;
 
   @IsOptional()
   @Type(() => Number)

@@ -8,8 +8,8 @@ import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { PrismaService } from 'src/db/prisma.service';
 import { ResponseType } from 'src/interfaces/response-type';
-import { PaginatedResponse } from 'src/interface/paginated-response';
 import { Prisma } from '@prisma/client';
+import { EventFilterDto } from './dto/event-filter.dto';
 
 @Injectable()
 export class EventService {
@@ -60,110 +60,87 @@ export class EventService {
     throw new BadRequestException('Event not created');
   }
 
-
-  async findAll(params: {
-    offset?: number;
-    limit?: number;
-    cursor?: Prisma.EventWhereUniqueInput;
-    where?: Prisma.EventWhereInput;
-    orderBy?: Prisma.EventOrderByWithRelationInput;
-    latitude?: number;
-    longitude?: number;
-    maxDistance?: number; // en mètres
-  }): Promise<PaginatedResponse<Event>> {
+  async findAll(filters: EventFilterDto): Promise<{
+    events: Event[];
+    total: number;
+    limit: number;
+    offset: number;
+  }> {
     const {
       offset = 0,
       limit = 10,
-      cursor,
-      where,
-      orderBy,
+      minStart,
+      maxStart,
+      visibility,
+      minEntryFee,
+      maxEntryFee,
       latitude,
       longitude,
       maxDistance,
-    } = params;
+    } = filters;
 
-    if (latitude && longitude && maxDistance) {
-      const whereClause = where
-        ? sql`AND (${sql.join(
-            Object.keys(where).map(
-              (key) => sql`${sql.raw(`"${key}"`)} = ${where[key]}`,
-            ),
-            sql` AND `,
-          )})`
-        : sql``;
+    let whereConditions = Prisma.sql`WHERE 1=1`;
+    let distanceSelect = Prisma.sql``;
+    let orderBy = Prisma.sql`ORDER BY start_time ASC`;
 
-      const events = await this.prismaService.$queryRaw<Event[]>(sql`
-        SELECT *, 
-               ST_DistanceSphere(
-                 ST_MakePoint(longitude, latitude), 
-                 ST_MakePoint(${longitude}, ${latitude})
-               ) AS distance
-        FROM "Event"
-        WHERE 1 = 1
-          ${whereClause}
-          AND ST_DistanceSphere(
-                ST_MakePoint(longitude, latitude), 
-                ST_MakePoint(${longitude}, ${latitude})
-              ) <= ${maxDistance}
-        ORDER BY ${orderBy ? sql`${sql.raw(`"${Object.keys(orderBy)[0]}"`)} ${sql.raw(Object.values(orderBy)[0])}` : sql`distance`}
-        LIMIT ${limit}
-        OFFSET ${offset}
-      `);
-
-      const totalResult = await this.prismaService.$queryRaw<
-        { count: number }[]
-      >(sql`
-        SELECT COUNT(*) AS count
-        FROM "Event"
-        WHERE 1 = 1
-          ${whereClause}
-          AND ST_DistanceSphere(
-                ST_MakePoint(longitude, latitude), 
-                ST_MakePoint(${longitude}, ${latitude})
-              ) <= ${maxDistance}
-      `);
-
-      const total = totalResult[0]?.count || 0;
-
-      const currentPage = Math.floor(offset / limit) + 1;
-      const lastPage = Math.ceil(total / limit);
-      const hasNextPage = offset + limit < total;
-
-      return {
-        data: events,
-        meta: {
-          total,
-          page: currentPage,
-          lastPage,
-          hasNextPage,
-        },
-      };
+    if (minStart) {
+      whereConditions = Prisma.sql`${whereConditions} AND start_time >= ${minStart}`;
     }
 
-    // Cas sans filtre géographique
-    const [data, total] = await Promise.all([
-      this.prismaService.event.findMany({
-        skip: offset,
-        take: limit,
-        cursor,
-        where,
-        orderBy,
-      }),
-      this.prismaService.event.count({ where }),
-    ]);
+    if (maxStart) {
+      whereConditions = Prisma.sql`${whereConditions} AND start_time <= ${maxStart}`;
+    }
 
-    const currentPage = Math.floor(offset / limit) + 1;
-    const lastPage = Math.ceil(total / limit);
-    const hasNextPage = offset + limit < total;
+    if (visibility) {
+      whereConditions = Prisma.sql`${whereConditions} AND visibility::text = ${visibility}::text`;
+    }
+
+    if (minEntryFee) {
+      whereConditions = Prisma.sql`${whereConditions} AND entry_fee >= ${minEntryFee}`;
+    }
+    if (maxEntryFee) {
+      whereConditions = Prisma.sql`${whereConditions} AND entry_fee <= ${maxEntryFee}`;
+    }
+
+    if (latitude && longitude) {
+      distanceSelect = Prisma.sql`, 
+        ST_Distance(
+          ST_SetSRID(ST_MakePoint(longitude, latitude), 4326)::geography,
+          ST_SetSRID(ST_MakePoint(${longitude}, ${latitude}), 4326)::geography
+        ) as distance`;
+
+      orderBy = Prisma.sql`ORDER BY distance ASC NULLS LAST, start_time ASC`;
+
+      if (maxDistance) {
+        whereConditions = Prisma.sql`${whereConditions} AND 
+          ST_Distance(
+            ST_SetSRID(ST_MakePoint(longitude, latitude), 4326)::geography,
+            ST_SetSRID(ST_MakePoint(${longitude}, ${latitude}), 4326)::geography
+          ) <= ${maxDistance * 1000}`;
+      }
+    }
+
+    // Requête principale
+    const events = await this.prismaService.$queryRaw<Event[]>`
+      SELECT *${distanceSelect}
+      FROM "Event"
+      ${whereConditions}
+      ${orderBy}
+      LIMIT ${limit} OFFSET ${offset}
+    `;
+
+    // Requête de comptage
+    const [{ count }] = await this.prismaService.$queryRaw<[{ count: number }]>`
+      SELECT COUNT(*)::integer as count
+      FROM "Event"
+      ${whereConditions}
+    `;
 
     return {
-      data,
-      meta: {
-        total,
-        page: currentPage,
-        lastPage,
-        hasNextPage,
-      },
+      events,
+      total: count,
+      limit,
+      offset,
     };
   }
 
@@ -184,7 +161,6 @@ export class EventService {
     if (!creator) {
       throw new NotFoundException(`No user found with id ${creator_id}`);
     }
-
 
     const events = await this.prismaService.event.findMany({
       where: { creator_id },

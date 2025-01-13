@@ -13,7 +13,6 @@ import { CreateUserDto } from 'src/user/dto/create-user.dto';
 import { CreateOrganisationDto } from 'src/user/dto/create-organisation.dto';
 import { RegisterUserDto } from './dto/register.dto';
 import { CreateGoogleUserDto } from 'src/user/dto/create-google-user.dto';
-import { VerifyTokenDto } from 'src/user/dto/verify-token.dto';
 
 @Injectable()
 export class AuthService {

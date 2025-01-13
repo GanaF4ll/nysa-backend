@@ -33,30 +33,13 @@ export class EventController {
   }
 
   @Get()
-  async findAll(@Query() eventFilterDto: EventFilterDto) {
-    const {
-      offset = 1,
-      limit = 10,
-      latitude,
-      longitude,
-      maxDistance,
-      ...filters
-    } = eventFilterDto;
-
-    const skip = (offset - 1) * limit;
-    const where = this.buildWhereClause(filters);
-
-    return this.eventService.findAll({
-      offset: skip,
-      limit,
-      where,
-      orderBy: {
-        date: 'asc',
-      },
-      latitude,
-      longitude,
-      maxDistance,
-    });
+  async findAll(@Query() filters: EventFilterDto): Promise<{
+    events: Event[];
+    total: number;
+    limit: number;
+    offset: number;
+  }> {
+    return this.eventService.findAll(filters);
   }
 
   @Get(':id')
@@ -125,50 +108,5 @@ export class EventController {
   })
   deleteImage(@Param('image_id') image_id: string) {
     return this.imageService.delete(image_id);
-  }
-
-  /**
-   * @description Builds the where clause for the query
-   * @param filters
-   * @returns where clause
-   */
-  private buildWhereClause(filters: Partial<EventFilterDto>) {
-    const where: any = {};
-
-    if (filters.title) {
-      where.title = {
-        contains: filters.title,
-        mode: 'insensitive',
-      };
-    }
-
-    if (filters.dateFrom || filters.dateTo) {
-      where.date = {};
-      if (filters.dateFrom) {
-        where.date.gte = filters.dateFrom;
-      }
-      if (filters.dateTo) {
-        where.date.lte = filters.dateTo;
-      }
-    }
-
-    if (filters.visibility) {
-      where.visibility = filters.visibility;
-    }
-
-    if (filters.maxEntryFee) {
-      where.entry_fee = {
-        lte: filters.maxEntryFee,
-      };
-    }
-
-    if (filters.address) {
-      where.address = {
-        contains: filters.address,
-        mode: 'insensitive',
-      };
-    }
-
-    return where;
   }
 }
