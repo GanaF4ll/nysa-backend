@@ -42,11 +42,9 @@ export class AuthController {
     summary: 'Vérifie la validité du token & du compte user',
   })
   async verifyToken(@Req() request: Request) {
-    const verifyTokenDto = {
-      id: request['user'].id,
-      email: request['user'].email,
-    };
-    return this.authService.verifyToken(verifyTokenDto);
+    const id = request['user'].id;
+
+    return this.authService.verifyToken(id);
   }
 
   // **************************/
