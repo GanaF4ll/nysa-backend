@@ -95,7 +95,7 @@ export class AuthService {
       throw new UnauthorizedException('User not active');
     }
     if (user.email === email && user.active === true) {
-      return true;
+      return { message: true };
     }
   }
 }
