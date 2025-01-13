@@ -85,17 +85,14 @@ export class AuthService {
     return { access_token: token };
   }
 
-  async verifyToken(verifyTokenDto: VerifyTokenDto) {
-    const { id, email } = verifyTokenDto;
-    const user = await this.userService.findOne(id);
+  async verifyToken(id: string) {
+    const user = await this.prismaservice.user.findUnique({ where: { id } });
     if (!user) {
       throw new NotFoundException('User not found');
     }
     if (user.active !== true) {
       throw new UnauthorizedException('User not active');
     }
-    if (user.email === email && user.active === true) {
-      return { message: true };
-    }
+    return { message: true };
   }
 }
