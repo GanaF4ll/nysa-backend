@@ -29,8 +29,6 @@ export class CreateEventDto {
   readonly address: string;
 
   @IsNumber()
-  @Min(-90)
-  @Max(90)
   @ApiProperty({
     type: Number,
     description:
@@ -40,8 +38,6 @@ export class CreateEventDto {
   readonly latitude: number;
 
   @IsNumber()
-  @Min(-180)
-  @Max(180)
   @ApiProperty({
     type: Number,
     description:

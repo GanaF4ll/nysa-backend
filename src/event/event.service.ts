@@ -104,18 +104,18 @@ export class EventService {
 
     if (latitude && longitude) {
       distanceSelect = Prisma.sql`, 
-        ST_Distance(
-          ST_SetSRID(ST_MakePoint(longitude, latitude), 4326)::geography,
-          ST_SetSRID(ST_MakePoint(${longitude}, ${latitude}), 4326)::geography
+        ST_DistanceSphere(
+          ST_MakePoint(longitude, latitude),
+          ST_MakePoint(${longitude}, ${latitude})
         ) as distance`;
 
       orderBy = Prisma.sql`ORDER BY distance ASC NULLS LAST, start_time ASC`;
 
       if (maxDistance) {
         whereConditions = Prisma.sql`${whereConditions} AND 
-          ST_Distance(
-            ST_SetSRID(ST_MakePoint(longitude, latitude), 4326)::geography,
-            ST_SetSRID(ST_MakePoint(${longitude}, ${latitude}), 4326)::geography
+          ST_DistanceSphere(
+            ST_MakePoint(longitude, latitude),
+            ST_MakePoint(${longitude}, ${latitude})
           ) <= ${maxDistance * 1000}`;
       }
     }
@@ -143,7 +143,6 @@ export class EventService {
       offset,
     };
   }
-
   async findOne(id: string): Promise<ResponseType> {
     const event = this.prismaService.event.findUnique({ where: { id } });
 
