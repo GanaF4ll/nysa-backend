@@ -13,6 +13,7 @@ import { CreateUserDto } from 'src/user/dto/create-user.dto';
 import { CreateOrganisationDto } from 'src/user/dto/create-organisation.dto';
 import { RegisterUserDto } from './dto/register.dto';
 import { CreateGoogleUserDto } from 'src/user/dto/create-google-user.dto';
+import { VerifyMailDto } from './dto/verify-mail.dto';
 
 @Injectable()
 export class AuthService {
@@ -54,6 +55,27 @@ export class AuthService {
       throw new BadRequestException('Invalid credentials');
     }
     const payload = { id: user.id };
+    return {
+      access_token: this.jwt.sign(payload),
+    };
+  }
+
+  async verifyEmail(emailDto: VerifyMailDto) {
+    const { email } = emailDto;
+    const user = await this.userService.findOneByEmail(email);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    if (!user.active) {
+      throw new UnauthorizedException('User not active');
+    }
+
+    if (user.provider !== 'GOOGLE') {
+      throw new BadRequestException('User not registered with Google');
+    }
+    const payload = { id: user.id };
+
     return {
       access_token: this.jwt.sign(payload),
     };

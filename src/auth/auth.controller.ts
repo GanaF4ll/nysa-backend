@@ -15,6 +15,7 @@ import { LoginDto } from './dto/login.dto';
 import { GoogleAuthGuard } from './guards/google-auth.guard';
 import { AuthGuard } from './guards/auth.guard';
 import { Public } from './decorators/public.decorator';
+import { VerifyMailDto } from './dto/verify-mail.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -35,6 +36,15 @@ export class AuthController {
   })
   login(@Body() loginDto: LoginDto) {
     return this.authService.login(loginDto);
+  }
+
+  @Public()
+  @Post('verify-mail')
+  @ApiOperation({
+    summary: "Permet de vérifier l'adresse mail, route non protégée",
+  })
+  async verifyMail(@Body() verifyMailDto: VerifyMailDto) {
+    return this.authService.verifyEmail(verifyMailDto);
   }
 
   @Get('verify')
