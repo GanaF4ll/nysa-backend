@@ -8,7 +8,7 @@ import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { PrismaService } from 'src/db/prisma.service';
 import { ResponseType } from 'src/interfaces/response-type';
-import { Prisma } from '@prisma/client';
+import { Prisma, Event } from '@prisma/client';
 import { EventFilterDto } from './dto/event-filter.dto';
 
 @Injectable()
@@ -62,13 +62,12 @@ export class EventService {
 
   async findAll(filters: EventFilterDto): Promise<{
     events: Event[];
-    total: number;
+    nextCursor: string | null;
     limit: number;
-    offset: number;
   }> {
     const {
-      offset = 0,
       limit = 10,
+      cursor,
       minStart,
       maxStart,
       visibility,
@@ -79,46 +78,71 @@ export class EventService {
       maxDistance,
     } = filters;
 
-    let whereConditions = Prisma.sql`WHERE 1=1`;
+    const conditions: Prisma.Sql[] = [Prisma.sql`WHERE 1=1`];
     let distanceSelect = Prisma.sql``;
-    let orderBy = Prisma.sql`ORDER BY start_time ASC`;
+    let orderBy = Prisma.sql`ORDER BY start_time ASC, id ASC`;
 
-    if (minStart) {
-      whereConditions = Prisma.sql`${whereConditions} AND start_time >= ${minStart}`;
-    }
+    if (cursor) {
+      try {
+        const decodedCursor = Buffer.from(cursor, 'base64').toString('utf-8');
+        const [timestamp, id] = decodedCursor.split('_');
+        const cursorDate = new Date(timestamp);
 
-    if (maxStart) {
-      whereConditions = Prisma.sql`${whereConditions} AND start_time <= ${maxStart}`;
-    }
-
-    if (visibility) {
-      whereConditions = Prisma.sql`${whereConditions} AND visibility::text = ${visibility}::text`;
-    }
-
-    if (minEntryFee) {
-      whereConditions = Prisma.sql`${whereConditions} AND entry_fee >= ${minEntryFee}`;
-    }
-    if (maxEntryFee) {
-      whereConditions = Prisma.sql`${whereConditions} AND entry_fee <= ${maxEntryFee}`;
-    }
-
-    if (latitude && longitude) {
-      distanceSelect = Prisma.sql`, 
-        ST_DistanceSphere(
-          ST_MakePoint(longitude, latitude),
-          ST_MakePoint(${longitude}, ${latitude})
-        ) as distance`;
-
-      orderBy = Prisma.sql`ORDER BY distance ASC NULLS LAST, start_time ASC`;
-
-      if (maxDistance) {
-        whereConditions = Prisma.sql`${whereConditions} AND 
-          ST_DistanceSphere(
-            ST_MakePoint(longitude, latitude),
-            ST_MakePoint(${longitude}, ${latitude})
-          ) <= ${maxDistance * 1000}`;
+        if (!isNaN(cursorDate.getTime())) {
+          conditions.push(
+            Prisma.sql`AND (
+              start_time > ${cursorDate}::timestamp 
+              OR (start_time = ${cursorDate}::timestamp AND id > ${id})
+            )`,
+          );
+        }
+      } catch (error) {
+        console.error('Erreur lors du décodage du curseur:', error);
+        // En cas d'erreur de décodage, on continue sans le curseur
       }
     }
+
+    if (minStart) {
+      conditions.push(
+        Prisma.sql`AND start_time >= ${new Date(minStart)}::timestamp`,
+      );
+    }
+    if (maxStart) {
+      conditions.push(
+        Prisma.sql`AND start_time <= ${new Date(maxStart)}::timestamp`,
+      );
+    }
+    if (visibility) {
+      conditions.push(Prisma.sql`AND visibility::text = ${visibility}::text`);
+    }
+    if (minEntryFee !== undefined) {
+      conditions.push(Prisma.sql`AND entry_fee >= ${minEntryFee}`);
+    }
+    if (maxEntryFee !== undefined) {
+      conditions.push(Prisma.sql`AND entry_fee <= ${maxEntryFee}`);
+    }
+
+    // Gestion de la distance
+    if (latitude && longitude) {
+      distanceSelect = Prisma.sql`,
+        public.ST_Distance(
+          public.ST_Transform(public.ST_SetSRID(public.ST_MakePoint(longitude, latitude), 4326), 3857),
+          public.ST_Transform(public.ST_SetSRID(public.ST_MakePoint(${longitude}, ${latitude}), 4326), 3857)
+        ) as distance`;
+
+      orderBy = Prisma.sql`ORDER BY distance ASC NULLS LAST, start_time ASC, id ASC`;
+
+      if (maxDistance) {
+        conditions.push(Prisma.sql`AND
+          public.ST_Distance(
+            public.ST_Transform(public.ST_SetSRID(public.ST_MakePoint(longitude, latitude), 4326), 3857),
+            public.ST_Transform(public.ST_SetSRID(public.ST_MakePoint(${longitude}, ${latitude}), 4326), 3857)
+          ) <= ${maxDistance * 1000}`);
+      }
+    }
+
+    // Combiner toutes les conditions
+    const whereConditions = Prisma.sql`${Prisma.join(conditions, ' ')}`;
 
     // Requête principale
     const events = await this.prismaService.$queryRaw<Event[]>`
@@ -126,23 +150,25 @@ export class EventService {
       FROM "Event"
       ${whereConditions}
       ${orderBy}
-      LIMIT ${limit} OFFSET ${offset}
+      LIMIT ${limit + 1}
     `;
 
-    // Requête de comptage
-    const [{ count }] = await this.prismaService.$queryRaw<[{ count: number }]>`
-      SELECT COUNT(*)::integer as count
-      FROM "Event"
-      ${whereConditions}
-    `;
+    // Gestion du curseur suivant
+    let nextCursor: string | null = null;
+    if (events.length > limit) {
+      const lastEvent = events[limit - 1];
+      const cursorValue = `${lastEvent.start_time.toISOString()}_${lastEvent.id}`;
+      nextCursor = Buffer.from(cursorValue).toString('base64');
+      events.pop(); // Retire l'élément supplémentaire
+    }
 
     return {
       events,
-      total: count,
+      nextCursor,
       limit,
-      offset,
     };
   }
+
   async findOne(id: string): Promise<ResponseType> {
     const event = this.prismaService.event.findUnique({ where: { id } });
 

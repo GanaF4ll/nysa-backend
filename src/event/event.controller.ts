@@ -33,12 +33,7 @@ export class EventController {
   }
 
   @Get()
-  async findAll(@Query() filters: EventFilterDto): Promise<{
-    events: Event[];
-    total: number;
-    limit: number;
-    offset: number;
-  }> {
+  async findAll(@Query() filters: EventFilterDto) {
     return this.eventService.findAll(filters);
   }
 
