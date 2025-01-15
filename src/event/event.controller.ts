@@ -6,15 +6,15 @@ import {
   Patch,
   Param,
   Delete,
-  UseGuards,
   Req,
+  Query,
 } from '@nestjs/common';
 import { EventService } from './event.service';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { ApiOperation } from '@nestjs/swagger';
 import { ImageService } from './image/image.service';
-import { AuthGuard } from 'src/auth/guards/auth.guard';
+import { EventFilterDto } from './dto/event-filter.dto';
 
 @Controller('event')
 export class EventController {
@@ -33,11 +33,8 @@ export class EventController {
   }
 
   @Get()
-  @ApiOperation({
-    summary: 'Retourne toutes les ressources Event',
-  })
-  findAll() {
-    return this.eventService.findAll();
+  async findAll(@Query() filters: EventFilterDto) {
+    return this.eventService.findAll(filters);
   }
 
   @Get(':id')

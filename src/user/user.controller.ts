@@ -14,6 +14,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
 import { ApiOperation } from '@nestjs/swagger';
 import { CreateGoogleUserDto } from './dto/create-google-user.dto';
+import { UpdatePasswordDto } from './dto/update-password.dto';
 
 @Controller('user')
 export class UserController {
@@ -32,7 +33,6 @@ export class UserController {
     return this.userService.findAll();
   }
 
-  @UseGuards(AuthGuard)
   @Get(':id')
   @ApiOperation({
     summary: 'Récupère un utilisateur grâce à son id',
@@ -41,7 +41,6 @@ export class UserController {
     return this.userService.findOne(id);
   }
 
-  @UseGuards(AuthGuard)
   @Get('/')
   @ApiOperation({
     summary: 'Récupère un utilisateur grâce à son token',
@@ -51,7 +50,6 @@ export class UserController {
     return this.userService.findOne(id);
   }
 
-  @UseGuards(AuthGuard)
   @Get('/email')
   @ApiOperation({
     summary: 'Récupère un utilisateur grâce à son email',
@@ -60,7 +58,6 @@ export class UserController {
     return this.userService.findOneByEmail(email);
   }
 
-  @UseGuards(AuthGuard)
   @Patch('/update')
   @ApiOperation({
     summary:
@@ -71,7 +68,19 @@ export class UserController {
     return this.userService.update(id, updateUserDto);
   }
 
-  @UseGuards(AuthGuard)
+  @Patch('/update-password')
+  @ApiOperation({
+    summary:
+      "Met à jour le mot de passe d'un utilisateur, seul l'utilisateur authentifié peut le faire",
+  })
+  updatePassword(
+    @Req() request: Request,
+    @Body() updatePasswordDto: UpdatePasswordDto,
+  ) {
+    const id = request['user'].id;
+    return this.userService.updatePassword(id, updatePasswordDto);
+  }
+
   @Patch('/deactivate')
   @ApiOperation({
     summary:
@@ -82,7 +91,6 @@ export class UserController {
     return this.userService.deactivate(id);
   }
 
-  @UseGuards(AuthGuard)
   @Delete('/delete')
   @ApiOperation({
     summary:

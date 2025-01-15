@@ -18,7 +18,9 @@ services:
       - postgres
 
   postgres:
-    image: postgres:17
+    build:
+      context: .
+      dockerfile: docker/postgres/Dockerfile
     ports:
       - '5432:5432'
     environment:

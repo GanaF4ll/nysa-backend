@@ -8,6 +8,8 @@ import {
   IsEmail,
   Validate,
   MinLength,
+  IsAlpha,
+  IsDateString,
 } from 'class-validator';
 import { IsStrongPassword } from 'src/user/password.validator';
 import { Sex } from '@prisma/client';
@@ -31,7 +33,7 @@ export class CreateUserDto {
   })
   readonly password: string;
 
-  @IsString()
+  @IsAlpha('fr-FR')
   @IsNotEmpty()
   @ApiProperty({
     type: String,
@@ -40,7 +42,7 @@ export class CreateUserDto {
   })
   readonly firstname: string;
 
-  @IsString()
+  @IsAlpha('fr-FR')
   @IsNotEmpty()
   @ApiProperty({
     type: String,
@@ -49,8 +51,7 @@ export class CreateUserDto {
   })
   readonly lastname: string;
 
-  @IsString()
-  @IsNotEmpty()
+  @IsDateString()
   @IsOptional()
   @ApiProperty({
     type: String,
@@ -99,13 +100,13 @@ export class CreateUserDto {
   })
   readonly bio?: string;
 
-  @IsString()
-  @IsOptional()
-  @ApiProperty({
-    type: String,
-    description: "Ville de l'utilisateur",
-    example: 'Paris',
-    required: false,
-  })
-  readonly city?: string;
+  // @IsString()
+  // @IsOptional()
+  // @ApiProperty({
+  //   type: String,
+  //   description: "Ville de l'utilisateur",
+  //   example: 'Paris',
+  //   required: false,
+  // })
+  // readonly city?: string;
 }

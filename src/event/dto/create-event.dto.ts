@@ -6,19 +6,12 @@ import {
   Min,
   Max,
   IsOptional,
+  IsNotEmpty,
 } from 'class-validator';
 import { Event_visibility } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateEventDto {
-  // @IsString()
-  // @ApiProperty({
-  //   type: String,
-  //   description: "ID du créateur de l'événement",
-  //   example: 'cm48rr8fv0000ublpox84yv1y',
-  // })
-  // readonly creator_id: string;
-
   @IsString()
   @ApiProperty({
     type: String,
@@ -26,15 +19,6 @@ export class CreateEventDto {
     example: 'Soirée Bousilleurs',
   })
   readonly title: string;
-
-  @IsDateString()
-  @ApiProperty({
-    type: String,
-    description:
-      "Date de l'évènement, sous format string, conversion en format date faite dans le service",
-    example: '01/01/2025',
-  })
-  readonly date: string;
 
   @IsString()
   @ApiProperty({
@@ -45,8 +29,6 @@ export class CreateEventDto {
   readonly address: string;
 
   @IsNumber()
-  @Min(-90)
-  @Max(90)
   @ApiProperty({
     type: Number,
     description:
@@ -56,8 +38,6 @@ export class CreateEventDto {
   readonly latitude: number;
 
   @IsNumber()
-  @Min(-180)
-  @Max(180)
   @ApiProperty({
     type: Number,
     description:
@@ -65,6 +45,24 @@ export class CreateEventDto {
     example: '2.3522',
   })
   readonly longitude: number;
+
+  @IsDateString()
+  @IsNotEmpty()
+  @ApiProperty({
+    type: String,
+    description: "Date de début de l'évènement",
+    example: '01/01/2000',
+  })
+  readonly start_time: string;
+
+  @IsDateString()
+  @IsNotEmpty()
+  @ApiProperty({
+    type: String,
+    description: "Date de début de l'évènement",
+    example: '01/01/2000',
+  })
+  readonly end_time: string;
 
   @IsNumber()
   @Min(1)

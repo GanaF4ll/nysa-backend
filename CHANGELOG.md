@@ -14,3 +14,18 @@
 
 - OAuth Google
 - ajout de la colonne Provider dans la table User pour savoir d'où un user a créer son compte
+
+# fixes 12/01/25
+
+- suppression de la colonne city dans la table User
+- better error handling
+- ajout colonne start_time & end_time à la table Event
+- suppression colonne date dans la table Event
+- general API Response type
+
+# postgis-feature 12/01/25
+
+- new dockerfile for the db
+- postgis integration
+- docker compose changes
+- event filters in eventService.findAll()
