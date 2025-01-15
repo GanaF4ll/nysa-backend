@@ -10,16 +10,20 @@ import { PrismaService } from 'src/db/prisma.service';
 import { ResponseType } from 'src/interfaces/response-type';
 import { Prisma, Event } from '@prisma/client';
 import { EventFilterDto } from './dto/event-filter.dto';
+import { ImageService } from './image/image.service';
 
 @Injectable()
 export class EventService {
-  constructor(private prismaService: PrismaService) {}
+  constructor(
+    private readonly prismaService: PrismaService,
+    private readonly imageService: ImageService,
+  ) {}
 
   async create(
     creator_id,
     createEventDto: CreateEventDto,
   ): Promise<ResponseType> {
-    const { start_time, end_time, ...data } = createEventDto;
+    const { start_time, end_time, event_images, ...data } = createEventDto;
     const existingUser = await this.prismaService.user.findUnique({
       where: { id: creator_id },
     });
@@ -51,6 +55,10 @@ export class EventService {
         end_time: eventEndTime.toISOString(),
         ...data,
       },
+    });
+    // TODO: supprimer 'order' de la table event_images & filtrer par date de création ?
+    event_images.map(async (image) => {
+      await this.imageService.create(newEvent.id, image);
     });
 
     if (newEvent) {

@@ -10,6 +10,7 @@ import {
 } from 'class-validator';
 import { Event_visibility } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
+import { CreateImageDto } from '../image/dto/create-image.dto';
 
 export class CreateEventDto {
   @IsString()
@@ -108,4 +109,6 @@ export class CreateEventDto {
     example: '0',
   })
   readonly view_count?: number;
+
+  event_images?: CreateImageDto[];
 }

@@ -71,7 +71,9 @@ export class ImageService {
         },
       });
 
-      return newImage;
+      return {
+        message: `Image ${newImage.url} created for the event ${event_id}`,
+      };
     } catch (error) {
       throw new BadRequestException(error);
     }
