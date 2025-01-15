@@ -34,7 +34,7 @@ export class AwsController {
     file: Express.Multer.File,
   ) {
     const fileName = new Date().getTime().toString() + `_` + file.originalname;
-    console.log(file);
+
     await this.awsService.upload(fileName, file.buffer);
   }
 }

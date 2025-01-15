@@ -26,6 +26,8 @@ export class AwsService {
    */
   async upload(filename: string, file: Buffer) {
     try {
+      console.log('filename', filename);
+
       await this.s3Client.send(
         new PutObjectCommand({
           Bucket: 'nysa-app',
@@ -33,7 +35,11 @@ export class AwsService {
           Body: file,
         }),
       );
+
+      const response = { message: filename };
+      return response;
     } catch (error) {
+      console.error('Erreur upload:', error);
       throw new BadRequestException(error);
     }
   }

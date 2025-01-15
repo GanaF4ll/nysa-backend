@@ -5,10 +5,10 @@ export class CreateImageDto {
   @IsString()
   @ApiProperty({
     type: String,
-    description: "URL de l'image",
-    example: 'https://www.example.com/image.jpg',
+    description: "nom de l'image",
+    example: '10121551_image.jpg',
   })
-  readonly url: string;
+  readonly name: string;
   @IsNumber()
   @ApiProperty({
     type: Number,
@@ -16,4 +16,11 @@ export class CreateImageDto {
     example: 1,
   })
   order: number;
+
+  @ApiProperty({
+    type: 'string',
+    format: 'binary',
+    description: "Fichier de l'image",
+  })
+  file: Buffer;
 }

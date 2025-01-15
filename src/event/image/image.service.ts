@@ -1,24 +1,33 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from 'src/db/prisma.service';
 import { CreateImageDto } from './dto/create-image.dto';
 import { EventService } from '../event.service';
+import { AwsService } from 'src/aws/aws.service';
+import { UpdateImageDto } from './dto/update-image.dto';
+import { log } from 'console';
 
 @Injectable()
 export class ImageService {
   constructor(
     private prismaService: PrismaService,
-    private eventService: EventService,
+    private awsService: AwsService,
   ) {}
 
   async getImagesByEventId(event_id: string) {
-    const existingEvent = await this.eventService.findOne(event_id);
+    const existingEvent = await this.prismaService.event.findUnique({
+      where: { id: event_id },
+    });
 
     if (!existingEvent) {
       throw new NotFoundException(`Event with id ${event_id} not found`);
     }
 
     const images = await this.prismaService.event_images.findMany({
-      where: { event_id: event_id },
+      where: { event_id },
       orderBy: { order: 'asc' },
     });
 
@@ -32,23 +41,43 @@ export class ImageService {
   }
 
   async create(event_id: string, createImageDto: CreateImageDto) {
-    const existingEvent = await this.eventService.findOne(event_id);
+    const { name, order, file } = createImageDto;
 
-    if (!existingEvent) {
-      throw new NotFoundException(`Event with id ${event_id} not found`);
+    try {
+      console.log('name', name);
+
+      const fileS3 = await this.awsService.upload(name, file);
+
+      if (!fileS3) {
+        throw new BadRequestException('Error uploading image');
+      }
+
+      const existingEvent = await this.prismaService.event.findUnique({
+        where: { id: event_id },
+      });
+      if (!existingEvent) {
+        throw new NotFoundException(`Event with id ${event_id} not found`);
+      }
+      console.log('fileS3', fileS3);
+
+      const s3Name = fileS3.message;
+      console.log('s3Name', s3Name);
+
+      const newImage = await this.prismaService.event_images.create({
+        data: {
+          event_id,
+          url: s3Name,
+          order,
+        },
+      });
+
+      return newImage;
+    } catch (error) {
+      throw new BadRequestException(error);
     }
-
-    const newImage = await this.prismaService.event_images.create({
-      data: {
-        event_id,
-        ...createImageDto,
-      },
-    });
-
-    return newImage;
   }
 
-  async update(image_id: string, updateImageDto: CreateImageDto) {
+  async update(image_id: string, updateImageDto: UpdateImageDto) {
     const existingImage = await this.prismaService.event_images.findUnique({
       where: { id: image_id },
     });
