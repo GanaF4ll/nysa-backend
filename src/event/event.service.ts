@@ -11,6 +11,7 @@ import { ResponseType } from 'src/interfaces/response-type';
 import { Prisma, Event } from '@prisma/client';
 import { EventFilterDto } from './dto/event-filter.dto';
 import { ImageService } from './image/image.service';
+import { CreateImageDto } from './image/dto/create-image.dto';
 
 @Injectable()
 export class EventService {
@@ -22,50 +23,59 @@ export class EventService {
   async create(
     creator_id,
     createEventDto: CreateEventDto,
+    event_images?: CreateImageDto[],
   ): Promise<ResponseType> {
-    const { start_time, end_time, event_images, ...data } = createEventDto;
-    const existingUser = await this.prismaService.user.findUnique({
-      where: { id: creator_id },
-    });
+    try {
+      const { start_time, end_time, ...data } = createEventDto;
+      const existingUser = await this.prismaService.user.findUnique({
+        where: { id: creator_id },
+      });
 
-    if (!existingUser) {
-      throw new NotFoundException('User not found');
+      if (!existingUser) {
+        throw new NotFoundException('User not found');
+      }
+
+      if (existingUser.active !== true) {
+        throw new UnauthorizedException('User is not active');
+      }
+
+      const eventStartTime = new Date(start_time);
+      const eventEndTime = new Date(end_time);
+
+      const currentDate = new Date();
+      if (eventStartTime < currentDate) {
+        throw new BadRequestException('Event date cannot be in the past');
+      }
+
+      if (eventEndTime < eventStartTime) {
+        throw new BadRequestException('End time cannot be before start time');
+      }
+
+      const newEvent = await this.prismaService.event.create({
+        data: {
+          creator_id,
+          start_time: eventStartTime.toISOString(),
+          end_time: eventEndTime.toISOString(),
+          ...data,
+        },
+      });
+
+      // ? Vérifie si event_images existe et est un tableau
+      if (event_images && Array.isArray(event_images)) {
+        for (let i = 0; i < event_images.length; i++) {
+          event_images[i].order = i;
+          await this.imageService.create(newEvent.id, event_images[i]);
+          console.log(`image ${i} created`);
+        }
+      }
+
+      if (newEvent) {
+        return { message: 'Event created successfully', status: 201 };
+      }
+    } catch (error) {
+      console.error('Error creating event:', error);
+      throw new BadRequestException('Event not created');
     }
-
-    if (existingUser.active !== true) {
-      throw new UnauthorizedException('User is not active');
-    }
-
-    const eventStartTime = new Date(start_time);
-    const eventEndTime = new Date(end_time);
-
-    const currentDate = new Date();
-    if (eventStartTime < currentDate) {
-      throw new BadRequestException('Event date cannot be in the past');
-    }
-
-    if (eventEndTime < eventStartTime) {
-      throw new BadRequestException('End time cannot be before start time');
-    }
-
-    const newEvent = await this.prismaService.event.create({
-      data: {
-        creator_id,
-        start_time: eventStartTime.toISOString(),
-        end_time: eventEndTime.toISOString(),
-        ...data,
-      },
-    });
-    // TODO: supprimer 'order' de la table event_images & filtrer par date de création ?
-    event_images.map(async (image) => {
-      await this.imageService.create(newEvent.id, image);
-    });
-
-    if (newEvent) {
-      return { message: 'Event created successfully', status: 201 };
-    }
-
-    throw new BadRequestException('Event not created');
   }
 
   async findAll(filters: EventFilterDto): Promise<{

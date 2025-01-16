@@ -10,6 +10,7 @@ import {
   Query,
   UseInterceptors,
   UploadedFile,
+  UploadedFiles,
 } from '@nestjs/common';
 import { EventService } from './event.service';
 import { CreateEventDto } from './dto/create-event.dto';
@@ -17,7 +18,7 @@ import { UpdateEventDto } from './dto/update-event.dto';
 import { ApiOperation } from '@nestjs/swagger';
 import { ImageService } from './image/image.service';
 import { EventFilterDto } from './dto/event-filter.dto';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { CreateImageDto } from './image/dto/create-image.dto';
 
 @Controller('event')
@@ -28,12 +29,27 @@ export class EventController {
   ) {}
 
   @Post()
+  @UseInterceptors(FilesInterceptor('files', 10))
   @ApiOperation({
     summary: 'Crée une ressource Event',
   })
-  create(@Req() request: Request, @Body() createEventDto: CreateEventDto) {
+  async create(
+    @Req() request: Request,
+    @Body() createEventDto: CreateEventDto,
+    @UploadedFiles() files: Express.Multer.File[],
+  ) {
     const creator_id = request['user'].id;
-    return this.eventService.create(creator_id, createEventDto);
+
+    // Vérifie si des fichiers ont été uploadés
+    const event_images = files
+      ? files.map((file, index) => ({
+          name: file.originalname,
+          order: index,
+          file: file.buffer,
+        }))
+      : [];
+
+    return this.eventService.create(creator_id, createEventDto, event_images);
   }
 
   @Get()

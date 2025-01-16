@@ -58,10 +58,10 @@ export class ImageService {
       if (!existingEvent) {
         throw new NotFoundException(`Event with id ${event_id} not found`);
       }
-      console.log('fileS3', fileS3);
+      // console.log('fileS3', fileS3);
 
       const s3Name = fileS3.message;
-      console.log('s3Name', s3Name);
+      // console.log('s3Name', s3Name);
 
       const newImage = await this.prismaService.event_images.create({
         data: {
