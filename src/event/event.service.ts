@@ -63,7 +63,7 @@ export class EventService {
       // ? Vérifie si event_images existe et est un tableau
       if (event_images && Array.isArray(event_images)) {
         for (let i = 0; i < event_images.length; i++) {
-          event_images[i].order = i;
+          event_images[i].order = i + 1;
           await this.imageService.create(newEvent.id, event_images[i]);
           console.log(`image ${i} created`);
         }
@@ -74,7 +74,7 @@ export class EventService {
       }
     } catch (error) {
       console.error('Error creating event:', error);
-      throw new BadRequestException('Event not created');
+      throw new BadRequestException(error.message);
     }
   }
 
@@ -193,6 +193,8 @@ export class EventService {
     if (!event) {
       throw new NotFoundException('Event not found');
     }
+
+    console.log('event', event);
     return { message: 'Event found', data: event, status: 200 };
   }
 
