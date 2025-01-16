@@ -101,6 +101,9 @@ export class EventService {
     const conditions: Prisma.Sql[] = [Prisma.sql`WHERE 1=1`];
     let distanceSelect = Prisma.sql``;
     let orderBy = Prisma.sql`ORDER BY start_time ASC, id ASC`;
+    const today = new Date();
+
+    conditions.push(Prisma.sql`AND start_time >= ${today}::timestamp`);
 
     if (cursor) {
       try {
