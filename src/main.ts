@@ -7,6 +7,7 @@ import { CreateOrganisationDto } from './user/dto/create-organisation.dto';
 import { RegisterUserDto } from './auth/dto/register.dto';
 import { AuthGuard } from './auth/guards/auth.guard';
 import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -35,7 +36,8 @@ async function bootstrap() {
 
   const jwtService = app.get(JwtService);
   const reflector = app.get(Reflector);
-  app.useGlobalGuards(new AuthGuard(jwtService, reflector));
+  const configService = app.get(ConfigService);
+  app.useGlobalGuards(new AuthGuard(jwtService, reflector, configService));
 
   await app.listen(3000);
 }

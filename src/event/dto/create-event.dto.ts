@@ -4,12 +4,13 @@ import {
   IsString,
   IsDateString,
   Min,
-  Max,
   IsOptional,
   IsNotEmpty,
+  IsArray,
 } from 'class-validator';
 import { Event_visibility } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
+import { CreateImageDto } from '../image/dto/create-image.dto';
 
 export class CreateEventDto {
   @IsString()
@@ -108,4 +109,12 @@ export class CreateEventDto {
     example: '0',
   })
   readonly view_count?: number;
+
+  @IsOptional()
+  @IsArray()
+  @ApiProperty({
+    type: [CreateImageDto],
+    description: "images de l'évènement",
+  })
+  event_images?: CreateImageDto[];
 }

@@ -8,11 +8,10 @@ export class UpdateImageDto extends PartialType(CreateImageDto) {
   @IsOptional()
   @ApiProperty({
     type: String,
-    description: "URL de l'image",
-    example: 'https://www.example.com/image.jpg',
-    required: false,
+    description: "nom de l'image",
+    example: '10121551_image.jpg',
   })
-  readonly url?: string;
+  readonly name?: string;
   @IsNumber()
   @IsOptional()
   @ApiProperty({
