@@ -6,6 +6,7 @@ import {
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { DeleteObjectCommand } from '@aws-sdk/client-s3';
 
 @Injectable()
 export class AwsService {
@@ -64,6 +65,24 @@ export class AwsService {
 
       return signedUrl;
     } catch (error) {
+      throw new BadRequestException(error);
+    }
+  }
+
+  /**
+   * @description Supprime un fichier dans le bucket S3
+   * @param filename
+   */
+  async deleteFile(filename: string): Promise<void> {
+    try {
+      await this.s3Client.send(
+        new DeleteObjectCommand({
+          Bucket: 'nysa-app',
+          Key: filename,
+        }),
+      );
+    } catch (error) {
+      console.error('Erreur suppression:', error);
       throw new BadRequestException(error);
     }
   }

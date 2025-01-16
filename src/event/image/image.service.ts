@@ -96,6 +96,7 @@ export class ImageService {
     return updatedImage;
   }
 
+  // TODO: ajouter la suppression de l'image dans le bucket S3
   async delete(image_id: string) {
     const existingImage = await this.prismaService.event_images.findUnique({
       where: { id: image_id },
