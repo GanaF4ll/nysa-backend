@@ -163,10 +163,6 @@ export class UserService {
         where: { email },
       });
 
-      if (user) {
-      } else {
-      }
-
       return user;
     } catch (error) {
       throw new NotFoundException(
@@ -176,14 +172,7 @@ export class UserService {
   }
 
   async update(id: string, updateUserDto: UpdateUserDto) {
-    const { email } = updateUserDto;
     const existingUser = await this.findOne(id);
-
-    const emailExists = await this.findOneByEmail(email);
-
-    if (emailExists) {
-      throw new ConflictException('Email is already taken');
-    }
 
     const updatedUser = await this.prismaService.user.update({
       where: { id },
