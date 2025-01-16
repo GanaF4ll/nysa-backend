@@ -9,7 +9,7 @@ import { UpdateEventDto } from './dto/update-event.dto';
 import { PrismaService } from 'src/db/prisma.service';
 import { ResponseType } from 'src/interfaces/response-type';
 import { Prisma, Event } from '@prisma/client';
-import { EventFilterDto } from './dto/event-filter.dto';
+import { EventFilterDto, visibility_filter } from './dto/event-filter.dto';
 import { ImageService } from './image/image.service';
 import { CreateImageDto } from './image/dto/create-image.dto';
 
@@ -132,12 +132,23 @@ export class EventService {
         Prisma.sql`AND start_time <= ${new Date(maxStart)}::timestamp`,
       );
     }
-    if (visibility) {
-      conditions.push(Prisma.sql`AND visibility::text = ${visibility}::text`);
+
+    if (visibility === visibility_filter.DEFAULT || visibility === undefined) {
+      conditions.push(Prisma.sql`AND visibility NOT IN ('PRIVATE')`);
     }
+
+    if (visibility === visibility_filter.FRIENDSONLY) {
+      conditions.push(Prisma.sql`AND visibility IN ('FRIENDSONLY')`);
+    }
+
+    if (visibility === visibility_filter.PRIVATE) {
+      conditions.push(Prisma.sql`AND visibility IN ('PRIVATE')`);
+    }
+
     if (minEntryFee !== undefined) {
       conditions.push(Prisma.sql`AND entry_fee >= ${minEntryFee}`);
     }
+
     if (maxEntryFee !== undefined) {
       conditions.push(Prisma.sql`AND entry_fee <= ${maxEntryFee}`);
     }
@@ -166,7 +177,7 @@ export class EventService {
 
     // Requête principale
     const events = await this.prismaService.$queryRaw<Event[]>`
-      SELECT title, start_time, end_time, address, entry_fee ${distanceSelect}
+      SELECT title, start_time, end_time, address, entry_fee, visibility ${distanceSelect}
       FROM "Event"
       ${whereConditions}
       ${orderBy}
