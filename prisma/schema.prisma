@@ -93,6 +93,7 @@ model Event {
   longitude        Float
   start_time       DateTime         @db.Timestamp()
   end_time         DateTime         @db.Timestamp()
+  image            String?
   max_participants Int
   visibility       Event_visibility @map("visibility")
   entry_fee        Float

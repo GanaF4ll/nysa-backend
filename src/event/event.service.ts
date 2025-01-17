@@ -81,7 +81,7 @@ export class EventService {
   // TODO: ajouter le nombre de participants actuels / max
   // TODO: ajouter l'url débloquer de la 1ere image aws
   async findAll(filters: EventFilterDto): Promise<{
-    events: Event[];
+    response: Event[];
     nextCursor: string | null;
     limit: number;
   }> {
@@ -180,12 +180,22 @@ export class EventService {
 
     // Requête principale
     const events = await this.prismaService.$queryRaw<Event[]>`
-      SELECT title, start_time, end_time, address, entry_fee, visibility ${distanceSelect}
+      SELECT id, title, start_time, end_time, address, entry_fee, visibility ${distanceSelect}
       FROM "Event"
       ${whereConditions}
       ${orderBy}
       LIMIT ${limit + 1}
     `;
+
+    const response = await Promise.all(
+      events.slice(0, limit).map(async (event) => {
+        const image = await this.imageService.getFirstImageByEventId(event.id);
+        return {
+          ...event,
+          image,
+        };
+      }),
+    );
 
     // Gestion du curseur suivant
     let nextCursor: string | null = null;
@@ -197,7 +207,7 @@ export class EventService {
     }
 
     return {
-      events,
+      response,
       nextCursor,
       limit,
     };

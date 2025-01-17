@@ -47,6 +47,28 @@ export class ImageService {
     return response;
   }
 
+  async getFirstImageByEventId(event_id: string) {
+    const existingEvent = await this.prismaService.event.findUnique({
+      where: { id: event_id },
+    });
+
+    if (!existingEvent) {
+      throw new NotFoundException(`Event with id ${event_id} not found`);
+    }
+
+    const image = await this.prismaService.event_images.findFirst({
+      where: { event_id, order: 1 },
+    });
+
+    if (!image) {
+      return null;
+    }
+
+    const response = await this.awsService.getSignedUrl(image.url);
+
+    return response;
+  }
+
   async create(event_id: string, createImageDto: CreateImageDto) {
     const { name, order, file } = createImageDto;
 
