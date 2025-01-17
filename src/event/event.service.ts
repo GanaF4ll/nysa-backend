@@ -74,7 +74,7 @@ export class EventService {
       }
     } catch (error) {
       console.error('Error creating event:', error);
-      throw new BadRequestException('Event not created');
+      throw new BadRequestException(error.message);
     }
   }
 
@@ -209,6 +209,8 @@ export class EventService {
     if (!event) {
       throw new NotFoundException('Event not found');
     }
+
+    console.log('event', event);
     return { message: 'Event found', data: event, status: 200 };
   }
 

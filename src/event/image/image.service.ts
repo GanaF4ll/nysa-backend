@@ -37,15 +37,20 @@ export class ImageService {
       );
     }
 
-    return images;
+    const response = await Promise.all(
+      images.map(async (image) => {
+        const url = await this.awsService.getSignedUrl(image.url);
+        return { url, order: image.order };
+      }),
+    );
+
+    return response;
   }
 
   async create(event_id: string, createImageDto: CreateImageDto) {
     const { name, order, file } = createImageDto;
 
     try {
-      console.log('name', name);
-
       const fileS3 = await this.awsService.upload(name, file);
 
       if (!fileS3) {
@@ -58,10 +63,8 @@ export class ImageService {
       if (!existingEvent) {
         throw new NotFoundException(`Event with id ${event_id} not found`);
       }
-      // console.log('fileS3', fileS3);
 
       const s3Name = fileS3.message;
-      // console.log('s3Name', s3Name);
 
       const newImage = await this.prismaService.event_images.create({
         data: {
