@@ -63,7 +63,7 @@ export class EventService {
       // ? Vérifie si event_images existe et est un tableau
       if (event_images && Array.isArray(event_images)) {
         for (let i = 0; i < event_images.length; i++) {
-          event_images[i].order = i;
+          event_images[i].order = i + 1;
           await this.imageService.create(newEvent.id, event_images[i]);
           console.log(`image ${i} created`);
         }
