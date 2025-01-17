@@ -83,7 +83,7 @@ export class EventService {
   async findAll(filters: EventFilterDto): Promise<{
     response: Event[];
     nextCursor: string | null;
-    limit: number;
+    totalCount: number;
   }> {
     const {
       limit = 10,
@@ -178,6 +178,15 @@ export class EventService {
     // Combiner toutes les conditions
     const whereConditions = Prisma.sql`${Prisma.join(conditions, ' ')}`;
 
+    // Requête pour compter le total
+    const [countResult] = await this.prismaService.$queryRaw<
+      [{ total: number }]
+    >`
+      SELECT COUNT(*) as total
+      FROM "Event"
+      ${whereConditions}
+    `;
+
     // Requête principale
     const events = await this.prismaService.$queryRaw<Event[]>`
       SELECT id, title, start_time, end_time, address, entry_fee, visibility ${distanceSelect}
@@ -197,7 +206,6 @@ export class EventService {
       }),
     );
 
-    // Gestion du curseur suivant
     let nextCursor: string | null = null;
     if (events.length > limit) {
       const lastEvent = events[limit - 1];
@@ -209,7 +217,7 @@ export class EventService {
     return {
       response,
       nextCursor,
-      limit,
+      totalCount: Number(countResult.total),
     };
   }
 
