@@ -29,3 +29,14 @@
 - postgis integration
 - docker compose changes
 - event filters in eventService.findAll()
+
+# fixes 13/01/2025
+
+- fix verifyToken, deleted user.email
+- new ResponseType interface for general API response
+
+# S3 15/01/25
+
+- intégration du S3
+- intégration du service AWS dans le imageService
+- les events peuvent être crée avec leurs images
