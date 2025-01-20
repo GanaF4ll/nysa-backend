@@ -4,9 +4,13 @@ import {
   IsString,
   IsDateString,
   Min,
+  MaxLength,
   IsOptional,
   IsNotEmpty,
   IsArray,
+  MinLength,
+  Max,
+  ArrayMaxSize,
 } from 'class-validator';
 import { Event_visibility } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
@@ -14,6 +18,8 @@ import { CreateImageDto } from '../image/dto/create-image.dto';
 
 export class CreateEventDto {
   @IsString()
+  @MinLength(3)
+  @MaxLength(50)
   @ApiProperty({
     type: String,
     description: "titre de l'événement",
@@ -67,6 +73,7 @@ export class CreateEventDto {
 
   @IsNumber()
   @Min(1)
+  @Max(99999)
   @ApiProperty({
     type: Number,
     description:
@@ -85,6 +92,7 @@ export class CreateEventDto {
 
   @IsNumber()
   @Min(0)
+  @Max(99999)
   @ApiProperty({
     type: Number,
     description: "prix d'entrée de l'évènement, MIN: 0",
@@ -93,6 +101,7 @@ export class CreateEventDto {
   readonly entry_fee: number;
 
   @IsString()
+  @MaxLength(1000)
   @ApiProperty({
     type: String,
     description: "description de l'évènement",
@@ -112,9 +121,10 @@ export class CreateEventDto {
 
   @IsOptional()
   @IsArray()
+  @ArrayMaxSize(4)
   @ApiProperty({
     type: [CreateImageDto],
     description: "images de l'évènement",
   })
-  event_images?: CreateImageDto[];
+  event_images: CreateImageDto[];
 }

@@ -189,7 +189,7 @@ export class EventService {
 
     // Requête principale
     const events = await this.prismaService.$queryRaw<Event[]>`
-      SELECT id, title, start_time, end_time, address, entry_fee, visibility ${distanceSelect}
+      SELECT id, title, start_time, address, entry_fee, visibility ${distanceSelect}
       FROM "Event"
       ${whereConditions}
       ${orderBy}
@@ -222,7 +222,7 @@ export class EventService {
   }
 
   async findOne(id: string): Promise<ResponseType> {
-    const event = this.prismaService.event.findUnique({ where: { id } });
+    const event = await this.prismaService.event.findUnique({ where: { id } });
 
     if (!event) {
       throw new NotFoundException('Event not found');

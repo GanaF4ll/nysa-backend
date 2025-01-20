@@ -86,8 +86,8 @@ model User {
 model Event {
   id               String           @id @default(cuid())
   creator_id       String
-  title            String
-  description      String
+  title            String           @db.VarChar(50)
+  description      String           @db.VarChar(1000)
   address          String
   latitude         Float
   longitude        Float
