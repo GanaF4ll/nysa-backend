@@ -8,7 +8,7 @@ import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { PrismaService } from 'src/db/prisma.service';
 import { ResponseType } from 'src/interfaces/response-type';
-import { Prisma, Event } from '@prisma/client';
+import { Prisma, Event, User_type } from '@prisma/client';
 import { EventFilterDto, visibility_filter } from './dto/event-filter.dto';
 import { ImageService } from './image/image.service';
 import { CreateImageDto } from './image/dto/create-image.dto';
@@ -96,6 +96,7 @@ export class EventService {
       latitude,
       longitude,
       maxDistance,
+      search,
     } = filters;
 
     const conditions: Prisma.Sql[] = [Prisma.sql`WHERE 1=1`];
@@ -148,6 +149,10 @@ export class EventService {
       conditions.push(Prisma.sql`AND visibility IN ('PRIVATE')`);
     }
 
+    if (visibility === visibility_filter.PUBLIC) {
+      conditions.push(Prisma.sql`AND visibility IN ('PUBLIC')`);
+    }
+
     if (minEntryFee !== undefined) {
       conditions.push(Prisma.sql`AND entry_fee >= ${minEntryFee}`);
     }
@@ -175,6 +180,12 @@ export class EventService {
       }
     }
 
+    if (search) {
+      conditions.push(
+        Prisma.sql`AND (title ILIKE ${`%${search}%`} OR description ILIKE ${`%${search}%`})`,
+      );
+    }
+
     // Combiner toutes les conditions
     const whereConditions = Prisma.sql`${Prisma.join(conditions, ' ')}`;
 
@@ -199,6 +210,7 @@ export class EventService {
     const response = await Promise.all(
       events.slice(0, limit).map(async (event) => {
         const image = await this.imageService.getFirstImageByEventId(event.id);
+        console.log('image', image);
         return {
           ...event,
           image,
@@ -222,14 +234,54 @@ export class EventService {
   }
 
   async findOne(id: string): Promise<ResponseType> {
-    const event = await this.prismaService.event.findUnique({ where: { id } });
-
+    const event = await this.prismaService.event.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        creator_id: true,
+        address: true,
+        max_participants: true,
+        entry_fee: true,
+        start_time: true,
+        end_time: true,
+        image: false,
+        created_at: false,
+        updated_at: false,
+      },
+    });
     if (!event) {
       throw new NotFoundException('Event not found');
     }
 
-    console.log('event', event);
-    return { message: 'Event found', data: event, status: 200 };
+    let images = await this.imageService.getImagesByEventId(id);
+    if (!images) {
+      images = [];
+    }
+
+    const creator = await this.prismaService.user.findUnique({
+      where: { id: event.creator_id },
+      select: {
+        type: true,
+        firstname: true,
+        name: true,
+        created_at: true,
+      },
+    });
+
+    const eventWithCreator = {
+      ...event,
+      creatorName:
+        creator.type === User_type.USER ? creator.firstname : creator.name,
+      creatorDateInscription: creator.created_at,
+    };
+
+    return {
+      message: 'Event found',
+      data: { event: eventWithCreator, images },
+      status: 200,
+    };
   }
 
   async findByCreator(creator_id: string): Promise<ResponseType> {
@@ -243,6 +295,17 @@ export class EventService {
 
     const events = await this.prismaService.event.findMany({
       where: { creator_id },
+      select: {
+        id: true,
+        title: true,
+        start_time: true,
+        end_time: true,
+        address: true,
+        entry_fee: true,
+        visibility: true,
+        created_at: true,
+        updated_at: true,
+      },
     });
 
     if (!events || events.length === 0) {

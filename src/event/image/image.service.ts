@@ -5,10 +5,8 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from 'src/db/prisma.service';
 import { CreateImageDto } from './dto/create-image.dto';
-import { EventService } from '../event.service';
 import { AwsService } from 'src/aws/aws.service';
 import { UpdateImageDto } from './dto/update-image.dto';
-import { log } from 'console';
 
 @Injectable()
 export class ImageService {
@@ -32,9 +30,7 @@ export class ImageService {
     });
 
     if (!images || images.length === 0) {
-      throw new NotFoundException(
-        `No images found for the event with id ${event_id}`,
-      );
+      return [];
     }
 
     const response = await Promise.all(
@@ -95,6 +91,8 @@ export class ImageService {
           order,
         },
       });
+
+      console.log(`Image ${newImage.url} created for the event ${event_id}`);
 
       return {
         message: `Image ${newImage.url} created for the event ${event_id}`,

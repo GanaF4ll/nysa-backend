@@ -12,10 +12,11 @@ import { Event_visibility } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
 
 export enum visibility_filter {
+  ALL = 'ALL',
   DEFAULT = 'DEFAULT',
   FRIENDSONLY = 'FRIENDSONLY',
   PRIVATE = 'PRIVATE',
-  ALL = 'ALL',
+  PUBLIC = 'PUBLIC',
 }
 
 export class EventFilterDto {
@@ -40,6 +41,16 @@ export class EventFilterDto {
     required: false,
   })
   cursor?: string;
+
+  @IsOptional()
+  @IsString()
+  @ApiProperty({
+    type: String,
+    description: 'Champ de recherche sur la description & le titre',
+    example: 'soirée',
+    required: false,
+  })
+  search?: string;
 
   @IsOptional()
   @Transform(({ value }) => new Date(value))

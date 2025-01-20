@@ -40,3 +40,9 @@
 - intégration du S3
 - intégration du service AWS dans le imageService
 - les events peuvent être crée avec leurs images
+- event.findAll() retour la 1ere image de l'event
+
+# dev 20/01/25
+
+- event.findAll() retourne des infos du user
+- upgrade sur les GET d'event
