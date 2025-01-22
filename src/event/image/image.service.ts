@@ -65,6 +65,21 @@ export class ImageService {
     return response;
   }
 
+  async getProfilePic(user_id: string) {
+    const profilePic = await this.prismaService.user.findUnique({
+      where: { id: user_id },
+      select: { image_url: true },
+    });
+
+    if (!profilePic) {
+      throw new NotFoundException(`User with id ${user_id} not found`);
+    }
+
+    const response = await this.awsService.getSignedUrl(profilePic.image_url);
+
+    return response;
+  }
+
   async create(event_id: string, createImageDto: CreateImageDto) {
     const { name, order, file } = createImageDto;
 
@@ -96,6 +111,26 @@ export class ImageService {
 
       return {
         message: `Image ${newImage.url} created for the event ${event_id}`,
+      };
+    } catch (error) {
+      throw new BadRequestException(error);
+    }
+  }
+
+  async createUserImage(createImageDto: CreateImageDto) {
+    const { name, file } = createImageDto;
+
+    try {
+      const fileS3 = await this.awsService.upload(name, file);
+
+      if (!fileS3) {
+        throw new BadRequestException('Error uploading image');
+      }
+
+      const s3Name = fileS3.message;
+
+      return {
+        data: s3Name,
       };
     } catch (error) {
       throw new BadRequestException(error);

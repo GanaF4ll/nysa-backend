@@ -1,3 +1,4 @@
+import { CreateImageDto } from './../../event/image/dto/create-image.dto';
 import {
   IsString,
   IsNotEmpty,
@@ -80,15 +81,15 @@ export class CreateUserDto {
   })
   readonly phone?: string;
 
-  @IsUrl()
-  @IsOptional()
-  @ApiProperty({
-    type: String,
-    description: "URL de l'image de profil",
-    example: 'https://www.example.com/image.jpg',
-    required: false,
-  })
-  readonly image_url?: string;
+  // @IsUrl()
+  // @IsOptional()
+  // @ApiProperty({
+  //   type: String,
+  //   description: "URL de l'image de profil",
+  //   example: 'https://www.example.com/image.jpg',
+  //   required: false,
+  // })
+  // readonly createImageDto?: CreateImageDto;
 
   @IsString()
   @IsOptional()

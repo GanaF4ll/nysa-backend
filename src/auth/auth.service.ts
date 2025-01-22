@@ -1,3 +1,4 @@
+import { CreateImageDto } from './../event/image/dto/create-image.dto';
 import {
   Injectable,
   NotFoundException,
@@ -23,15 +24,20 @@ export class AuthService {
     private readonly userService: UserService,
   ) {}
 
-  async register(registerDto: RegisterUserDto) {
+  async register(
+    registerDto: RegisterUserDto,
+    createImageDto?: CreateImageDto,
+  ) {
     let newUser;
     if (registerDto.type === 'USER') {
       newUser = await this.userService.createUser(
         registerDto.data as CreateUserDto,
+        createImageDto,
       );
     } else if (registerDto.type === 'ORGANISATION') {
       newUser = await this.userService.createOrganisation(
         registerDto.data as CreateOrganisationDto,
+        createImageDto,
       );
     } else {
       throw new BadRequestException('Invalid user type');

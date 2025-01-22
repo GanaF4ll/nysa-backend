@@ -7,6 +7,8 @@ import {
   Req,
   Res,
   NotFoundException,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { ApiBody, ApiOperation } from '@nestjs/swagger';
@@ -16,6 +18,10 @@ import { GoogleAuthGuard } from './guards/google-auth.guard';
 import { AuthGuard } from './guards/auth.guard';
 import { Public } from './decorators/public.decorator';
 import { VerifyMailDto } from './dto/verify-mail.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { User_type, Sex } from '@prisma/client';
+import { create } from 'domain';
+import { CreateImageDto } from 'src/event/image/dto/create-image.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -23,10 +29,20 @@ export class AuthController {
 
   @Public()
   @Post('register')
+  @UseInterceptors(FileInterceptor('file'))
   @ApiOperation({ summary: 'Créer un compte utilisateur ou organisation' })
   @ApiBody({ type: RegisterUserDto })
-  async register(@Body() registerDto: RegisterUserDto) {
-    return this.authService.register(registerDto);
+  async register(
+    @Body() registerDto: RegisterUserDto,
+    @Body() createImageDto: CreateImageDto,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    const completeDto = {
+      ...createImageDto,
+      file: file.buffer,
+      name: file.originalname,
+    };
+    return this.authService.register(registerDto, completeDto);
   }
 
   @Public()

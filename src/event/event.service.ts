@@ -240,6 +240,8 @@ export class EventService {
         id: true,
         title: true,
         description: true,
+        latitude: true,
+        longitude: true,
         creator_id: true,
         address: true,
         max_participants: true,
@@ -267,14 +269,20 @@ export class EventService {
         firstname: true,
         name: true,
         created_at: true,
+        image_url: true,
       },
     });
+
+    const creatorImage = await this.imageService.getProfilePic(
+      event.creator_id,
+    );
 
     const eventWithCreator = {
       ...event,
       creatorName:
         creator.type === User_type.USER ? creator.firstname : creator.name,
       creatorDateInscription: creator.created_at,
+      creatorImage,
     };
 
     return {

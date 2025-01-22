@@ -12,12 +12,20 @@ import * as argon2 from 'argon2';
 import { CreateOrganisationDto } from './dto/create-organisation.dto';
 import { CreateGoogleUserDto } from './dto/create-google-user.dto';
 import { UpdatePasswordDto } from './dto/update-password.dto';
+import { ImageService } from 'src/event/image/image.service';
+import { CreateImageDto } from 'src/event/image/dto/create-image.dto';
 
 @Injectable()
 export class UserService {
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(
+    private readonly prismaService: PrismaService,
+    private readonly imageService: ImageService,
+  ) {}
 
-  async createUser(createUserDto: CreateUserDto) {
+  async createUser(
+    createUserDto: CreateUserDto,
+    createImageDto?: CreateImageDto,
+  ) {
     const { email, password, firstname, lastname } = createUserDto;
     const formattedFirst =
       firstname.charAt(0).toUpperCase() + firstname.slice(1);
@@ -32,6 +40,12 @@ export class UserService {
     }
     const hashedPassword = await argon2.hash(password);
 
+    let image_url = await this.imageService.createUserImage(createImageDto);
+
+    if (!image_url) {
+      image_url = { data: '' };
+    }
+
     const newUser = await this.prismaService.user.create({
       data: {
         email: formattedEmail,
@@ -41,7 +55,7 @@ export class UserService {
         birthdate: new Date(createUserDto.birthdate),
         sex: createUserDto.sex,
         phone: createUserDto.phone,
-        image_url: createUserDto.image_url,
+        image_url: image_url.data,
         bio: createUserDto.bio,
       },
     });
@@ -49,7 +63,10 @@ export class UserService {
     return newUser;
   }
 
-  async createOrganisation(createOrganisationDto: CreateOrganisationDto) {
+  async createOrganisation(
+    createOrganisationDto: CreateOrganisationDto,
+    createImageDto?: CreateImageDto,
+  ) {
     const { email, password } = createOrganisationDto;
     const formattedEmail = email.toLowerCase();
     const existingOrganisation = await this.prismaService.user.findUnique({
@@ -59,13 +76,20 @@ export class UserService {
       throw new ConflictException('User already exists');
     }
     const hashedPassword = await argon2.hash(password);
+
+    let image_url = await this.imageService.createUserImage(createImageDto);
+
+    if (!image_url) {
+      image_url = { data: '' };
+    }
+
     const newOrganisation = await this.prismaService.user.create({
       data: {
         email: formattedEmail,
         password: hashedPassword,
         name: createOrganisationDto.name,
         phone: createOrganisationDto.phone,
-        image_url: createOrganisationDto.image_url,
+        image_url: image_url.data,
         bio: createOrganisationDto.bio,
         type: 'ORGANISATION',
       },

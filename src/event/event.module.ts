@@ -12,5 +12,6 @@ import { AwsService } from 'src/aws/aws.service';
   imports: [PrismaModule, AwsModule],
   controllers: [EventController],
   providers: [EventService, ImageService, MemberService, AwsService],
+  exports: [ImageService],
 })
 export class EventModule {}

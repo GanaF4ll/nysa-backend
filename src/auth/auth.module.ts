@@ -8,6 +8,9 @@ import { UserModule } from 'src/user/user.module';
 import { PrismaService } from 'src/db/prisma.service';
 import { UserService } from 'src/user/user.service';
 import { GoogleStrategy } from './strategies/google.strategy';
+import { ImageService } from 'src/event/image/image.service';
+import { AwsModule } from 'src/aws/aws.module';
+import { AwsService } from 'src/aws/aws.service';
 @Module({
   imports: [
     JwtModule.register({
@@ -17,9 +20,17 @@ import { GoogleStrategy } from './strategies/google.strategy';
     }),
     ConfigModule.forFeature(googleOauthConfig),
     UserModule,
+    AwsModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, UserService, PrismaService, GoogleStrategy],
+  providers: [
+    AuthService,
+    UserService,
+    PrismaService,
+    GoogleStrategy,
+    ImageService,
+    AwsService,
+  ],
   exports: [AuthService],
 })
 export class AuthModule {}
