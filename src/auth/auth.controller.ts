@@ -42,9 +42,10 @@ export class AuthController {
       throw new BadRequestException('File is required');
     }
 
-    // Ajoutez les métadonnées du fichier au DTO
+    const imageName = Date.now() + file.originalname;
+
     const createImageDto: CreateImageDto = {
-      name: file.originalname,
+      name: imageName,
       file: file.buffer,
     };
 

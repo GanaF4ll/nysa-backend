@@ -43,7 +43,7 @@ export class EventController {
     // Vérifie si des fichiers ont été uploadés
     const event_images = files
       ? files.map((file, index) => ({
-          name: file.originalname,
+          name: Date.now() + file.originalname,
           order: index,
           file: file.buffer,
         }))
