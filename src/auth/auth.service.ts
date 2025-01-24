@@ -118,7 +118,7 @@ export class AuthService {
   }
 
   async googleLogin(id: string) {
-    const user = await this.userService.findOne(id);
+    const user = await this.prismaservice.user.findUnique({ where: { id } });
     if (!user) {
       throw new NotFoundException('User not found');
     }
