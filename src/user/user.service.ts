@@ -39,8 +39,10 @@ export class UserService {
       throw new ConflictException('User already exists');
     }
     const hashedPassword = await argon2.hash(password);
-
-    let image_url = await this.imageService.createUserImage(createImageDto);
+    let image_url;
+    if (createImageDto) {
+      image_url = await this.imageService.createUserImage(createImageDto);
+    }
 
     if (!image_url) {
       image_url = { data: '' };
@@ -76,9 +78,10 @@ export class UserService {
       throw new ConflictException('User already exists');
     }
     const hashedPassword = await argon2.hash(password);
-
-    let image_url = await this.imageService.createUserImage(createImageDto);
-
+    let image_url;
+    if (createImageDto) {
+      image_url = await this.imageService.createUserImage(createImageDto);
+    }
     if (!image_url) {
       image_url = { data: '' };
     }

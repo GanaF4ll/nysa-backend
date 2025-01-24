@@ -26,7 +26,10 @@ export class AuthService {
     private readonly userService: UserService,
   ) {}
 
-  async register(registerDto: RegisterUserDto, createImageDto: CreateImageDto) {
+  async register(
+    registerDto: RegisterUserDto,
+    createImageDto?: CreateImageDto,
+  ) {
     let newUser;
 
     if (registerDto.type === User_type.USER) {
@@ -41,7 +44,11 @@ export class AuthService {
         phone: registerDto.phone,
         sex: registerDto.sex,
       };
-      newUser = await this.userService.createUser(userDto, createImageDto);
+      if (!createImageDto) {
+        newUser = await this.userService.createUser(userDto);
+      } else {
+        newUser = await this.userService.createUser(userDto, createImageDto);
+      }
     } else if (registerDto.type === User_type.ORGANISATION) {
       const organisationDto: CreateOrganisationDto = {
         email: registerDto.email!,
@@ -50,6 +57,10 @@ export class AuthService {
         phone: registerDto.phone,
         bio: registerDto.bio,
       };
+
+      if (!createImageDto) {
+        newUser = await this.userService.createOrganisation(organisationDto);
+      }
       newUser = await this.userService.createOrganisation(
         organisationDto,
         createImageDto,

@@ -38,18 +38,20 @@ export class AuthController {
     @Body() registerDto: RegisterUserDto,
     @UploadedFile() file: Express.Multer.File,
   ) {
-    if (!file) {
-      throw new BadRequestException('File is required');
+    // if (!file) {
+    //   throw new BadRequestException('File is required');
+    // }
+    if (file) {
+      const imageName = Date.now() + file.originalname;
+
+      const createImageDto: CreateImageDto = {
+        name: imageName,
+        file: file.buffer,
+      };
+      return this.authService.register(registerDto, createImageDto);
     }
 
-    const imageName = Date.now() + file.originalname;
-
-    const createImageDto: CreateImageDto = {
-      name: imageName,
-      file: file.buffer,
-    };
-
-    return this.authService.register(registerDto, createImageDto);
+    return this.authService.register(registerDto);
   }
 
   @Public()

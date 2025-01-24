@@ -46,3 +46,7 @@
 
 - event.findAll() retourne des infos du user
 - upgrade sur les GET d'event
+
+# dev 24/01/25
+
+- refacto /register & DTO => user can create their profile with a profile pic
