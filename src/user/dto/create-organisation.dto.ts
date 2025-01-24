@@ -1,15 +1,12 @@
-import { CreateImageDto } from './../../event/image/dto/create-image.dto';
 import {
   IsString,
   IsNotEmpty,
   IsPhoneNumber,
-  IsUrl,
   IsOptional,
   IsEmail,
   Validate,
   MinLength,
 } from 'class-validator';
-import { Sex } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
 import { IsStrongPassword } from 'src/user/password.validator';
 
@@ -50,16 +47,6 @@ export class CreateOrganisationDto {
   })
   readonly phone?: string;
 
-  // @IsUrl()
-  // @IsOptional()
-  // @ApiProperty({
-  //   type: String,
-  //   description: "URL de l'image de profil",
-  //   example: 'https://www.example.com/image.jpg',
-  //   required: false,
-  // })
-  // readonly createImageDto?: CreateImageDto;
-
   @IsString()
   @IsOptional()
   @ApiProperty({
@@ -69,14 +56,4 @@ export class CreateOrganisationDto {
     required: false,
   })
   readonly bio?: string;
-
-  @IsString()
-  @IsOptional()
-  @ApiProperty({
-    type: String,
-    description: "Ville de l'organisation",
-    example: 'Paris',
-    required: false,
-  })
-  readonly city?: string;
 }

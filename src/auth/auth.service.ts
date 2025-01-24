@@ -1,3 +1,4 @@
+import { create } from 'domain';
 import { CreateImageDto } from './../event/image/dto/create-image.dto';
 import {
   Injectable,
@@ -15,6 +16,7 @@ import { CreateOrganisationDto } from 'src/user/dto/create-organisation.dto';
 import { RegisterUserDto } from './dto/register.dto';
 import { CreateGoogleUserDto } from 'src/user/dto/create-google-user.dto';
 import { VerifyMailDto } from './dto/verify-mail.dto';
+import { User_type } from '@prisma/client';
 
 @Injectable()
 export class AuthService {
@@ -24,26 +26,39 @@ export class AuthService {
     private readonly userService: UserService,
   ) {}
 
-  async register(
-    registerDto: RegisterUserDto,
-    createImageDto?: CreateImageDto,
-  ) {
+  async register(registerDto: RegisterUserDto, createImageDto: CreateImageDto) {
     let newUser;
-    if (registerDto.type === 'USER') {
-      newUser = await this.userService.createUser(
-        registerDto.data as CreateUserDto,
-        createImageDto,
-      );
-    } else if (registerDto.type === 'ORGANISATION') {
+
+    if (registerDto.type === User_type.USER) {
+      // Conversion explicite vers CreateUserDto
+      const userDto: CreateUserDto = {
+        email: registerDto.email!,
+        password: registerDto.password!,
+        firstname: registerDto.firstname!,
+        lastname: registerDto.lastname!,
+        birthdate: registerDto.birthdate!,
+        bio: registerDto.bio,
+        phone: registerDto.phone,
+        sex: registerDto.sex,
+      };
+      newUser = await this.userService.createUser(userDto, createImageDto);
+    } else if (registerDto.type === User_type.ORGANISATION) {
+      const organisationDto: CreateOrganisationDto = {
+        email: registerDto.email!,
+        password: registerDto.password!,
+        name: registerDto.name!,
+        phone: registerDto.phone,
+        bio: registerDto.bio,
+      };
       newUser = await this.userService.createOrganisation(
-        registerDto.data as CreateOrganisationDto,
+        organisationDto,
         createImageDto,
       );
     } else {
       throw new BadRequestException('Invalid user type');
     }
-    const payload = { id: newUser.id };
 
+    const payload = { id: newUser.id };
     return {
       access_token: this.jwt.sign(payload),
     };

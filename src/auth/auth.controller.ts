@@ -1,3 +1,4 @@
+import { create } from 'domain';
 import {
   Controller,
   Post,
@@ -9,19 +10,20 @@ import {
   NotFoundException,
   UseInterceptors,
   UploadedFile,
+  BadRequestException,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { ApiBody, ApiOperation } from '@nestjs/swagger';
 import { RegisterUserDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { GoogleAuthGuard } from './guards/google-auth.guard';
-import { AuthGuard } from './guards/auth.guard';
 import { Public } from './decorators/public.decorator';
 import { VerifyMailDto } from './dto/verify-mail.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { User_type, Sex } from '@prisma/client';
-import { create } from 'domain';
 import { CreateImageDto } from 'src/event/image/dto/create-image.dto';
+import { CreateUserDto } from 'src/user/dto/create-user.dto';
+import { CreateOrganisationDto } from 'src/user/dto/create-organisation.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -34,15 +36,19 @@ export class AuthController {
   @ApiBody({ type: RegisterUserDto })
   async register(
     @Body() registerDto: RegisterUserDto,
-    @Body() createImageDto: CreateImageDto,
     @UploadedFile() file: Express.Multer.File,
   ) {
-    const completeDto = {
-      ...createImageDto,
-      file: file.buffer,
+    if (!file) {
+      throw new BadRequestException('File is required');
+    }
+
+    // Ajoutez les métadonnées du fichier au DTO
+    const createImageDto: CreateImageDto = {
       name: file.originalname,
+      file: file.buffer,
     };
-    return this.authService.register(registerDto, completeDto);
+
+    return this.authService.register(registerDto, createImageDto);
   }
 
   @Public()

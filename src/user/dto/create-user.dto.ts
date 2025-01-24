@@ -81,16 +81,6 @@ export class CreateUserDto {
   })
   readonly phone?: string;
 
-  // @IsUrl()
-  // @IsOptional()
-  // @ApiProperty({
-  //   type: String,
-  //   description: "URL de l'image de profil",
-  //   example: 'https://www.example.com/image.jpg',
-  //   required: false,
-  // })
-  // readonly createImageDto?: CreateImageDto;
-
   @IsString()
   @IsOptional()
   @ApiProperty({
@@ -100,14 +90,4 @@ export class CreateUserDto {
     required: false,
   })
   readonly bio?: string;
-
-  // @IsString()
-  // @IsOptional()
-  // @ApiProperty({
-  //   type: String,
-  //   description: "Ville de l'utilisateur",
-  //   example: 'Paris',
-  //   required: false,
-  // })
-  // readonly city?: string;
 }
