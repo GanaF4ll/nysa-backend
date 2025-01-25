@@ -5,7 +5,6 @@ import {
   Patch,
   Param,
   Delete,
-  UseGuards,
   Req,
   Post,
 } from '@nestjs/common';
@@ -37,7 +36,15 @@ export class UserController {
     summary: 'Récupère un utilisateur grâce à son id',
   })
   findOne(@Param('id') id: string) {
-    return this.userService.findOne(id);
+    const select = {
+      id: true,
+      firstname: true,
+      lastname: true,
+      name: true,
+      bio: true,
+      image_url: true,
+    };
+    return this.userService.findOne(id, select);
   }
 
   @Get('/')
@@ -46,7 +53,21 @@ export class UserController {
   })
   findMe(@Req() request: Request) {
     const id = request['user'].id;
-    return this.userService.findOne(id);
+    const select = {
+      id: true,
+      firstname: true,
+      lastname: true,
+      name: true,
+      bio: true,
+      image_url: true,
+      email: true,
+      phone: true,
+      birthdate: true,
+      sex: true,
+      active: true,
+      type: true,
+    };
+    return this.userService.findOne(id, select);
   }
 
   @Get('/email')

@@ -14,6 +14,7 @@ import { CreateGoogleUserDto } from './dto/create-google-user.dto';
 import { UpdatePasswordDto } from './dto/update-password.dto';
 import { ImageService } from 'src/event/image/image.service';
 import { CreateImageDto } from 'src/event/image/dto/create-image.dto';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class UserService {
@@ -160,33 +161,24 @@ export class UserService {
     return users;
   }
 
-  async findOne(id: string) {
-    const existingUser = await this.prismaService.user.findUnique({
-      where: { id },
-      select: {
-        id: true,
-        type: true,
-        email: true,
-        firstname: true,
-        lastname: true,
-        name: true,
-        birthdate: true,
-        sex: true,
-        phone: true,
-        bio: true,
-        provider: true,
-        active: true,
-      },
-    });
+  async findOne(id: string, select: Prisma.UserSelect) {
+    try {
+      const existingUser = await this.prismaService.user.findUnique({
+        where: { id },
+        select,
+      });
 
-    if (!existingUser) throw new NotFoundException('User not found');
+      if (!existingUser) throw new NotFoundException('User not found');
 
-    let image_url = await this.imageService.getProfilePic(existingUser.id);
-    if (!image_url) {
-      image_url = '';
+      let image_url = await this.imageService.getProfilePic(existingUser.id);
+      if (!image_url) {
+        image_url = '';
+      }
+      const user = { ...existingUser, image_url };
+      return { data: user, status: 200 };
+    } catch (error) {
+      throw new NotFoundException(`Error finding user by id: ${error.message}`);
     }
-    const user = { ...existingUser, image_url };
-    return { data: user, status: 200 };
   }
 
   async findOneByEmail(email: string) {
@@ -204,8 +196,6 @@ export class UserService {
   }
 
   async update(id: string, updateUserDto: UpdateUserDto) {
-    const existingUser = await this.findOne(id);
-
     const updatedUser = await this.prismaService.user.update({
       where: { id },
       data: {
@@ -252,8 +242,6 @@ export class UserService {
   }
 
   async deactivate(id: string) {
-    const existingUser = await this.findOne(id);
-
     await this.prismaService.user.update({
       where: { id },
       data: {
@@ -265,12 +253,6 @@ export class UserService {
   }
 
   async remove(id: string) {
-    const existingUser = await this.findOne(id);
-
-    if (!existingUser) {
-      throw new NotFoundException('User not found');
-    }
-
     await this.prismaService.user.delete({
       where: { id },
     });
