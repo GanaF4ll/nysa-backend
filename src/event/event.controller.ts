@@ -131,4 +131,9 @@ export class EventController {
   deleteImage(@Param('image_id') image_id: string) {
     return this.imageService.delete(image_id);
   }
+
+  @Get('/test/:user_id')
+  getProfilePicture(@Param('user_id') user_id: string) {
+    return this.imageService.getProfilePic(user_id);
+  }
 }

@@ -39,7 +39,8 @@ export class AwsService {
         }),
       );
 
-      const response = { message: key };
+      const response = { message: filename };
+      console.log('response:', response);
       return response;
     } catch (error) {
       console.error('Erreur upload:', error);

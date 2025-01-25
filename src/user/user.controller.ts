@@ -11,7 +11,6 @@ import {
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { AuthGuard } from 'src/auth/guards/auth.guard';
 import { ApiOperation } from '@nestjs/swagger';
 import { CreateGoogleUserDto } from './dto/create-google-user.dto';
 import { UpdatePasswordDto } from './dto/update-password.dto';

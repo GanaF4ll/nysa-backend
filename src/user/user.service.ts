@@ -181,7 +181,10 @@ export class UserService {
 
     if (!existingUser) throw new NotFoundException('User not found');
 
-    const image_url = await this.imageService.getProfilePic(existingUser.id);
+    let image_url = await this.imageService.getProfilePic(existingUser.id);
+    if (!image_url) {
+      image_url = '';
+    }
     const user = { ...existingUser, image_url };
     return { data: user, status: 200 };
   }
