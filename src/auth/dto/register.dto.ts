@@ -10,11 +10,13 @@ import {
   IsEmail,
   MinLength,
   IsPhoneNumber,
+  Validate,
 } from 'class-validator';
 import { ApiProperty, getSchemaPath } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { CreateUserDto } from 'src/user/dto/create-user.dto';
 import { CreateOrganisationDto } from 'src/user/dto/create-organisation.dto';
+import { IsStrongPassword } from 'src/user/password.validator';
 
 export class RegisterUserDto {
   @IsEnum(User_type)
@@ -30,6 +32,7 @@ export class RegisterUserDto {
   @ApiProperty({ description: 'Email', example: 'test@mail.com' })
   readonly email: string;
 
+  @Validate(IsStrongPassword)
   @IsString()
   @MinLength(8)
   @ApiProperty({ description: 'Mot de passe', example: 'Test!1234' })
