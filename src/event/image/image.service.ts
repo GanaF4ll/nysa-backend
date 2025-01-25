@@ -32,10 +32,10 @@ export class ImageService {
     if (!images || images.length === 0) {
       return [];
     }
-
+    const folder = 'events';
     const response = await Promise.all(
       images.map(async (image) => {
-        const url = await this.awsService.getSignedUrl(image.url);
+        const url = await this.awsService.getSignedUrl(folder, image.url);
         return { url, order: image.order };
       }),
     );
@@ -60,7 +60,8 @@ export class ImageService {
       return null;
     }
 
-    const response = await this.awsService.getSignedUrl(image.url);
+    const folder = 'events';
+    const response = await this.awsService.getSignedUrl(folder, image.url);
 
     return response;
   }
@@ -74,17 +75,20 @@ export class ImageService {
     if (!profilePic) {
       throw new NotFoundException(`User with id ${user_id} not found`);
     }
-
-    const response = await this.awsService.getSignedUrl(profilePic.image_url);
+    const folder = 'users';
+    const response = await this.awsService.getSignedUrl(
+      folder,
+      profilePic.image_url,
+    );
 
     return response;
   }
 
-  async create(event_id: string, createImageDto: CreateImageDto) {
+  async createEventImage(event_id: string, createImageDto: CreateImageDto) {
     const { name, order, file } = createImageDto;
-
+    const folder = 'events';
     try {
-      const fileS3 = await this.awsService.upload(name, file);
+      const fileS3 = await this.awsService.upload(folder, name, file);
 
       if (!fileS3) {
         throw new BadRequestException('Error uploading image');
@@ -119,9 +123,9 @@ export class ImageService {
 
   async createUserImage(createImageDto: CreateImageDto) {
     const { name, file } = createImageDto;
-
+    const folder = 'users';
     try {
-      const fileS3 = await this.awsService.upload(name, file);
+      const fileS3 = await this.awsService.upload(folder, name, file);
 
       if (!fileS3) {
         throw new BadRequestException('Error uploading image');

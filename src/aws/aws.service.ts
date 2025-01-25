@@ -22,22 +22,24 @@ export class AwsService {
 
   /**
    * @description send/update un fichier dans le bucket S3
-   * @param filename
-   * @param file
+   * @param folder: dossier dans lequel le fichier sera stocké
+   * @param filename: nom du fichier
+   * @param file: fichier à envoyer
    */
-  async upload(filename: string, file: Buffer) {
+  async upload(folder: string, filename: string, file: Buffer) {
     try {
-      console.log('filename', filename);
+      const key = `${folder}/${filename}`;
+      console.log('Uploading to key:', key);
 
       await this.s3Client.send(
         new PutObjectCommand({
-          Bucket: 'nysa-app',
-          Key: filename,
+          Bucket: 'nysa.app',
+          Key: key,
           Body: file,
         }),
       );
 
-      const response = { message: filename };
+      const response = { message: key };
       return response;
     } catch (error) {
       console.error('Erreur upload:', error);
@@ -51,14 +53,19 @@ export class AwsService {
    * @param expiresIn : valeur à laquelle l'URL signée expire (604800 valeur max)
    * @returns
    */
-  async getSignedUrl(filename: string, expiresIn = 7200): Promise<string> {
+  async getSignedUrl(
+    folder: string,
+    filename: string,
+    expiresIn = 7200,
+  ): Promise<string> {
     try {
+      const key = `${folder}/${filename}`;
+
       const command = new GetObjectCommand({
-        Bucket: 'nysa-app',
-        Key: filename,
+        Bucket: this.configService.getOrThrow('AWS_S3_BUCKET'),
+        Key: key,
       });
 
-      // Générer une URL signée qui expire après expiresIn secondes (par défaut 1 heure)
       const signedUrl = await getSignedUrl(this.s3Client, command, {
         expiresIn,
       });
@@ -77,7 +84,7 @@ export class AwsService {
     try {
       await this.s3Client.send(
         new DeleteObjectCommand({
-          Bucket: 'nysa-app',
+          Bucket: this.configService.getOrThrow('AWS_S3_BUCKET'),
           Key: filename,
         }),
       );

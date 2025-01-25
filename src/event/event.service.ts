@@ -64,7 +64,10 @@ export class EventService {
       if (event_images && Array.isArray(event_images)) {
         for (let i = 0; i < event_images.length; i++) {
           event_images[i].order = i + 1;
-          await this.imageService.create(newEvent.id, event_images[i]);
+          await this.imageService.createEventImage(
+            newEvent.id,
+            event_images[i],
+          );
           console.log(`image ${i} created`);
         }
       }
@@ -209,8 +212,13 @@ export class EventService {
 
     const response = await Promise.all(
       events.slice(0, limit).map(async (event) => {
-        const image = await this.imageService.getFirstImageByEventId(event.id);
+        let image = await this.imageService.getFirstImageByEventId(event.id);
+        if (!image) {
+          image = '';
+        }
+        console.log('image from the map');
         console.log('image', image);
+        console.log('image from the map');
         return {
           ...event,
           image,
@@ -251,6 +259,7 @@ export class EventService {
         image: false,
         created_at: false,
         updated_at: false,
+        visibility: true,
       },
     });
     if (!event) {
@@ -273,10 +282,10 @@ export class EventService {
       },
     });
 
-    const creatorImage = await this.imageService.getProfilePic(
-      event.creator_id,
-    );
-
+    let creatorImage = await this.imageService.getProfilePic(event.creator_id);
+    if (!creatorImage) {
+      creatorImage = '';
+    }
     const eventWithCreator = {
       ...event,
       creatorName:

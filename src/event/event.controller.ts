@@ -113,8 +113,8 @@ export class EventController {
       file: file.buffer,
       name: file.originalname,
     };
-
-    return this.imageService.create(event_id, completeDto);
+    const folder = 'events';
+    return this.imageService.createEventImage(event_id, completeDto);
   }
   @Patch('images/:image_id')
   @ApiOperation({
