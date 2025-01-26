@@ -12,63 +12,118 @@ import { Member_status } from '@prisma/client';
 export class MemberService {
   constructor(private prismaService: PrismaService) {}
 
-  async addMember(event_id: string, createMemberDto: CreateMemberDto) {
-    const { user_id } = createMemberDto;
-    const status = Member_status.PENDING;
+  async addMember(
+    event_id: string,
+    inviter_id,
+    createMemberDto: CreateMemberDto,
+  ) {
+    try {
+      const { user_id } = createMemberDto;
+      const status = Member_status.PENDING;
 
-    const existingEvent = await this.prismaService.event.findUnique({
-      where: { id: event_id },
-    });
-
-    if (!existingEvent) {
-      throw new NotFoundException(`Event '${event_id}' not found`);
-    }
-
-    const existingUser = await this.prismaService.user.findUnique({
-      where: { id: user_id },
-    });
-
-    if (!existingUser) {
-      throw new NotFoundException(`User '${user_id}' not found`);
-    }
-
-    const existingMember = await this.prismaService.event_member.findFirst({
-      where: { user_id, event_id },
-    });
-
-    if (!existingMember || existingMember.status != Member_status.ACCEPTED) {
-      const newMember = await this.prismaService.event_member.create({
-        data: {
-          user_id,
-          event_id,
-          status,
-        },
+      const existingEvent = await this.prismaService.event.findUnique({
+        where: { id: event_id },
       });
 
-      if (existingMember?.status === Member_status.ACCEPTED) {
-        throw new ConflictException('User is already a member of the event');
+      if (!existingEvent) {
+        throw new NotFoundException(`Event '${event_id}' not found`);
       }
 
-      // TODO: Notification to user
-      return newMember;
+      const existingInviter = await this.prismaService.user.findUnique({
+        where: { id: inviter_id },
+      });
+
+      if (!existingInviter) {
+        throw new NotFoundException(`User '${inviter_id}' not found`);
+      }
+
+      const newGuest = await this.prismaService.user.findUnique({
+        where: { id: user_id },
+      });
+
+      if (!newGuest) {
+        throw new NotFoundException(`User '${user_id}' not found`);
+      }
+
+      const existingMember = await this.prismaService.event_member.findFirst({
+        where: { user_id, event_id },
+      });
+
+      if (!existingMember || existingMember.status != Member_status.ACCEPTED) {
+        // * vérifier la visibilité de l'événement
+        if (existingEvent.visibility === 'PUBLIC') {
+          const newMember = await this.prismaService.event_member.create({
+            data: {
+              user_id,
+              event_id,
+              status,
+            },
+          });
+
+          return {
+            message: `User ${user_id} has been added to the event`,
+            data: newMember,
+          };
+        } else if (existingEvent.visibility === 'PRIVATE') {
+          throw new BadRequestException('Event is private');
+        } else if (existingEvent.visibility === 'FRIENDSONLY') {
+          const isCreator = existingEvent.creator_id === inviter_id;
+          // TODO: Check if user is friend with creator
+          if (!isCreator) {
+            throw new BadRequestException(
+              'YOU ARE NOT THE CREATOR OF THE EVENT',
+            );
+          }
+          const newMember = await this.prismaService.event_member.create({
+            data: {
+              user_id,
+              event_id,
+              status,
+            },
+          });
+
+          return {
+            message: `User ${user_id} has been added to the event`,
+            data: newMember,
+          };
+        }
+
+        // TODO: Notification to user
+      }
+    } catch (error) {
+      return { message: error.message };
     }
   }
 
   async getMembers(event_id: string) {
-    const existingEvent = await this.prismaService.event.findUnique({
-      where: { id: event_id },
-    });
+    try {
+      const existingEvent = await this.prismaService.event.findUnique({
+        where: { id: event_id },
+      });
 
-    if (!existingEvent) {
-      throw new NotFoundException(`Event '${event_id}' not found`);
+      if (!existingEvent) {
+        throw new NotFoundException(`Event '${event_id}' not found`);
+      }
+
+      const creator = await this.prismaService.user.findUnique({
+        where: { id: existingEvent.creator_id },
+      });
+
+      const members = await this.prismaService.event_member.findMany({
+        where: { event_id },
+      });
+
+      // members.forEach(async (member) => {
+      //   const user = await this.prismaService.user.findUnique({
+      //     where: { id: member.user_id },
+      //   });
+      // });
+
+      const memberCount = members.length;
+
+      return { members, memberCount };
+    } catch (error) {
+      return { message: error.message };
     }
-
-    const members = await this.prismaService.event_member.findMany({
-      where: { event_id },
-    });
-
-    const memberCount = members.length;
-
-    return { members, memberCount };
   }
 }

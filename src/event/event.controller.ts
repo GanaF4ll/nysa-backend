@@ -20,12 +20,14 @@ import { ImageService } from './image/image.service';
 import { EventFilterDto } from './dto/event-filter.dto';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { CreateImageDto } from './image/dto/create-image.dto';
+import { MemberService } from './member/member.service';
 
 @Controller('event')
 export class EventController {
   constructor(
     private readonly eventService: EventService,
     private imageService: ImageService,
+    private readonly memberService: MemberService,
   ) {}
 
   @Post()
@@ -130,5 +132,24 @@ export class EventController {
   })
   deleteImage(@Param('image_id') image_id: string) {
     return this.imageService.delete(image_id);
+  }
+
+  /*****************************
+   ******MEMBERS ROUTES**********
+   *****************************/
+  @Post('add-member/:event_id')
+  async addMember(
+    @Param('event_id') event_id: string,
+    @Body() createMemberDto,
+    @Req() request: Request,
+  ) {
+    console.log('addMember called with event_id:', event_id);
+    const inviter_id = request['user'].id;
+    return this.memberService.addMember(event_id, inviter_id, createMemberDto);
+  }
+
+  @Get('members/:event_id')
+  async getMembers(@Param('event_id') event_id: string) {
+    return this.memberService.getMembers(event_id);
   }
 }
