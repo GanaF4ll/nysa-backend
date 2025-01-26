@@ -80,7 +80,7 @@ model Users {
   Message             Messages[]
   Event               Events[]
   Conversation_member Conversation_members[]
-  Get_notification    Get_notification[]
+  Get_notification    Get_notifications[]
 
   Event_Invitations Event_Invitations[]
 }
@@ -121,8 +121,8 @@ model Event_members {
 
 model Event_Invitations {
   id         String        @id @default(cuid())
-  event_id   String
   user_id    String
+  event_id   String
   status     Member_status @map("status")
   created_at DateTime      @default(now())
   updated_at DateTime      @updatedAt
@@ -131,7 +131,7 @@ model Event_Invitations {
   User  Users  @relation(fields: [user_id], references: [id])
 }
 
-model Conversation {
+model Conversations {
   id         String   @id @default(cuid())
   name       String
   is_private Boolean  @default(true)
@@ -143,16 +143,16 @@ model Conversation {
 }
 
 model Messages {
-  id              String       @id @default(cuid())
+  id              String        @id @default(cuid())
   conversation_id String
-  conversation    Conversation @relation(fields: [conversation_id], references: [id])
+  conversation    Conversations @relation(fields: [conversation_id], references: [id])
   sender_id       String
-  sender          Users        @relation(fields: [sender_id], references: [id])
+  sender          Users         @relation(fields: [sender_id], references: [id])
   content         String
   status          String
   type            Message_type
-  created_at      DateTime     @default(now())
-  updated_at      DateTime     @updatedAt
+  created_at      DateTime      @default(now())
+  updated_at      DateTime      @updatedAt
 }
 
 model Conversation_members {
@@ -160,25 +160,25 @@ model Conversation_members {
   user_id         String
   is_admin        Boolean @default(false)
 
-  conversation Conversation @relation(fields: [conversation_id], references: [id])
+  conversation Conversations @relation(fields: [conversation_id], references: [id])
   // relation avec Auth ou User en fonction de si une orga peut être membre d'une conversation
-  user         Users        @relation(fields: [user_id], references: [id])
+  user         Users         @relation(fields: [user_id], references: [id])
 
   @@id([conversation_id, user_id])
 }
 
 model Notifications {
-  id               String             @id @default(cuid())
+  id               String              @id @default(cuid())
   target_id        String
   target_type      String
-  type             Notification_type  @map("type")
-  created_at       DateTime           @default(now())
-  updated_at       DateTime           @updatedAt
-  Get_notification Get_notification[]
+  type             Notification_type   @map("type")
+  created_at       DateTime            @default(now())
+  updated_at       DateTime            @updatedAt
+  Get_notification Get_notifications[]
 }
 
 // Pas sûr d'avoir capté le système de notification
-model Get_notification {
+model Get_notifications {
   id              String   @id @default(cuid())
   notification_id String
   user_id         String
