@@ -21,7 +21,7 @@ export class MemberService {
       const { user_id } = createMemberDto;
       const status = Member_status.PENDING;
 
-      const existingEvent = await this.prismaService.event.findUnique({
+      const existingEvent = await this.prismaService.events.findUnique({
         where: { id: event_id },
       });
 
@@ -29,7 +29,7 @@ export class MemberService {
         throw new NotFoundException(`Event '${event_id}' not found`);
       }
 
-      const existingInviter = await this.prismaService.user.findUnique({
+      const existingInviter = await this.prismaService.users.findUnique({
         where: { id: inviter_id },
       });
 
@@ -37,7 +37,7 @@ export class MemberService {
         throw new NotFoundException(`User '${inviter_id}' not found`);
       }
 
-      const newGuest = await this.prismaService.user.findUnique({
+      const newGuest = await this.prismaService.users.findUnique({
         where: { id: user_id },
       });
 
@@ -45,14 +45,14 @@ export class MemberService {
         throw new NotFoundException(`User '${user_id}' not found`);
       }
 
-      const existingMember = await this.prismaService.event_member.findFirst({
+      const existingMember = await this.prismaService.event_members.findFirst({
         where: { user_id, event_id },
       });
 
       if (!existingMember || existingMember.status != Member_status.ACCEPTED) {
         // * vérifier la visibilité de l'événement
         if (existingEvent.visibility === 'PUBLIC') {
-          const newMember = await this.prismaService.event_member.create({
+          const newMember = await this.prismaService.event_members.create({
             data: {
               user_id,
               event_id,
@@ -74,7 +74,7 @@ export class MemberService {
               'YOU ARE NOT THE CREATOR OF THE EVENT',
             );
           }
-          const newMember = await this.prismaService.event_member.create({
+          const newMember = await this.prismaService.event_members.create({
             data: {
               user_id,
               event_id,
@@ -97,7 +97,7 @@ export class MemberService {
 
   async getMembers(event_id: string) {
     try {
-      const existingEvent = await this.prismaService.event.findUnique({
+      const existingEvent = await this.prismaService.events.findUnique({
         where: { id: event_id },
       });
 
@@ -105,16 +105,16 @@ export class MemberService {
         throw new NotFoundException(`Event '${event_id}' not found`);
       }
 
-      const creator = await this.prismaService.user.findUnique({
+      const creator = await this.prismaService.users.findUnique({
         where: { id: existingEvent.creator_id },
       });
 
-      const members = await this.prismaService.event_member.findMany({
+      const members = await this.prismaService.event_members.findMany({
         where: { event_id },
       });
 
       // members.forEach(async (member) => {
-      //   const user = await this.prismaService.user.findUnique({
+      //   const user = await this.prismaService.users.findUnique({
       //     where: { id: member.user_id },
       //   });
       // });

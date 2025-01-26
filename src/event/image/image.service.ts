@@ -16,7 +16,7 @@ export class ImageService {
   ) {}
 
   async getImagesByEventId(event_id: string) {
-    const existingEvent = await this.prismaService.event.findUnique({
+    const existingEvent = await this.prismaService.events.findUnique({
       where: { id: event_id },
     });
 
@@ -44,7 +44,7 @@ export class ImageService {
   }
 
   async getFirstImageByEventId(event_id: string) {
-    const existingEvent = await this.prismaService.event.findUnique({
+    const existingEvent = await this.prismaService.events.findUnique({
       where: { id: event_id },
     });
 
@@ -67,7 +67,7 @@ export class ImageService {
   }
 
   async getProfilePic(user_id: string) {
-    const profilePic = await this.prismaService.user.findUnique({
+    const profilePic = await this.prismaService.users.findUnique({
       where: { id: user_id },
       select: { image_url: true },
     });
@@ -94,7 +94,7 @@ export class ImageService {
         throw new BadRequestException('Error uploading image');
       }
 
-      const existingEvent = await this.prismaService.event.findUnique({
+      const existingEvent = await this.prismaService.events.findUnique({
         where: { id: event_id },
       });
       if (!existingEvent) {

@@ -21,7 +21,7 @@ import { User_type } from '@prisma/client';
 @Injectable()
 export class AuthService {
   constructor(
-    private readonly prismaservice: PrismaService,
+    private readonly prismaService: PrismaService,
     private readonly jwt: JwtService,
     private readonly userService: UserService,
   ) {}
@@ -129,7 +129,7 @@ export class AuthService {
   }
 
   async googleLogin(id: string) {
-    const user = await this.prismaservice.user.findUnique({ where: { id } });
+    const user = await this.prismaService.users.findUnique({ where: { id } });
     if (!user) {
       throw new NotFoundException('User not found');
     }
@@ -139,7 +139,7 @@ export class AuthService {
   }
 
   async verifyToken(id: string) {
-    const user = await this.prismaservice.user.findUnique({ where: { id } });
+    const user = await this.prismaService.users.findUnique({ where: { id } });
     if (!user) {
       throw new NotFoundException('User not found');
     }

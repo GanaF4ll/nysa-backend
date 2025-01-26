@@ -67,7 +67,7 @@ export class ChatService {
     conversation_id: string,
     type: Message_type,
   ) {
-    return this.prismaService.message.create({
+    return this.prismaService.messages.create({
       data: {
         conversation: {
           connect: { id: conversation_id },
@@ -98,7 +98,7 @@ export class ChatService {
       throw new Error(`Conversation with id ${group_id} not found`);
     }
 
-    return this.prismaService.message.create({
+    return this.prismaService.messages.create({
       data: {
         conversation: {
           connect: { id: group_id },

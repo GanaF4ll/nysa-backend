@@ -31,7 +31,7 @@ export class UserService {
       firstname.charAt(0).toUpperCase() + firstname.slice(1);
     const formattedLast = lastname.charAt(0).toUpperCase() + lastname.slice(1);
     const formattedEmail = email.toLowerCase();
-    const existingUser = await this.prismaService.user.findUnique({
+    const existingUser = await this.prismaService.users.findUnique({
       where: { email: formattedEmail },
     });
 
@@ -48,7 +48,7 @@ export class UserService {
       image_url = { data: '' };
     }
 
-    const newUser = await this.prismaService.user.create({
+    const newUser = await this.prismaService.users.create({
       data: {
         email: formattedEmail,
         password: hashedPassword,
@@ -71,7 +71,7 @@ export class UserService {
   ) {
     const { email, password } = createOrganisationDto;
     const formattedEmail = email.toLowerCase();
-    const existingOrganisation = await this.prismaService.user.findUnique({
+    const existingOrganisation = await this.prismaService.users.findUnique({
       where: { email: formattedEmail },
     });
     if (existingOrganisation) {
@@ -86,7 +86,7 @@ export class UserService {
       image_url = { data: '' };
     }
 
-    const newOrganisation = await this.prismaService.user.create({
+    const newOrganisation = await this.prismaService.users.create({
       data: {
         email: formattedEmail,
         password: hashedPassword,
@@ -105,7 +105,7 @@ export class UserService {
       createGoogleUserDto;
 
     try {
-      const existingUser = await this.prismaService.user.findUnique({
+      const existingUser = await this.prismaService.users.findUnique({
         where: { email },
       });
 
@@ -116,7 +116,7 @@ export class UserService {
         return existingUser;
       }
 
-      const newUser = await this.prismaService.user.create({
+      const newUser = await this.prismaService.users.create({
         data: {
           email,
           firstname,
@@ -135,7 +135,7 @@ export class UserService {
   }
 
   async findAll() {
-    const users = await this.prismaService.user.findMany({
+    const users = await this.prismaService.users.findMany({
       select: {
         id: true,
         type: true,
@@ -161,7 +161,7 @@ export class UserService {
   }
 
   async findOne(id: string) {
-    const existingUser = await this.prismaService.user.findUnique({
+    const existingUser = await this.prismaService.users.findUnique({
       where: { id },
       select: {
         id: true,
@@ -188,7 +188,7 @@ export class UserService {
 
   async findOneByEmail(email: string) {
     try {
-      const user = await this.prismaService.user.findUnique({
+      const user = await this.prismaService.users.findUnique({
         where: { email },
       });
 
@@ -203,7 +203,7 @@ export class UserService {
   async update(id: string, updateUserDto: UpdateUserDto) {
     const existingUser = await this.findOne(id);
 
-    const updatedUser = await this.prismaService.user.update({
+    const updatedUser = await this.prismaService.users.update({
       where: { id },
       data: {
         ...updateUserDto,
@@ -219,7 +219,7 @@ export class UserService {
 
   async updatePassword(id: string, updatePasswordDto: UpdatePasswordDto) {
     const { oldPassword, newPassword } = updatePasswordDto;
-    const existingUser = await this.prismaService.user.findUnique({
+    const existingUser = await this.prismaService.users.findUnique({
       where: { id },
     });
 
@@ -234,7 +234,7 @@ export class UserService {
 
     const hashedPassword = await argon2.hash(newPassword);
 
-    const updatedUser = await this.prismaService.user.update({
+    const updatedUser = await this.prismaService.users.update({
       where: { id },
       data: {
         password: hashedPassword,
@@ -251,7 +251,7 @@ export class UserService {
   async deactivate(id: string) {
     const existingUser = await this.findOne(id);
 
-    await this.prismaService.user.update({
+    await this.prismaService.users.update({
       where: { id },
       data: {
         active: false,
@@ -268,7 +268,7 @@ export class UserService {
       throw new NotFoundException('User not found');
     }
 
-    await this.prismaService.user.delete({
+    await this.prismaService.users.delete({
       where: { id },
     });
 
