@@ -6,7 +6,6 @@ import {
 } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-
 import { PrismaService } from 'src/db/prisma.service';
 import * as argon2 from 'argon2';
 import { CreateOrganisationDto } from './dto/create-organisation.dto';
@@ -171,6 +170,7 @@ export class UserService {
         lastname: true,
         name: true,
         birthdate: true,
+        image_url: true,
         sex: true,
         phone: true,
         bio: true,
@@ -204,7 +204,11 @@ export class UserService {
   }
 
   async update(id: string, updateUserDto: UpdateUserDto) {
-    const existingUser = await this.findOne(id);
+    const existingUser = await this.prismaService.user.findUnique({
+      where: { id },
+    });
+
+    if (!existingUser) throw new NotFoundException('User not found');
 
     const updatedUser = await this.prismaService.user.update({
       where: { id },
@@ -225,6 +229,8 @@ export class UserService {
     const existingUser = await this.prismaService.user.findUnique({
       where: { id },
     });
+
+    if (!existingUser) throw new NotFoundException('User not found');
 
     const isPasswordValid = await argon2.verify(
       existingUser.password,
@@ -252,7 +258,11 @@ export class UserService {
   }
 
   async deactivate(id: string) {
-    const existingUser = await this.findOne(id);
+    const existingUser = await this.prismaService.user.findUnique({
+      where: { id },
+    });
+
+    if (!existingUser) throw new NotFoundException('User not found');
 
     await this.prismaService.user.update({
       where: { id },
@@ -265,7 +275,11 @@ export class UserService {
   }
 
   async remove(id: string) {
-    const existingUser = await this.findOne(id);
+    const existingUser = await this.prismaService.user.findUnique({
+      where: { id },
+    });
+
+    if (!existingUser) throw new NotFoundException('User not found');
 
     if (!existingUser) {
       throw new NotFoundException('User not found');
