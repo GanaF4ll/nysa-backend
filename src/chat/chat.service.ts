@@ -50,7 +50,7 @@ export class ChatService {
   async createGroup(name: string, is_private: boolean): Promise<string> {
     const group_id = uuidv4();
     this.groupUsers.set(group_id, new Set());
-    await this.prismaService.conversation.create({
+    await this.prismaService.conversations.create({
       data: {
         id: group_id,
         name,
@@ -88,11 +88,10 @@ export class ChatService {
     content: string,
     type: Message_type,
   ) {
-    const conversationExists = await this.prismaService.conversation.findUnique(
-      {
+    const conversationExists =
+      await this.prismaService.conversations.findUnique({
         where: { id: group_id },
-      },
-    );
+      });
 
     if (!conversationExists) {
       throw new Error(`Conversation with id ${group_id} not found`);

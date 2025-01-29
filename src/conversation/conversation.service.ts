@@ -41,7 +41,7 @@ export class ConversationService {
       throw new NotFoundException('User not found');
     }
 
-    const newConversation = await this.prismaService.conversation.create({
+    const newConversation = await this.prismaService.conversations.create({
       data: { name, is_private },
     });
 

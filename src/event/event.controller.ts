@@ -152,4 +152,13 @@ export class EventController {
   async getMembers(@Param('event_id') event_id: string) {
     return this.memberService.getMembers(event_id);
   }
+
+  @Get('member/my-memberships')
+  async getMemberships(
+    @Req() request: Request,
+    @Query() filters: EventFilterDto,
+  ) {
+    const user_id = request['user'].id;
+    return this.memberService.getMyMemberships(user_id, filters);
+  }
 }

@@ -7,6 +7,11 @@ import {
 import { PrismaService } from 'src/db/prisma.service';
 import { CreateMemberDto } from './dto/create-member.dto';
 import { Member_status } from '@prisma/client';
+import {
+  event_scope,
+  EventFilterDto,
+  visibility_filter,
+} from '../dto/event-filter.dto';
 
 @Injectable()
 export class MemberService {
@@ -61,7 +66,7 @@ export class MemberService {
           });
 
           return {
-            message: `User ${user_id} has been added to the event`,
+            message: `User ${user_id} has been added to the event ${existingEvent.title}`,
             data: newMember,
           };
         } else if (existingEvent.visibility === 'PRIVATE') {
@@ -83,7 +88,7 @@ export class MemberService {
           });
 
           return {
-            message: `User ${user_id} has been added to the event`,
+            message: `User ${user_id} has been added to the event ${existingEvent.title}`,
             data: newMember,
           };
         }
@@ -122,6 +127,126 @@ export class MemberService {
       const memberCount = members.length;
 
       return { members, memberCount };
+    } catch (error) {
+      return { message: error.message };
+    }
+  }
+
+  async getMyMemberships(user_id: string, filters: EventFilterDto) {
+    const {
+      limit = 10,
+      cursor,
+      minStart,
+      maxStart,
+      visibility,
+      minEntryFee,
+      maxEntryFee,
+      latitude,
+      longitude,
+      maxDistance,
+      search,
+      scope,
+    } = filters;
+
+    try {
+      const existingUser = await this.prismaService.users.findUnique({
+        where: { id: user_id },
+      });
+
+      if (!existingUser) {
+        throw new NotFoundException(`User '${user_id}' not found`);
+      }
+
+      const memberships = await this.prismaService.event_members.findMany({
+        where: { user_id },
+      });
+
+      let eventsQuery: any = {
+        where: {
+          id: { in: memberships.map((membership) => membership.event_id) },
+        },
+        take: limit,
+        orderBy: { start_time: 'asc' },
+      };
+
+      const now = new Date();
+      if (scope === event_scope.PAST) {
+        eventsQuery.where.start_time = { lt: now };
+      } else if (scope === event_scope.UPCOMING) {
+        eventsQuery.where.start_time = { gte: now };
+      }
+
+      if (minStart) {
+        eventsQuery.where.start_time = {
+          ...(eventsQuery.where.start_time || {}),
+          gte: minStart,
+        };
+      }
+      if (maxStart) {
+        eventsQuery.where.start_time = {
+          ...(eventsQuery.where.start_time || {}),
+          lte: maxStart,
+        };
+      }
+
+      if (visibility && visibility !== visibility_filter.ALL) {
+        eventsQuery.where.visibility = visibility;
+      }
+
+      if (search) {
+        eventsQuery.where.OR = [
+          { title: { contains: search, mode: 'insensitive' } },
+          { description: { contains: search, mode: 'insensitive' } },
+        ];
+      }
+
+      if (minEntryFee !== undefined) {
+        eventsQuery.where.entry_fee = {
+          ...(eventsQuery.where.entry_fee || {}),
+          gte: minEntryFee,
+        };
+      }
+      if (maxEntryFee !== undefined) {
+        eventsQuery.where.entry_fee = {
+          ...(eventsQuery.where.entry_fee || {}),
+          lte: maxEntryFee,
+        };
+      }
+
+      if (
+        latitude !== undefined &&
+        longitude !== undefined &&
+        maxDistance !== undefined
+      ) {
+        const earthRadius = 6371; // Earth's radius in km
+        eventsQuery.where.AND = [
+          {
+            latitude: {
+              gte: latitude - (maxDistance / earthRadius) * (180 / Math.PI),
+              lte: latitude + (maxDistance / earthRadius) * (180 / Math.PI),
+            },
+          },
+          {
+            longitude: {
+              gte:
+                longitude -
+                (maxDistance /
+                  (earthRadius * Math.cos((latitude * Math.PI) / 180))) *
+                  (180 / Math.PI),
+              lte:
+                longitude +
+                (maxDistance /
+                  (earthRadius * Math.cos((latitude * Math.PI) / 180))) *
+                  (180 / Math.PI),
+            },
+          },
+        ];
+      }
+
+      // Execute the query
+      const events = await this.prismaService.events.findMany(eventsQuery);
+
+      return events;
     } catch (error) {
       return { message: error.message };
     }
