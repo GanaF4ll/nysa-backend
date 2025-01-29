@@ -18,7 +18,7 @@ import { UpdateConversationDto } from './dto/update-conversation.dto';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
 import { ApiOperation } from '@nestjs/swagger';
 
-@Controller('conversation')
+@Controller('conversations')
 export class ConversationController {
   constructor(private readonly conversationService: ConversationService) {}
   private readonly logger = new Logger(ConversationController.name);

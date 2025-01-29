@@ -16,7 +16,7 @@ import { ApiOperation } from '@nestjs/swagger';
 import { CreateGoogleUserDto } from './dto/create-google-user.dto';
 import { UpdatePasswordDto } from './dto/update-password.dto';
 
-@Controller('user')
+@Controller('users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 

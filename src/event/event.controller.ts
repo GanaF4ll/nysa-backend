@@ -22,7 +22,7 @@ import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { CreateImageDto } from './image/dto/create-image.dto';
 import { MemberService } from './member/member.service';
 
-@Controller('event')
+@Controller('events')
 export class EventController {
   constructor(
     private readonly eventService: EventService,
