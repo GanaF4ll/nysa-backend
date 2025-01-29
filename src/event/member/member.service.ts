@@ -17,14 +17,10 @@ import {
 export class MemberService {
   constructor(private prismaService: PrismaService) {}
 
-  async addMember(
-    event_id: string,
-    inviter_id,
-    createMemberDto: CreateMemberDto,
-  ) {
+  async addMember(event_id: string, createMemberDto: CreateMemberDto) {
     try {
       const { user_id } = createMemberDto;
-      const status = Member_status.PENDING;
+      const status = Member_status.CONFIRMED;
 
       const existingEvent = await this.prismaService.events.findUnique({
         where: { id: event_id },
@@ -32,14 +28,6 @@ export class MemberService {
 
       if (!existingEvent) {
         throw new NotFoundException(`Event '${event_id}' not found`);
-      }
-
-      const existingInviter = await this.prismaService.users.findUnique({
-        where: { id: inviter_id },
-      });
-
-      if (!existingInviter) {
-        throw new NotFoundException(`User '${inviter_id}' not found`);
       }
 
       const newGuest = await this.prismaService.users.findUnique({
@@ -54,47 +42,33 @@ export class MemberService {
         where: { user_id, event_id },
       });
 
-      if (!existingMember || existingMember.status != Member_status.ACCEPTED) {
+      if (!existingMember) {
         // * vérifier la visibilité de l'événement
-        if (existingEvent.visibility === 'PUBLIC') {
-          const newMember = await this.prismaService.event_members.create({
-            data: {
-              user_id,
-              event_id,
-              status,
-            },
-          });
 
-          return {
-            message: `User ${user_id} has been added to the event ${existingEvent.title}`,
-            data: newMember,
-          };
-        } else if (existingEvent.visibility === 'PRIVATE') {
-          throw new BadRequestException('Event is private');
-        } else if (existingEvent.visibility === 'FRIENDSONLY') {
-          const isCreator = existingEvent.creator_id === inviter_id;
-          // TODO: Check if user is friend with creator
-          if (!isCreator) {
-            throw new BadRequestException(
-              'YOU ARE NOT THE CREATOR OF THE EVENT',
-            );
-          }
-          const newMember = await this.prismaService.event_members.create({
-            data: {
-              user_id,
-              event_id,
-              status,
-            },
-          });
+        const newMember = await this.prismaService.event_members.create({
+          data: {
+            user_id,
+            event_id,
+            status,
+          },
+        });
 
-          return {
-            message: `User ${user_id} has been added to the event ${existingEvent.title}`,
-            data: newMember,
-          };
-        }
+        return {
+          message: `User ${user_id} has been added to the event ${existingEvent.title}`,
+          data: newMember,
+        };
 
         // TODO: Notification to user
+      } else if (existingMember.status === Member_status.LEFT) {
+        return {
+          message: `User ${user_id} has left the event ${existingEvent.title}`,
+        };
+      } else if (existingMember.status === Member_status.CONFIRMED) {
+        return {
+          message: `User ${user_id} is already a member of the event ${existingEvent.title}`,
+        };
       }
+      // ? si quelqu'un s'est fait BAN peut-on le réinviter ?
     } catch (error) {
       return { message: error.message };
     }
@@ -158,7 +132,7 @@ export class MemberService {
       }
 
       const memberships = await this.prismaService.event_members.findMany({
-        where: { user_id },
+        where: { user_id, status: Member_status.CONFIRMED },
       });
 
       let eventsQuery: any = {

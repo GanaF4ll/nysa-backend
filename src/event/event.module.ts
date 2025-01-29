@@ -7,11 +7,12 @@ import { ImageService } from './image/image.service';
 import { MemberService } from './member/member.service';
 import { AwsModule } from 'src/aws/aws.module';
 import { AwsService } from 'src/aws/aws.service';
+import { InvitationService } from './invitation/invitation/invitation.service';
 
 @Module({
   imports: [PrismaModule, AwsModule],
   controllers: [EventController],
-  providers: [EventService, ImageService, MemberService, AwsService],
+  providers: [EventService, ImageService, MemberService, AwsService, InvitationService],
   exports: [ImageService],
 })
 export class EventModule {}

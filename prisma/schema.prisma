@@ -25,11 +25,15 @@ enum Event_visibility {
 }
 
 enum Member_status {
+  CONFIRMED
+  LEFT
+  KICKED
+}
+
+enum Invitation_status {
   PENDING
   ACCEPTED
   REFUSED
-  LEFT
-  KICKED
 }
 
 enum Message_status {
@@ -123,7 +127,7 @@ model Event_Invitations {
   id         String        @id @default(cuid())
   user_id    String
   event_id   String
-  status     Member_status @map("status")
+  status     Invitation_status @map("status")
   created_at DateTime      @default(now())
   updated_at DateTime      @updatedAt
 

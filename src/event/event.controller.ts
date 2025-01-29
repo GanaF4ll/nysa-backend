@@ -21,6 +21,7 @@ import { EventFilterDto } from './dto/event-filter.dto';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { CreateImageDto } from './image/dto/create-image.dto';
 import { MemberService } from './member/member.service';
+import { CreateMemberDto } from './member/dto/create-member.dto';
 
 @Controller('events')
 export class EventController {
@@ -143,12 +144,12 @@ export class EventController {
   @Post('add-member/:event_id')
   async addMember(
     @Param('event_id') event_id: string,
-    @Body() createMemberDto,
+    @Body() createMemberDto: CreateMemberDto,
     @Req() request: Request,
   ) {
     console.log('addMember called with event_id:', event_id);
     const inviter_id = request['user'].id;
-    return this.memberService.addMember(event_id, inviter_id, createMemberDto);
+    return this.memberService.addMember(event_id, createMemberDto);
   }
 
   @Get('members/:event_id')
