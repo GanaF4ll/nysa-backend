@@ -71,8 +71,11 @@ export class EventController {
   @ApiOperation({
     summary: 'Retourne toutes les ressources Event créées par un utilisateur',
   })
-  findByCreator(@Param('creator_id') creator_id: string) {
-    return this.eventService.findByCreator(creator_id);
+  findByCreator(
+    @Param('creator_id') creator_id: string,
+    @Query() filters: EventFilterDto,
+  ) {
+    return this.eventService.findByCreator(creator_id, filters);
   }
 
   @Patch(':id')

@@ -9,7 +9,11 @@ import { UpdateEventDto } from './dto/update-event.dto';
 import { PrismaService } from 'src/db/prisma.service';
 import { ResponseType } from 'src/interfaces/response-type';
 import { Prisma, Events, User_type } from '@prisma/client';
-import { EventFilterDto, visibility_filter } from './dto/event-filter.dto';
+import {
+  event_scope,
+  EventFilterDto,
+  visibility_filter,
+} from './dto/event-filter.dto';
 import { ImageService } from './image/image.service';
 import { CreateImageDto } from './image/dto/create-image.dto';
 
@@ -299,7 +303,21 @@ export class EventService {
     };
   }
 
-  async findByCreator(creator_id: string): Promise<ResponseType> {
+  async findByCreator(
+    creator_id: string,
+    filters: EventFilterDto,
+  ): Promise<ResponseType> {
+    const {
+      limit = 10,
+      minStart,
+      maxStart,
+      visibility,
+      minEntryFee,
+      maxEntryFee,
+      search,
+      scope,
+    } = filters;
+
     const creator = await this.prismaService.users.findUnique({
       where: { id: creator_id },
     });
@@ -308,7 +326,8 @@ export class EventService {
       throw new NotFoundException(`No user found with id ${creator_id}`);
     }
 
-    const events = await this.prismaService.events.findMany({
+    // Préparation de la requête avec les filtres dynamiques
+    const query: any = {
       where: { creator_id },
       select: {
         id: true,
@@ -321,7 +340,56 @@ export class EventService {
         created_at: true,
         updated_at: true,
       },
-    });
+      take: limit,
+      orderBy: { start_time: 'asc' },
+    };
+
+    const now = new Date();
+
+    if (scope === event_scope.PAST) {
+      query.where.start_time = { lt: now };
+    } else if (scope === event_scope.UPCOMING) {
+      query.where.start_time = { gte: now };
+    }
+
+    if (minStart) {
+      query.where.start_time = {
+        ...(query.where.start_time || {}),
+        gte: minStart,
+      };
+    }
+    if (maxStart) {
+      query.where.start_time = {
+        ...(query.where.start_time || {}),
+        lte: maxStart,
+      };
+    }
+
+    if (visibility && visibility !== visibility_filter.ALL) {
+      query.where.visibility = visibility;
+    }
+
+    if (search) {
+      query.where.OR = [
+        { title: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } },
+      ];
+    }
+
+    if (minEntryFee !== undefined) {
+      query.where.entry_fee = {
+        ...(query.where.entry_fee || {}),
+        gte: minEntryFee,
+      };
+    }
+    if (maxEntryFee !== undefined) {
+      query.where.entry_fee = {
+        ...(query.where.entry_fee || {}),
+        lte: maxEntryFee,
+      };
+    }
+
+    const events = await this.prismaService.events.findMany(query);
 
     if (!events || events.length === 0) {
       throw new NotFoundException(
