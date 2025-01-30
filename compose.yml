@@ -5,14 +5,7 @@ services:
       dockerfile: docker/nest-api/Dockerfile
     container_name: nest-api
     environment:
-      - DATABASE_URL=${DATABASE_URL}
-      - JWT_SECRET=${JWT_SECRET}
-      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
-      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
-      - AWS_ACCESS_KEY=${AWS_ACCESS_KEY}
-      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
-      - AWS_S3_REGION=${AWS_S3_REGION}
-      - AWS_S3_BUCKET=${AWS_S3_BUCKET}
+      - DOPPLER_TOKEN
     volumes:
       - ./src:/usr/src/app/src
     ports:
@@ -28,9 +21,10 @@ services:
     ports:
       - '5432:5432'
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+      - DOPPLER_TOKEN
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
     volumes:
       - postgres-data:/var/lib/postgresql/data
 
