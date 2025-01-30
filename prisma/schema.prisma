@@ -126,6 +126,7 @@ model Event_members {
 model Event_Invitations {
   id         String        @id @default(cuid())
   user_id    String
+  inviter_id    String
   event_id   String
   status     Invitation_status @map("status")
   created_at DateTime      @default(now())

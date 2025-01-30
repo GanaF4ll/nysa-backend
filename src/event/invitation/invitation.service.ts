@@ -1,6 +1,9 @@
 import {
   BadRequestException,
+  ConflictException,
+  HttpException,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { Invitation_status } from '@prisma/client';
@@ -60,6 +63,7 @@ export class InvitationService {
             await this.prismaService.event_Invitations.create({
               data: {
                 user_id,
+                inviter_id,
                 event_id,
                 status,
               },
@@ -85,25 +89,86 @@ export class InvitationService {
                 user_id,
                 event_id,
                 status,
+                inviter_id,
               },
             });
 
           return {
-            message: `User ${user_id} has been added to the event ${existingEvent.title}`,
+            message: `${newGuest.firstname ?? newGuest.name} has been added to the event ${existingEvent.title}`,
             data: newInvitation,
           };
         }
-
+        // TODO: détruire l'invitation si l'évènement est supprimé ou passé
         // TODO: Notification to user
       } else if (existingInvitation.status === Invitation_status.PENDING) {
         return {
-          message: `User ${user_id} has already been invited to the event ${existingEvent.title}`,
+          message: `${newGuest.firstname ?? newGuest.name} has already been invited to the event ${existingEvent.title}`,
         };
       }
     } catch (error) {
-      return { message: error.message };
+      if (error instanceof HttpException) throw error;
+      throw new InternalServerErrorException(error.message);
     }
   }
 
-  async updateInvitationStatus() {}
+  async getMyInvitations(user_id: string) {
+    try {
+      const existingUser = await this.prismaService.users.findUnique({
+        where: { id: user_id },
+      });
+      if (!existingUser) {
+        throw new NotFoundException(`User '${user_id}' not found`);
+      }
+
+      const invitations = await this.prismaService.event_Invitations.findMany({
+        where: { user_id, status: Invitation_status.PENDING },
+        select: { id: true, event_id: true, status: true, inviter_id: true },
+      });
+
+      return { data: invitations };
+    } catch (error) {
+      if (error instanceof HttpException) throw error;
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  async acceptInvitation(user_id: string, invitation_id: string) {
+    try {
+      const existingUser = await this.prismaService.users.findUnique({
+        where: { id: user_id },
+      });
+      if (!existingUser) {
+        throw new NotFoundException(`User '${user_id}' not found`);
+      }
+
+      const existingInvitation =
+        await this.prismaService.event_Invitations.findUnique({
+          where: { id: invitation_id },
+        });
+
+      if (!existingInvitation) {
+        throw new NotFoundException(`Invitation '${invitation_id}' not found`);
+      }
+
+      if (existingUser.id !== existingInvitation.user_id) {
+        throw new BadRequestException(
+          'You are not the owner of this invitation',
+        );
+      }
+
+      const updatedInv = await this.prismaService.event_Invitations.update({
+        where: { id: invitation_id },
+        data: { status: Invitation_status.ACCEPTED },
+      });
+
+      if (!updatedInv) {
+        throw new BadRequestException('Invitation not updated');
+      }
+
+      return updatedInv;
+    } catch (error) {
+      if (error instanceof HttpException) throw error;
+      throw new InternalServerErrorException(error.message);
+    }
+  }
 }

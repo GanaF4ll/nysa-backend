@@ -5,6 +5,8 @@ import {
   NotFoundException,
   BadRequestException,
   UnauthorizedException,
+  HttpException,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { LoginDto } from './dto/login.dto';
 import { PrismaService } from 'src/db/prisma.service';
@@ -124,7 +126,8 @@ export class AuthService {
       user = await this.userService.createGoogleUser(googleUser);
       return user;
     } catch (error) {
-      throw error;
+      if (error instanceof HttpException) throw error;
+      throw new InternalServerErrorException(error.message);
     }
   }
 

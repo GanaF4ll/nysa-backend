@@ -22,6 +22,7 @@ import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { CreateImageDto } from './image/dto/create-image.dto';
 import { MemberService } from './member/member.service';
 import { CreateMemberDto } from './member/dto/create-member.dto';
+import { InvitationService } from './invitation/invitation.service';
 
 @Controller('events')
 export class EventController {
@@ -29,6 +30,7 @@ export class EventController {
     private readonly eventService: EventService,
     private imageService: ImageService,
     private readonly memberService: MemberService,
+    private readonly invitationService: InvitationService,
   ) {}
 
   @Post()
@@ -141,23 +143,13 @@ export class EventController {
   /*****************************
    ******MEMBERS ROUTES**********
    *****************************/
-  @Post('add-member/:event_id')
-  async addMember(
-    @Param('event_id') event_id: string,
-    @Body() createMemberDto: CreateMemberDto,
-    @Req() request: Request,
-  ) {
-    console.log('addMember called with event_id:', event_id);
-    const inviter_id = request['user'].id;
-    return this.memberService.addMember(event_id, createMemberDto);
-  }
 
   @Get('members/:event_id')
   async getMembers(@Param('event_id') event_id: string) {
     return this.memberService.getMembers(event_id);
   }
 
-  @Get('member/my-memberships')
+  @Get('members/my-memberships')
   async getMemberships(
     @Req() request: Request,
     @Query() filters: EventFilterDto,
@@ -165,4 +157,31 @@ export class EventController {
     const user_id = request['user'].id;
     return this.memberService.getMyMemberships(user_id, filters);
   }
+
+  /*****************************
+   ******INVITATIONS ROUTES*****
+   *****************************/
+
+  @Post('add-member/:event_id')
+  async addMember(
+    @Param('event_id') event_id: string,
+    @Body() createMemberDto: CreateMemberDto,
+    @Req() request: Request,
+  ) {
+    const inviter_id = request['user'].id;
+    return this.invitationService.inviteMember(
+      event_id,
+      inviter_id,
+      createMemberDto,
+    );
+  }
+
+  @Get('invitations/my-invitations')
+  async getMyInvitations(@Req() request: Request) {
+    const user_id = request['user'].id;
+
+    return this.invitationService.getMyInvitations(user_id);
+  }
+
+  // TODO: route qui appelle acceptInvitation, addMember et deleteInvitation
 }

@@ -1,6 +1,8 @@
 import {
   BadRequestException,
+  HttpException,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -126,8 +128,8 @@ export class EventService {
           );
         }
       } catch (error) {
-        console.error('Erreur lors du décodage du curseur:', error);
-        // En cas d'erreur de décodage, on continue sans le curseur
+        if (error instanceof HttpException) throw error;
+        throw new InternalServerErrorException(error.message);
       }
     }
 

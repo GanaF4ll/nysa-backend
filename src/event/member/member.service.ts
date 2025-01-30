@@ -1,7 +1,9 @@
 import {
   BadRequestException,
   ConflictException,
+  HttpException,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/db/prisma.service';
@@ -70,7 +72,8 @@ export class MemberService {
       }
       // ? si quelqu'un s'est fait BAN peut-on le réinviter ?
     } catch (error) {
-      return { message: error.message };
+      if (error instanceof HttpException) throw error;
+      throw new InternalServerErrorException(error.message);
     }
   }
 
@@ -102,7 +105,8 @@ export class MemberService {
 
       return { members, memberCount };
     } catch (error) {
-      return { message: error.message };
+      if (error instanceof HttpException) throw error;
+      throw new InternalServerErrorException(error.message);
     }
   }
 
@@ -217,12 +221,12 @@ export class MemberService {
         ];
       }
 
-      // Execute the query
       const events = await this.prismaService.events.findMany(eventsQuery);
 
       return events;
     } catch (error) {
-      return { message: error.message };
+      if (error instanceof HttpException) throw error;
+      throw new InternalServerErrorException(error.message);
     }
   }
 }
