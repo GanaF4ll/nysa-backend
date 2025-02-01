@@ -30,6 +30,15 @@ export class InvitationService {
         throw new NotFoundException(`Event '${event_id}' not found`);
       }
 
+      const actualParticipants =
+        await this.prismaService.event_members.findMany({
+          where: { event_id },
+        });
+
+      if (actualParticipants.length >= existingEvent.max_participants) {
+        throw new BadRequestException('Event is full');
+      }
+
       const existingInviter = await this.prismaService.users.findUnique({
         where: { id: inviter_id },
       });
