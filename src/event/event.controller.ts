@@ -140,6 +140,7 @@ export class EventController {
     return this.imageService.delete(image_id);
   }
 
+
   /*****************************
    ******MEMBERS ROUTES**********
    *****************************/
@@ -184,4 +185,5 @@ export class EventController {
   }
 
   // TODO: route qui appelle acceptInvitation, addMember et deleteInvitation
+
 }
