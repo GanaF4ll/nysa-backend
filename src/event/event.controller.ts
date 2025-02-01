@@ -140,7 +140,6 @@ export class EventController {
     return this.imageService.delete(image_id);
   }
 
-
   /*****************************
    ******MEMBERS ROUTES**********
    *****************************/
@@ -157,6 +156,15 @@ export class EventController {
   ) {
     const user_id = request['user'].id;
     return this.memberService.getMyMemberships(user_id, filters);
+  }
+
+  @Patch('members/:event_id')
+  async leaveEvent(
+    @Param('event_id') event_id: string,
+    @Req() request: Request,
+  ) {
+    const user_id = request['user'].id;
+    return this.memberService.leaveEvent(user_id, event_id);
   }
 
   /*****************************
@@ -185,5 +193,4 @@ export class EventController {
   }
 
   // TODO: route qui appelle acceptInvitation, addMember et deleteInvitation
-
 }
