@@ -5,6 +5,8 @@ import {
   NotFoundException,
   BadRequestException,
   UnauthorizedException,
+  HttpException,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { LoginDto } from './dto/login.dto';
 import { PrismaService } from 'src/db/prisma.service';
@@ -21,7 +23,7 @@ import { User_type } from '@prisma/client';
 @Injectable()
 export class AuthService {
   constructor(
-    private readonly prismaservice: PrismaService,
+    private readonly prismaService: PrismaService,
     private readonly jwt: JwtService,
     private readonly userService: UserService,
   ) {}
@@ -124,12 +126,13 @@ export class AuthService {
       user = await this.userService.createGoogleUser(googleUser);
       return user;
     } catch (error) {
-      throw error;
+      if (error instanceof HttpException) throw error;
+      throw new InternalServerErrorException(error.message);
     }
   }
 
   async googleLogin(id: string) {
-    const user = await this.prismaservice.user.findUnique({ where: { id } });
+    const user = await this.prismaService.users.findUnique({ where: { id } });
     if (!user) {
       throw new NotFoundException('User not found');
     }
@@ -139,7 +142,7 @@ export class AuthService {
   }
 
   async verifyToken(id: string) {
-    const user = await this.prismaservice.user.findUnique({ where: { id } });
+    const user = await this.prismaService.users.findUnique({ where: { id } });
     if (!user) {
       throw new NotFoundException('User not found');
     }

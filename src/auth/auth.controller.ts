@@ -11,6 +11,8 @@ import {
   UseInterceptors,
   UploadedFile,
   BadRequestException,
+  HttpException,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { ApiBody, ApiOperation } from '@nestjs/swagger';
@@ -110,7 +112,8 @@ export class AuthController {
         `http://localhost:3000?token=${response.access_token}`,
       );
     } catch (error) {
-      throw error;
+      if (error instanceof HttpException) throw error;
+      throw new InternalServerErrorException(error.message);
     }
   }
 }

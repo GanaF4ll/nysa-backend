@@ -1,6 +1,8 @@
 import {
   BadRequestException,
+  HttpException,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -8,8 +10,12 @@ import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { PrismaService } from 'src/db/prisma.service';
 import { ResponseType } from 'src/interfaces/response-type';
-import { Prisma, Event, User_type } from '@prisma/client';
-import { EventFilterDto, visibility_filter } from './dto/event-filter.dto';
+import { Prisma, Events, User_type } from '@prisma/client';
+import {
+  event_scope,
+  EventFilterDto,
+  visibility_filter,
+} from './dto/event-filter.dto';
 import { ImageService } from './image/image.service';
 import { CreateImageDto } from './image/dto/create-image.dto';
 
@@ -27,7 +33,7 @@ export class EventService {
   ): Promise<ResponseType> {
     try {
       const { start_time, end_time, ...data } = createEventDto;
-      const existingUser = await this.prismaService.user.findUnique({
+      const existingUser = await this.prismaService.users.findUnique({
         where: { id: creator_id },
       });
 
@@ -51,7 +57,7 @@ export class EventService {
         throw new BadRequestException('End time cannot be before start time');
       }
 
-      const newEvent = await this.prismaService.event.create({
+      const newEvent = await this.prismaService.events.create({
         data: {
           creator_id,
           start_time: eventStartTime.toISOString(),
@@ -81,10 +87,8 @@ export class EventService {
     }
   }
 
-  // TODO: ajouter le nombre de participants actuels / max
-  // TODO: ajouter l'url débloquer de la 1ere image aws
   async findAll(filters: EventFilterDto): Promise<{
-    response: Event[];
+    response: Events[];
     nextCursor: string | null;
     totalCount: number;
   }> {
@@ -124,8 +128,8 @@ export class EventService {
           );
         }
       } catch (error) {
-        console.error('Erreur lors du décodage du curseur:', error);
-        // En cas d'erreur de décodage, on continue sans le curseur
+        if (error instanceof HttpException) throw error;
+        throw new InternalServerErrorException(error.message);
       }
     }
 
@@ -197,14 +201,14 @@ export class EventService {
       [{ total: number }]
     >`
       SELECT COUNT(*) as total
-      FROM "Event"
+      FROM "Events"
       ${whereConditions}
     `;
 
     // Requête principale
-    const events = await this.prismaService.$queryRaw<Event[]>`
-      SELECT id, title, start_time, address, entry_fee, visibility ${distanceSelect}
-      FROM "Event"
+    const events = await this.prismaService.$queryRaw<Events[]>`
+      SELECT id, title, start_time, address, entry_fee, max_participants, visibility ${distanceSelect}
+      FROM "Events"
       ${whereConditions}
       ${orderBy}
       LIMIT ${limit + 1}
@@ -242,7 +246,7 @@ export class EventService {
   }
 
   async findOne(id: string): Promise<ResponseType> {
-    const event = await this.prismaService.event.findUnique({
+    const event = await this.prismaService.events.findUnique({
       where: { id },
       select: {
         id: true,
@@ -271,7 +275,7 @@ export class EventService {
       images = [];
     }
 
-    const creator = await this.prismaService.user.findUnique({
+    const creator = await this.prismaService.users.findUnique({
       where: { id: event.creator_id },
       select: {
         type: true,
@@ -301,8 +305,22 @@ export class EventService {
     };
   }
 
-  async findByCreator(creator_id: string): Promise<ResponseType> {
-    const creator = await this.prismaService.user.findUnique({
+  async findByCreator(
+    creator_id: string,
+    filters: EventFilterDto,
+  ): Promise<ResponseType> {
+    const {
+      limit = 10,
+      minStart,
+      maxStart,
+      visibility,
+      minEntryFee,
+      maxEntryFee,
+      search,
+      scope,
+    } = filters;
+
+    const creator = await this.prismaService.users.findUnique({
       where: { id: creator_id },
     });
 
@@ -310,7 +328,8 @@ export class EventService {
       throw new NotFoundException(`No user found with id ${creator_id}`);
     }
 
-    const events = await this.prismaService.event.findMany({
+    // Préparation de la requête avec les filtres dynamiques
+    const query: any = {
       where: { creator_id },
       select: {
         id: true,
@@ -323,7 +342,56 @@ export class EventService {
         created_at: true,
         updated_at: true,
       },
-    });
+      take: limit,
+      orderBy: { start_time: 'asc' },
+    };
+
+    const now = new Date();
+
+    if (scope === event_scope.PAST) {
+      query.where.start_time = { lt: now };
+    } else if (scope === event_scope.UPCOMING) {
+      query.where.start_time = { gte: now };
+    }
+
+    if (minStart) {
+      query.where.start_time = {
+        ...(query.where.start_time || {}),
+        gte: minStart,
+      };
+    }
+    if (maxStart) {
+      query.where.start_time = {
+        ...(query.where.start_time || {}),
+        lte: maxStart,
+      };
+    }
+
+    if (visibility && visibility !== visibility_filter.ALL) {
+      query.where.visibility = visibility;
+    }
+
+    if (search) {
+      query.where.OR = [
+        { title: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } },
+      ];
+    }
+
+    if (minEntryFee !== undefined) {
+      query.where.entry_fee = {
+        ...(query.where.entry_fee || {}),
+        gte: minEntryFee,
+      };
+    }
+    if (maxEntryFee !== undefined) {
+      query.where.entry_fee = {
+        ...(query.where.entry_fee || {}),
+        lte: maxEntryFee,
+      };
+    }
+
+    const events = await this.prismaService.events.findMany(query);
 
     if (!events || events.length === 0) {
       throw new NotFoundException(
@@ -339,7 +407,7 @@ export class EventService {
     updateEventDto: UpdateEventDto,
   ): Promise<ResponseType> {
     const { start_time, end_time, ...data } = updateEventDto;
-    const existingEvent = await this.prismaService.event.findUnique({
+    const existingEvent = await this.prismaService.events.findUnique({
       where: { id },
     });
     const currentDate = new Date();
@@ -375,7 +443,7 @@ export class EventService {
       }
     }
 
-    const updatedEvent = await this.prismaService.event.update({
+    const updatedEvent = await this.prismaService.events.update({
       data: {
         ...updateEventDto,
       },
@@ -396,7 +464,7 @@ export class EventService {
   async remove(id: string): Promise<ResponseType> {
     const existingEvent = await this.findOne(id);
 
-    await this.prismaService.event.delete({ where: { id } });
+    await this.prismaService.events.delete({ where: { id } });
 
     return { message: `Event with id ${id} has been deleted` };
   }

@@ -8,7 +8,6 @@ import {
   IsNumber,
   Min,
 } from 'class-validator';
-import { Event_visibility } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
 
 export enum visibility_filter {
@@ -17,6 +16,12 @@ export enum visibility_filter {
   FRIENDSONLY = 'FRIENDSONLY',
   PRIVATE = 'PRIVATE',
   PUBLIC = 'PUBLIC',
+}
+
+export enum event_scope {
+  PAST = 'PAST',
+  UPCOMING = 'UPCOMING',
+  ALL = 'ALL',
 }
 
 export class EventFilterDto {
@@ -139,4 +144,14 @@ export class EventFilterDto {
     required: false,
   })
   maxDistance?: number;
+
+  @IsOptional()
+  @IsEnum(event_scope)
+  @ApiProperty({
+    enum: event_scope,
+    description: `filtre les events en fonction de s'ils sont passés ou à venir, sert pour filtrer mes évènements`,
+    example: 'UPCOMING',
+    required: false,
+  })
+  scope?: event_scope;
 }

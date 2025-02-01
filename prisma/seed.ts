@@ -47,7 +47,7 @@ async function main() {
 
   const createdUsers: { id: string }[] = [];
   for (const user of users) {
-    const createdUser = await prisma.user.upsert({
+    const createdUser = await prisma.users.upsert({
       where: { email: user.email },
       update: {},
       create: user,
@@ -128,7 +128,7 @@ async function main() {
 
   // Créer les events
   for (const event of events) {
-    const createdEvent = await prisma.event.create({
+    const createdEvent = await prisma.events.create({
       data: event,
     });
     console.log(`Created event: ${event.title}`);

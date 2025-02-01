@@ -135,7 +135,7 @@ export class ChatGateway {
     recipient_id: string,
   ): Promise<string> {
     const existingConversation =
-      await this.chatService.prismaService.conversation.findFirst({
+      await this.chatService.prismaService.conversations.findFirst({
         where: {
           is_private: true,
           Conversation_member: {
@@ -157,7 +157,7 @@ export class ChatGateway {
       return existingConversation.id;
     } else {
       const newConversation =
-        await this.chatService.prismaService.conversation.create({
+        await this.chatService.prismaService.conversations.create({
           data: {
             name: `Conversation between ${sender_id} and ${recipient_id}`,
             is_private: true,

@@ -33,7 +33,7 @@ export class ConversationService {
     // ?? Si plus de 2 users, c'est un groupe
     let is_private = users.length <= 2;
 
-    const existingAdmin = await this.prismaService.user.findUnique({
+    const existingAdmin = await this.prismaService.users.findUnique({
       where: { id: id },
     });
 
@@ -41,12 +41,12 @@ export class ConversationService {
       throw new NotFoundException('User not found');
     }
 
-    const newConversation = await this.prismaService.conversation.create({
+    const newConversation = await this.prismaService.conversations.create({
       data: { name, is_private },
     });
 
     for (const user_id of users) {
-      const existingUser = await this.prismaService.user.findUnique({
+      const existingUser = await this.prismaService.users.findUnique({
         where: { id: user_id },
       });
 
@@ -54,7 +54,7 @@ export class ConversationService {
         throw new NotFoundException('User not found');
       }
 
-      await this.prismaService.conversation_member.create({
+      await this.prismaService.conversation_members.create({
         data: {
           user_id,
           conversation_id: newConversation.id,

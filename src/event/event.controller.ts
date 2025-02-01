@@ -20,12 +20,17 @@ import { ImageService } from './image/image.service';
 import { EventFilterDto } from './dto/event-filter.dto';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { CreateImageDto } from './image/dto/create-image.dto';
+import { MemberService } from './member/member.service';
+import { CreateMemberDto } from './member/dto/create-member.dto';
+import { InvitationService } from './invitation/invitation.service';
 
-@Controller('event')
+@Controller('events')
 export class EventController {
   constructor(
     private readonly eventService: EventService,
     private imageService: ImageService,
+    private readonly memberService: MemberService,
+    private readonly invitationService: InvitationService,
   ) {}
 
   @Post()
@@ -69,8 +74,11 @@ export class EventController {
   @ApiOperation({
     summary: 'Retourne toutes les ressources Event créées par un utilisateur',
   })
-  findByCreator(@Param('creator_id') creator_id: string) {
-    return this.eventService.findByCreator(creator_id);
+  findByCreator(
+    @Param('creator_id') creator_id: string,
+    @Query() filters: EventFilterDto,
+  ) {
+    return this.eventService.findByCreator(creator_id, filters);
   }
 
   @Patch(':id')
@@ -132,8 +140,50 @@ export class EventController {
     return this.imageService.delete(image_id);
   }
 
-  @Get('/test/:user_id')
-  getProfilePicture(@Param('user_id') user_id: string) {
-    return this.imageService.getProfilePic(user_id);
+
+  /*****************************
+   ******MEMBERS ROUTES**********
+   *****************************/
+
+  @Get('members/:event_id')
+  async getMembers(@Param('event_id') event_id: string) {
+    return this.memberService.getMembers(event_id);
   }
+
+  @Get('members/my-memberships')
+  async getMemberships(
+    @Req() request: Request,
+    @Query() filters: EventFilterDto,
+  ) {
+    const user_id = request['user'].id;
+    return this.memberService.getMyMemberships(user_id, filters);
+  }
+
+  /*****************************
+   ******INVITATIONS ROUTES*****
+   *****************************/
+
+  @Post('add-member/:event_id')
+  async addMember(
+    @Param('event_id') event_id: string,
+    @Body() createMemberDto: CreateMemberDto,
+    @Req() request: Request,
+  ) {
+    const inviter_id = request['user'].id;
+    return this.invitationService.inviteMember(
+      event_id,
+      inviter_id,
+      createMemberDto,
+    );
+  }
+
+  @Get('invitations/my-invitations')
+  async getMyInvitations(@Req() request: Request) {
+    const user_id = request['user'].id;
+
+    return this.invitationService.getMyInvitations(user_id);
+  }
+
+  // TODO: route qui appelle acceptInvitation, addMember et deleteInvitation
+
 }
