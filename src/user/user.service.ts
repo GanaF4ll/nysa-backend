@@ -204,7 +204,7 @@ export class UserService {
   }
 
   async update(id: string, updateUserDto: UpdateUserDto) {
-    const existingUser = await this.prismaService.user.findUnique({
+    const existingUser = await this.prismaService.users.findUnique({
       where: { id },
     });
 
@@ -258,7 +258,7 @@ export class UserService {
   }
 
   async deactivate(id: string) {
-    const existingUser = await this.prismaService.user.findUnique({
+    const existingUser = await this.prismaService.users.findUnique({
       where: { id },
     });
 
@@ -275,7 +275,7 @@ export class UserService {
   }
 
   async remove(id: string) {
-    const existingUser = await this.prismaService.user.findUnique({
+    const existingUser = await this.prismaService.users.findUnique({
       where: { id },
     });
 

@@ -227,4 +227,61 @@ export class MemberService {
       throw new InternalServerErrorException(error.message);
     }
   }
+
+  async leaveEvent(user_id: string, event_id: string) {
+    try {
+      const existingUser = await this.prismaService.users.findUnique({
+        where: { id: user_id },
+      });
+
+      if (!existingUser) {
+        throw new NotFoundException(`User '${user_id}' not found`);
+      }
+
+      const existingEvent = await this.prismaService.events.findUnique({
+        where: { id: event_id },
+      });
+
+      if (!existingEvent) {
+        throw new NotFoundException(`Event '${event_id}' not found`);
+      }
+
+      const existingMember = await this.prismaService.event_members.findFirst({
+        where: { user_id, event_id },
+      });
+
+      if (!existingMember) {
+        throw new NotFoundException(
+          `User '${user_id}' is not a member of event '${event_id}'`,
+        );
+      }
+
+      if (
+        existingMember.status === Member_status.LEFT ||
+        existingMember.status === Member_status.KICKED
+      ) {
+        return {
+          message: `User ${user_id} has already left the event ${existingEvent.title} or was kicked from it`,
+        };
+      }
+
+      const updatedMember = await this.prismaService.event_members.update({
+        where: {
+          event_id_user_id: {
+            event_id: existingMember.event_id,
+            user_id: existingMember.user_id,
+          },
+        },
+        data: { status: Member_status.LEFT },
+      });
+
+      return {
+        message: `User ${user_id} has left the event ${existingEvent.title}`,
+        data: updatedMember,
+      };
+    } catch (error) {
+      if (error instanceof HttpException) throw error;
+      throw new InternalServerErrorException(error.message);
+    }
+  }
 }
