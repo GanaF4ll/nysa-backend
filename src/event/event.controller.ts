@@ -211,5 +211,13 @@ export class EventController {
     return this.invitationService.getMyInvitations(user_id);
   }
 
-  // TODO: route qui appelle acceptInvitation, addMember et deleteInvitation
+  // TODO: route qui appelle acceptInvitation & addMember
+  @Patch('invitations/accept/:invitation_id')
+  async acceptInvitation(
+    @Param('invitation_id') invitation_id: string,
+    @Req() request: Request,
+  ) {
+    const user_id = request['user'].id;
+    return this.invitationService.acceptInvitation(user_id, invitation_id);
+  }
 }
