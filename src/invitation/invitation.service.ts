@@ -13,13 +13,9 @@ import { CreateMemberDto } from 'src/member/dto/create-member.dto';
 export class InvitationService {
   constructor(private readonly prismaService: PrismaService) {}
   // TODO: adapter pour creatememberdto, add event_id to it
-  async inviteMember(
-    event_id: string,
-    inviter_id,
-    createMemberDto: CreateMemberDto,
-  ) {
+  async inviteMember(inviter_id, createMemberDto: CreateMemberDto) {
     try {
-      const { member_id } = createMemberDto;
+      const { member_id, event_id } = createMemberDto;
       const status = Invitation_status.PENDING;
 
       const existingEvent = await this.prismaService.events.findUnique({
@@ -173,7 +169,7 @@ export class InvitationService {
         throw new BadRequestException('Invitation not updated');
       }
 
-      return updatedInv;
+      return { message: 'Invitation accepted', data: updatedInv };
     } catch (error) {
       if (error instanceof HttpException) throw error;
       throw new InternalServerErrorException(error.message);

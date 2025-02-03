@@ -22,7 +22,7 @@ import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { CreateImageDto } from './image/dto/create-image.dto';
 import { MemberService } from '../member/member.service';
 import { CreateMemberDto } from '../member/dto/create-member.dto';
-import { InvitationService } from './invitation/invitation.service';
+import { InvitationService } from '../invitation/invitation.service';
 
 @Controller('events')
 export class EventController {
@@ -147,44 +147,5 @@ export class EventController {
   })
   deleteImage(@Param('image_id') image_id: string) {
     return this.imageService.delete(image_id);
-  }
-
-  /*****************************
-   ******MEMBERS ROUTES**********
-   *****************************/
-
-  /*****************************
-   ******INVITATIONS ROUTES*****
-   *****************************/
-
-  @Post('add-member/:event_id')
-  async addMember(
-    @Param('event_id') event_id: string,
-    @Body() createMemberDto: CreateMemberDto,
-    @Req() request: Request,
-  ) {
-    const inviter_id = request['user'].id;
-    return this.invitationService.inviteMember(
-      event_id,
-      inviter_id,
-      createMemberDto,
-    );
-  }
-
-  @Get('invitations/my-invitations')
-  async getMyInvitations(@Req() request: Request) {
-    const user_id = request['user'].id;
-
-    return this.invitationService.getMyInvitations(user_id);
-  }
-
-  // TODO: route qui appelle acceptInvitation & addMember
-  @Patch('invitations/accept/:invitation_id')
-  async acceptInvitation(
-    @Param('invitation_id') invitation_id: string,
-    @Req() request: Request,
-  ) {
-    const user_id = request['user'].id;
-    return this.invitationService.acceptInvitation(user_id, invitation_id);
   }
 }

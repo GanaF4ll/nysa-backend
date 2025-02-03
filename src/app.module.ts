@@ -10,6 +10,7 @@ import { ConversationModule } from './conversation/conversation.module';
 import { EventModule } from './event/event.module';
 import { AwsModule } from './aws/aws.module';
 import { MemberModule } from './member/member.module';
+import { InvitationModule } from './invitation/invitation.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { MemberModule } from './member/member.module';
     EventModule,
     AwsModule,
     MemberModule,
+    InvitationModule,
   ],
   controllers: [AppController],
   providers: [AppService],
