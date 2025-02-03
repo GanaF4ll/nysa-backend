@@ -1,19 +1,23 @@
 import { Body, Controller, Get, Param, Patch, Post, Req } from '@nestjs/common';
 import { MemberService } from './member.service';
+import { CreateMemberDto } from './dto/create-member.dto';
 
 @Controller('members')
 export class MemberController {
   constructor(private readonly memberService: MemberService) {}
-  @Post('members/join/:event_id')
-  async joinEvent(
-    @Req() request: Request,
-    @Param('event_id') event_id: string,
-  ) {
+  @Post('/join/')
+  async joinEvent(@Req() request: Request, @Body() body: { event_id: string }) {
     const user_id = request['user'].id;
-    return this.memberService.addMember(event_id, user_id);
+
+    const createMemberDto: CreateMemberDto = {
+      event_id: body.event_id,
+      member_id: user_id,
+    };
+
+    return this.memberService.addMember(createMemberDto);
   }
 
-  @Get('/:event_id')
+  @Get('/get/:event_id')
   async getMembers(@Param('event_id') event_id: string) {
     return this.memberService.getMembers(event_id);
   }
@@ -24,16 +28,27 @@ export class MemberController {
     @Req() request: Request,
   ) {
     const user_id = request['user'].id;
-    return this.memberService.leaveEvent(user_id, event_id);
+
+    const memberDto: CreateMemberDto = {
+      event_id,
+      member_id: user_id,
+    };
+
+    return this.memberService.leaveEvent(memberDto);
   }
 
   @Patch('/kick/:event_id')
   async kickMember(
     @Param('event_id') event_id: string,
     @Req() request: Request,
-    @Body('member_id') member_id: string,
+    @Body() body: { member_id: string },
   ) {
     const user_id = request['user'].id;
-    return this.memberService.kickMember(user_id, event_id, member_id);
+
+    const memberDto: CreateMemberDto = {
+      event_id,
+      member_id: body.member_id,
+    };
+    return this.memberService.kickMember(user_id, memberDto);
   }
 }

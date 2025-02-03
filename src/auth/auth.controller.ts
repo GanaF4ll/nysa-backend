@@ -94,9 +94,7 @@ export class AuthController {
   @ApiOperation({
     summary: "Permet à l'utilisateur de se connecter avec Google",
   })
-  async googleLogin() {
-    console.log(process.env.GOOGLE_CLIENT_SECRET);
-  }
+  async googleLogin() {}
   @Public() // ? décorateur @Public() pour ignorer le middleware d'authentification
   @UseGuards(GoogleAuthGuard)
   @Get('google/callback')

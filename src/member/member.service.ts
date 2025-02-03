@@ -1,4 +1,5 @@
 import {
+  ConflictException,
   HttpException,
   Injectable,
   InternalServerErrorException,
@@ -7,17 +8,14 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from 'src/db/prisma.service';
 import { Member_status } from '@prisma/client';
-import {
-  event_scope,
-  EventFilterDto,
-  visibility_filter,
-} from '../event/dto/event-filter.dto';
+import { CreateMemberDto } from './dto/create-member.dto';
 
 @Injectable()
 export class MemberService {
   constructor(private prismaService: PrismaService) {}
 
-  async addMember(event_id: string, user_id) {
+  async addMember(createMemberDto: CreateMemberDto) {
+    const { event_id, member_id } = createMemberDto;
     try {
       const status = Member_status.CONFIRMED;
 
@@ -30,15 +28,15 @@ export class MemberService {
       }
 
       const newGuest = await this.prismaService.users.findUnique({
-        where: { id: user_id },
+        where: { id: member_id },
       });
 
       if (!newGuest) {
-        throw new NotFoundException(`User '${user_id}' not found`);
+        throw new NotFoundException(`User '${member_id}' not found`);
       }
 
       const existingMember = await this.prismaService.event_members.findFirst({
-        where: { user_id, event_id },
+        where: { user_id: member_id, event_id },
       });
 
       if (!existingMember || existingMember.status === Member_status.LEFT) {
@@ -46,26 +44,22 @@ export class MemberService {
 
         const newMember = await this.prismaService.event_members.create({
           data: {
-            user_id,
+            user_id: member_id,
             event_id,
             status,
           },
         });
 
         return {
-          message: `User ${user_id} has been added to the event ${existingEvent.title}`,
+          message: `User has been added to the event`,
           data: newMember,
         };
 
         // TODO: Notification to user
       } else if (existingMember.status === Member_status.CONFIRMED) {
-        return {
-          message: `User ${user_id} is already a member of the event ${existingEvent.title}`,
-        };
+        throw new ConflictException(`User is already a member of the event`);
       } else if (existingMember.status === Member_status.KICKED) {
-        return {
-          message: `User ${user_id} has been kicked from the event ${existingEvent.title}`,
-        };
+        throw new ConflictException(`User has been kicked from the event`);
       }
       // ? si quelqu'un s'est fait BAN peut-on le réinviter ?
     } catch (error) {
@@ -84,19 +78,9 @@ export class MemberService {
         throw new NotFoundException(`Event '${event_id}' not found`);
       }
 
-      const creator = await this.prismaService.users.findUnique({
-        where: { id: existingEvent.creator_id },
-      });
-
       const members = await this.prismaService.event_members.findMany({
-        where: { event_id },
+        where: { event_id, status: Member_status.CONFIRMED },
       });
-
-      // members.forEach(async (member) => {
-      //   const user = await this.prismaService.users.findUnique({
-      //     where: { id: member.user_id },
-      //   });
-      // });
 
       const memberCount = members.length;
 
@@ -107,14 +91,15 @@ export class MemberService {
     }
   }
 
-  async leaveEvent(user_id: string, event_id: string) {
+  async leaveEvent(memberDto: CreateMemberDto) {
+    const { member_id, event_id } = memberDto;
     try {
       const existingUser = await this.prismaService.users.findUnique({
-        where: { id: user_id },
+        where: { id: member_id },
       });
 
       if (!existingUser) {
-        throw new NotFoundException(`User '${user_id}' not found`);
+        throw new NotFoundException(`User '${member_id}' not found`);
       }
 
       const existingEvent = await this.prismaService.events.findUnique({
@@ -126,12 +111,12 @@ export class MemberService {
       }
 
       const existingMember = await this.prismaService.event_members.findFirst({
-        where: { user_id, event_id },
+        where: { user_id: member_id, event_id },
       });
 
       if (!existingMember) {
         throw new NotFoundException(
-          `User '${user_id}' is not a member of event '${event_id}'`,
+          `User '${member_id}' is not a member of event '${event_id}'`,
         );
       }
 
@@ -140,7 +125,7 @@ export class MemberService {
         existingMember.status === Member_status.KICKED
       ) {
         return {
-          message: `User ${user_id} has already left the event ${existingEvent.title} or was kicked from it`,
+          message: `User ${member_id} has already left the event ${existingEvent.title} or was kicked from it`,
         };
       }
 
@@ -155,7 +140,7 @@ export class MemberService {
       });
 
       return {
-        message: `User ${user_id} has left the event ${existingEvent.title}`,
+        message: `User ${member_id} has left the event ${existingEvent.title}`,
       };
     } catch (error) {
       if (error instanceof HttpException) throw error;
@@ -163,7 +148,8 @@ export class MemberService {
     }
   }
 
-  async kickMember(user_id: string, event_id: string, member_id: string) {
+  async kickMember(user_id: string, memberDto: CreateMemberDto) {
+    const { event_id, member_id } = memberDto;
     try {
       const existingUser = await this.prismaService.users.findUnique({
         where: { id: user_id },
@@ -191,19 +177,23 @@ export class MemberService {
         );
       }
 
+      if (existingMember.status === Member_status.LEFT) {
+        throw new ConflictException(`User has already left the event`);
+      }
+
+      if (existingMember.status === Member_status.KICKED) {
+        throw new ConflictException(
+          `User has already been kicked from the event`,
+        );
+      }
+
       if (existingEvent.creator_id !== existingUser.id) {
         throw new UnauthorizedException(
           'You do not have the permission to kick a member',
         );
       }
 
-      if (existingMember.status === Member_status.LEFT) {
-        return {
-          message: `User ${user_id} has already left the event ${existingEvent.title}`,
-        };
-      }
-
-      const updatedMember = await this.prismaService.event_members.update({
+      await this.prismaService.event_members.update({
         where: {
           event_id_user_id: {
             event_id: existingMember.event_id,
@@ -214,7 +204,7 @@ export class MemberService {
       });
 
       return {
-        message: `User ${user_id} has been kicked from the event ${existingEvent.title}`,
+        message: `User has been kicked from the event`,
       };
     } catch (error) {
       if (error instanceof HttpException) throw error;

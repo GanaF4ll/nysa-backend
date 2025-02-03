@@ -74,7 +74,6 @@ export class EventService {
             newEvent.id,
             event_images[i],
           );
-          console.log(`image ${i} created`);
         }
       }
 
@@ -220,9 +219,7 @@ export class EventService {
         if (!image) {
           image = '';
         }
-        console.log('image from the map');
-        console.log('image', image);
-        console.log('image from the map');
+
         return {
           ...event,
           image,

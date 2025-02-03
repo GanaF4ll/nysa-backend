@@ -8,7 +8,7 @@ export class CreateMemberDto {
     description: 'ID dans la table users',
     example: 'cm48rr8fv0000ublpox84yv1y',
   })
-  readonly user_id: string;
+  readonly member_id: string;
 
   @IsString()
   @ApiProperty({

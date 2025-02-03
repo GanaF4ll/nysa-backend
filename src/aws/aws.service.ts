@@ -29,7 +29,6 @@ export class AwsService {
   async upload(folder: string, filename: string, file: Buffer) {
     try {
       const key = `${folder}/${filename}`;
-      console.log('Uploading to key:', key);
 
       await this.s3Client.send(
         new PutObjectCommand({
@@ -40,7 +39,6 @@ export class AwsService {
       );
 
       const response = { message: filename };
-      console.log('response:', response);
       return response;
     } catch (error) {
       console.error('Erreur upload:', error);
