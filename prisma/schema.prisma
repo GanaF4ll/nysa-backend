@@ -7,7 +7,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum Auth_type {
+enum User_type {
   USER
   ORGANISATION
 }
@@ -25,11 +25,15 @@ enum Event_visibility {
 }
 
 enum Member_status {
+  CONFIRMED
+  LEFT
+  KICKED
+}
+
+enum Invitation_status {
   PENDING
   ACCEPTED
   REFUSED
-  LEFT
-  KICKED
 }
 
 enum Message_status {
@@ -52,168 +56,144 @@ enum Notification_type {
   ORGANISATION
 }
 
-// Table vérifiée lors de la connexion
-model Auth {
-  id                  String                @id @default(cuid())
-  email               String                @unique
-  password            String
-  type                Auth_type             @default(USER) @map("type")
-  created_at          DateTime              @default(now())
-  updated_at          DateTime              @updatedAt
-  // relation One to One
-  user                User?
-  organisation        Organisation?
-  // relation One to Many, un utilisateur peut être membre de plusieurs conversations
-  Conversation_member Conversation_member[]
-
-  Get_notification Get_notification[]
+enum Provider {
+  FACEBOOK
+  GOOGLE
+  NYSA
 }
 
-// Table dans laquelle sont stockée les informations de l'utilisateur après connexion
-model User {
-  auth_id             String                @id
-  firstname           String
-  lastname            String
-  birthdate           DateTime
-  sex                 Sex                   @map("sex")
-  image_url           String
-  bio                 String
-  city                String
-  created_at          DateTime              @default(now())
-  updated_at          DateTime              @updatedAt
-  // relation One to One, on référence le champ id de la table Auth dans la table User
-  auth                Auth                  @relation(fields: [auth_id], references: [id])
-  // relation One to Many, un User peut apparaitre dans plusieurs organisations et events
-  Organisation_member Organisation_member[]
-  Event_member        Event_member[]
-  // Message             Message[]
+model Users {
+  id         String    @id @default(cuid())
+  type       User_type @default(USER) @map("type")
+  email      String    @unique
+  password   String?
+  name       String?
+  firstname  String?
+  lastname   String?
+  birthdate  DateTime?
+  sex        Sex?      @map("sex")
+  phone      String?
+  image_url  String?
+  bio        String?
+  provider   Provider  @default(NYSA)
+  active     Boolean   @default(true)
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+
+  Event_member        Event_members[]
+  Message             Messages[]
+  Event               Events[]
+  Conversation_member Conversation_members[]
+  Get_notification    Get_notifications[]
+
+  Event_Invitations Event_Invitations[]
 }
 
-// 2e modèle de user, Table dans laquelle sont stockée les informations de l'organisation après connexion
-model Organisation {
-  auth_id    String   @id
-  name       String
-  image_url  String
-  bio        String
-  city       String
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-
-  auth                Auth                  @relation(fields: [auth_id], references: [id])
-  // relation One to Many, une organisation peut avoir plusieurs membres
-  organisationMembers Organisation_member[]
-}
-
-// Table de liaison entre les membres d'une organisation et l'organisation
-model Organisation_member {
-  organisation_id String
-  user_id         String
-
-  organisation Organisation @relation(fields: [organisation_id], references: [auth_id])
-  // ici, relation avec user directement plutôt qu'avec auth, car une orga ne peut pas faire partie d'une autre ?
-  user         User         @relation(fields: [user_id], references: [auth_id])
-
-  @@id([organisation_id, user_id]) // La clé primaire est la combinaison des deux champs, obligé d'avoir une clé primaire ici
-}
-
-model Event {
+model Events {
   id               String           @id @default(cuid())
   creator_id       String
-  title            String
-  description      String
-  date             DateTime         @db.Timestamp()
-  // image_url   String  pour avoir une cover image 
+  title            String           @db.VarChar(50)
+  description      String           @db.VarChar(1000)
   address          String
-  // type POINT pas supporté par Prisma, on utilise deux champs pour stocker la latitude et la longitude ?
   latitude         Float
   longitude        Float
+  start_time       DateTime         @db.Timestamp()
+  end_time         DateTime         @db.Timestamp()
+  image            String?
   max_participants Int
   visibility       Event_visibility @map("visibility")
   entry_fee        Float
-  view_count       Int
+  view_count       Int?             @default(0)
   created_at       DateTime         @default(now())
   updated_at       DateTime         @updatedAt
-  // relation One to Many, un évènement peut avoir plusieurs participants
-  Event_member     Event_member[]
-  Conversation     Conversation?
+  Event_member     Event_members[]
   Event_images     Event_images[]
+  user             Users            @relation(fields: [creator_id], references: [id])
+
+  Event_Invitations Event_Invitations[]
 }
 
-model Event_member {
+model Event_members {
   event_id String
   user_id  String
   status   Member_status @map("status")
-  // Est-ce qu'il y'a besoin de created_at et updated_at ici ? Pour avoir un truc sur le front qui dit "membre depuis le ..." ? OUI
-  // Par contre comment ça se passe pour les orga, est-ce qu'elle peuvent être membres d'un event ?
-  event    Event         @relation(fields: [event_id], references: [id])
-  user     User          @relation(fields: [user_id], references: [auth_id])
-  // La clé primaire est la combinaison des deux champs, obligé d'avoir une clé primaire ici,
-  //  et comme ça on est sûr qu'un user ne peut s'inscrire qu'une fois à un évènement
+  event    Events        @relation(fields: [event_id], references: [id])
+  user     Users         @relation(fields: [user_id], references: [id])
 
   @@id([event_id, user_id])
 }
 
-model Conversation {
+model Event_Invitations {
+  id         String        @id @default(cuid())
+  user_id    String
+  inviter_id    String
+  event_id   String
+  status     Invitation_status @map("status")
+  created_at DateTime      @default(now())
+  updated_at DateTime      @updatedAt
+
+  Event Events @relation(fields: [event_id], references: [id])
+  User  Users  @relation(fields: [user_id], references: [id])
+}
+
+model Conversations {
   id         String   @id @default(cuid())
-  event_id   String   @unique
   name       String
+  is_private Boolean  @default(true)
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
-  Message Message[]
-  Event   Event     @relation(fields: [event_id], references: [id])
-
-  Conversation_member Conversation_member[]
+  Message             Messages[]
+  Conversation_member Conversation_members[]
 }
 
-model Message {
-  id              String         @id @default(cuid())
+model Messages {
+  id              String        @id @default(cuid())
   conversation_id String
-  // user_id         String
+  conversation    Conversations @relation(fields: [conversation_id], references: [id])
+  sender_id       String
+  sender          Users         @relation(fields: [sender_id], references: [id])
   content         String
-  status          Message_status @map("status")
-  type            Message_type   @map("type")
-  created_at      DateTime       @default(now())
-  updated_at      DateTime       @updatedAt
-  // Si une orga peut envoyer des messages, est-ce que ses membres les voient ? Est-ce qu'une orga a besoin d'envoyer des messages privés ?
-  Conversation    Conversation   @relation(fields: [conversation_id], references: [id])
-  // User         User         @relation(fields: [user_id], references: [auth_id])
+  status          String
+  type            Message_type
+  created_at      DateTime      @default(now())
+  updated_at      DateTime      @updatedAt
 }
 
-model Conversation_member {
+model Conversation_members {
   conversation_id String
   user_id         String
   is_admin        Boolean @default(false)
 
-  conversation Conversation @relation(fields: [conversation_id], references: [id])
+  conversation Conversations @relation(fields: [conversation_id], references: [id])
   // relation avec Auth ou User en fonction de si une orga peut être membre d'une conversation
-  auth         Auth         @relation(fields: [user_id], references: [id])
+  user         Users         @relation(fields: [user_id], references: [id])
 
   @@id([conversation_id, user_id])
 }
 
-model Notification {
-  id               String             @id @default(cuid())
+model Notifications {
+  id               String              @id @default(cuid())
   target_id        String
   target_type      String
-  type             Notification_type  @map("type")
-  created_at       DateTime           @default(now())
-  updated_at       DateTime           @updatedAt
-  Get_notification Get_notification[]
+  type             Notification_type   @map("type")
+  created_at       DateTime            @default(now())
+  updated_at       DateTime            @updatedAt
+  Get_notification Get_notifications[]
 }
 
 // Pas sûr d'avoir capté le système de notification
-model Get_notification {
+model Get_notifications {
   id              String   @id @default(cuid())
   notification_id String
-  auth_id         String
+  user_id         String
   content         String
   created_at      DateTime @default(now())
   updated_at      DateTime @updatedAt
 
-  Auth Auth @relation(fields: [auth_id], references: [id])
+  user Users @relation(fields: [id], references: [id])
 
-  Notification Notification @relation(fields: [notification_id], references: [id])
+  Notification Notifications @relation(fields: [notification_id], references: [id])
 }
 
 model Event_images {
@@ -224,5 +204,5 @@ model Event_images {
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
-  Event Event @relation(fields: [event_id], references: [id])
+  Event Events @relation(fields: [event_id], references: [id])
 }
