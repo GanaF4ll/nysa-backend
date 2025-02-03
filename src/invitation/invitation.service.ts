@@ -7,19 +7,15 @@ import {
 } from '@nestjs/common';
 import { Invitation_status } from '@prisma/client';
 import { PrismaService } from 'src/db/prisma.service';
-import { CreateMemberDto } from 'src/event/member/dto/create-member.dto';
+import { CreateMemberDto } from 'src/member/dto/create-member.dto';
 
 @Injectable()
 export class InvitationService {
   constructor(private readonly prismaService: PrismaService) {}
-
-  async inviteMember(
-    event_id: string,
-    inviter_id,
-    createMemberDto: CreateMemberDto,
-  ) {
+  // TODO: adapter pour creatememberdto, add event_id to it
+  async inviteMember(inviter_id, createMemberDto: CreateMemberDto) {
     try {
-      const { user_id } = createMemberDto;
+      const { member_id, event_id } = createMemberDto;
       const status = Invitation_status.PENDING;
 
       const existingEvent = await this.prismaService.events.findUnique({
@@ -48,11 +44,11 @@ export class InvitationService {
       }
 
       const newGuest = await this.prismaService.users.findUnique({
-        where: { id: user_id },
+        where: { id: member_id },
       });
 
       if (!newGuest) {
-        throw new NotFoundException(`User '${user_id}' not found`);
+        throw new NotFoundException(`User '${member_id}' not found`);
       }
 
       if (existingInviter.id === newGuest.id) {
@@ -61,7 +57,7 @@ export class InvitationService {
 
       const existingInvitation =
         await this.prismaService.event_Invitations.findFirst({
-          where: { user_id, event_id },
+          where: { user_id: member_id, event_id },
         });
 
       if (!existingInvitation) {
@@ -70,7 +66,7 @@ export class InvitationService {
           const newInvitation =
             await this.prismaService.event_Invitations.create({
               data: {
-                user_id,
+                user_id: member_id,
                 inviter_id,
                 event_id,
                 status,
@@ -78,7 +74,7 @@ export class InvitationService {
             });
 
           return {
-            message: `User ${user_id} has been added to the event ${existingEvent.title}`,
+            message: `Userhas been invited to the event`,
             data: newInvitation,
           };
         } else if (existingEvent.visibility === 'PRIVATE') {
@@ -94,7 +90,7 @@ export class InvitationService {
           const newInvitation =
             await this.prismaService.event_Invitations.create({
               data: {
-                user_id,
+                user_id: member_id,
                 event_id,
                 status,
                 inviter_id,
@@ -173,7 +169,7 @@ export class InvitationService {
         throw new BadRequestException('Invitation not updated');
       }
 
-      return updatedInv;
+      return { message: 'Invitation accepted', data: updatedInv };
     } catch (error) {
       if (error instanceof HttpException) throw error;
       throw new InternalServerErrorException(error.message);

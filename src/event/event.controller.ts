@@ -20,16 +20,16 @@ import { ImageService } from './image/image.service';
 import { EventFilterDto } from './dto/event-filter.dto';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { CreateImageDto } from './image/dto/create-image.dto';
-import { MemberService } from './member/member.service';
-import { CreateMemberDto } from './member/dto/create-member.dto';
-import { InvitationService } from './invitation/invitation.service';
+import { MemberService } from '../member/member.service';
+import { CreateMemberDto } from '../member/dto/create-member.dto';
+import { InvitationService } from '../invitation/invitation.service';
 
 @Controller('events')
 export class EventController {
   constructor(
     private readonly eventService: EventService,
     private imageService: ImageService,
-    private readonly memberService: MemberService,
+    // private readonly memberService: MemberService,
     private readonly invitationService: InvitationService,
   ) {}
 
@@ -60,6 +60,15 @@ export class EventController {
   @Get()
   async findAll(@Query() filters: EventFilterDto) {
     return this.eventService.findAll(filters);
+  }
+
+  @Get('/my-memberships')
+  async getMemberships(
+    @Req() request: Request,
+    @Query() filters: EventFilterDto,
+  ) {
+    const user_id = request['user'].id;
+    return this.eventService.getMyMemberships(user_id, filters);
   }
 
   @Get(':id')
@@ -139,51 +148,4 @@ export class EventController {
   deleteImage(@Param('image_id') image_id: string) {
     return this.imageService.delete(image_id);
   }
-
-
-  /*****************************
-   ******MEMBERS ROUTES**********
-   *****************************/
-
-  @Get('members/:event_id')
-  async getMembers(@Param('event_id') event_id: string) {
-    return this.memberService.getMembers(event_id);
-  }
-
-  @Get('members/my-memberships')
-  async getMemberships(
-    @Req() request: Request,
-    @Query() filters: EventFilterDto,
-  ) {
-    const user_id = request['user'].id;
-    return this.memberService.getMyMemberships(user_id, filters);
-  }
-
-  /*****************************
-   ******INVITATIONS ROUTES*****
-   *****************************/
-
-  @Post('add-member/:event_id')
-  async addMember(
-    @Param('event_id') event_id: string,
-    @Body() createMemberDto: CreateMemberDto,
-    @Req() request: Request,
-  ) {
-    const inviter_id = request['user'].id;
-    return this.invitationService.inviteMember(
-      event_id,
-      inviter_id,
-      createMemberDto,
-    );
-  }
-
-  @Get('invitations/my-invitations')
-  async getMyInvitations(@Req() request: Request) {
-    const user_id = request['user'].id;
-
-    return this.invitationService.getMyInvitations(user_id);
-  }
-
-  // TODO: route qui appelle acceptInvitation, addMember et deleteInvitation
-
 }

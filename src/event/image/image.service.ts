@@ -111,8 +111,6 @@ export class ImageService {
         },
       });
 
-      console.log(`Image ${newImage.url} created for the event ${event_id}`);
-
       return {
         message: `Image ${newImage.url} created for the event ${event_id}`,
       };
