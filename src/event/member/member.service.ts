@@ -3,6 +3,7 @@ import {
   Injectable,
   InternalServerErrorException,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/db/prisma.service';
 import { CreateMemberDto } from './dto/create-member.dto';
@@ -17,9 +18,8 @@ import {
 export class MemberService {
   constructor(private prismaService: PrismaService) {}
 
-  async addMember(event_id: string, createMemberDto: CreateMemberDto) {
+  async addMember(event_id: string, user_id) {
     try {
-      const { user_id } = createMemberDto;
       const status = Member_status.CONFIRMED;
 
       const existingEvent = await this.prismaService.events.findUnique({
@@ -42,7 +42,7 @@ export class MemberService {
         where: { user_id, event_id },
       });
 
-      if (!existingMember) {
+      if (!existingMember || existingMember.status === Member_status.LEFT) {
         // * vérifier la visibilité de l'événement
 
         const newMember = await this.prismaService.event_members.create({
@@ -59,13 +59,13 @@ export class MemberService {
         };
 
         // TODO: Notification to user
-      } else if (existingMember.status === Member_status.LEFT) {
-        return {
-          message: `User ${user_id} has left the event ${existingEvent.title}`,
-        };
       } else if (existingMember.status === Member_status.CONFIRMED) {
         return {
           message: `User ${user_id} is already a member of the event ${existingEvent.title}`,
+        };
+      } else if (existingMember.status === Member_status.KICKED) {
+        return {
+          message: `User ${user_id} has been kicked from the event ${existingEvent.title}`,
         };
       }
       // ? si quelqu'un s'est fait BAN peut-on le réinviter ?
@@ -222,6 +222,121 @@ export class MemberService {
       const events = await this.prismaService.events.findMany(eventsQuery);
 
       return events;
+    } catch (error) {
+      if (error instanceof HttpException) throw error;
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  async leaveEvent(user_id: string, event_id: string) {
+    try {
+      const existingUser = await this.prismaService.users.findUnique({
+        where: { id: user_id },
+      });
+
+      if (!existingUser) {
+        throw new NotFoundException(`User '${user_id}' not found`);
+      }
+
+      const existingEvent = await this.prismaService.events.findUnique({
+        where: { id: event_id },
+      });
+
+      if (!existingEvent) {
+        throw new NotFoundException(`Event '${event_id}' not found`);
+      }
+
+      const existingMember = await this.prismaService.event_members.findFirst({
+        where: { user_id, event_id },
+      });
+
+      if (!existingMember) {
+        throw new NotFoundException(
+          `User '${user_id}' is not a member of event '${event_id}'`,
+        );
+      }
+
+      if (
+        existingMember.status === Member_status.LEFT ||
+        existingMember.status === Member_status.KICKED
+      ) {
+        return {
+          message: `User ${user_id} has already left the event ${existingEvent.title} or was kicked from it`,
+        };
+      }
+
+      const updatedMember = await this.prismaService.event_members.update({
+        where: {
+          event_id_user_id: {
+            event_id: existingMember.event_id,
+            user_id: existingMember.user_id,
+          },
+        },
+        data: { status: Member_status.LEFT },
+      });
+
+      return {
+        message: `User ${user_id} has left the event ${existingEvent.title}`,
+      };
+    } catch (error) {
+      if (error instanceof HttpException) throw error;
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  async kickMember(user_id: string, event_id: string, member_id: string) {
+    try {
+      const existingUser = await this.prismaService.users.findUnique({
+        where: { id: user_id },
+      });
+
+      if (!existingUser) {
+        throw new NotFoundException(`User '${user_id}' not found`);
+      }
+
+      const existingEvent = await this.prismaService.events.findUnique({
+        where: { id: event_id },
+      });
+
+      if (!existingEvent) {
+        throw new NotFoundException(`Event '${event_id}' not found`);
+      }
+
+      const existingMember = await this.prismaService.event_members.findFirst({
+        where: { user_id: member_id, event_id },
+      });
+
+      if (!existingMember) {
+        throw new NotFoundException(
+          `User '${user_id}' is not a member of event '${event_id}'`,
+        );
+      }
+
+      if (existingEvent.creator_id !== existingUser.id) {
+        throw new UnauthorizedException(
+          'You do not have the permission to kick a member',
+        );
+      }
+
+      if (existingMember.status === Member_status.LEFT) {
+        return {
+          message: `User ${user_id} has already left the event ${existingEvent.title}`,
+        };
+      }
+
+      const updatedMember = await this.prismaService.event_members.update({
+        where: {
+          event_id_user_id: {
+            event_id: existingMember.event_id,
+            user_id: existingMember.user_id,
+          },
+        },
+        data: { status: Member_status.KICKED },
+      });
+
+      return {
+        message: `User ${user_id} has been kicked from the event ${existingEvent.title}`,
+      };
     } catch (error) {
       if (error instanceof HttpException) throw error;
       throw new InternalServerErrorException(error.message);

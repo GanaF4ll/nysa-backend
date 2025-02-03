@@ -140,10 +140,18 @@ export class EventController {
     return this.imageService.delete(image_id);
   }
 
-
   /*****************************
    ******MEMBERS ROUTES**********
    *****************************/
+
+  @Post('members/join/:event_id')
+  async joinEvent(
+    @Req() request: Request,
+    @Param('event_id') event_id: string,
+  ) {
+    const user_id = request['user'].id;
+    return this.memberService.addMember(event_id, user_id);
+  }
 
   @Get('members/:event_id')
   async getMembers(@Param('event_id') event_id: string) {
@@ -157,6 +165,25 @@ export class EventController {
   ) {
     const user_id = request['user'].id;
     return this.memberService.getMyMemberships(user_id, filters);
+  }
+
+  @Patch('members/leave/:event_id')
+  async leaveEvent(
+    @Param('event_id') event_id: string,
+    @Req() request: Request,
+  ) {
+    const user_id = request['user'].id;
+    return this.memberService.leaveEvent(user_id, event_id);
+  }
+
+  @Patch('members/kick/:event_id')
+  async kickMember(
+    @Param('event_id') event_id: string,
+    @Req() request: Request,
+    @Body('member_id') member_id: string,
+  ) {
+    const user_id = request['user'].id;
+    return this.memberService.kickMember(user_id, event_id, member_id);
   }
 
   /*****************************
@@ -185,5 +212,4 @@ export class EventController {
   }
 
   // TODO: route qui appelle acceptInvitation, addMember et deleteInvitation
-
 }
