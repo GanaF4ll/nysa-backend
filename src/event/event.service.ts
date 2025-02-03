@@ -10,7 +10,7 @@ import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { PrismaService } from 'src/db/prisma.service';
 import { ResponseType } from 'src/interfaces/response-type';
-import { Prisma, Events, User_type } from '@prisma/client';
+import { Prisma, Events, User_type, Member_status } from '@prisma/client';
 import {
   event_scope,
   EventFilterDto,
@@ -467,5 +467,125 @@ export class EventService {
     await this.prismaService.events.delete({ where: { id } });
 
     return { message: `Event with id ${id} has been deleted` };
+  }
+
+  async getMyMemberships(user_id: string, filters: EventFilterDto) {
+    const {
+      limit = 10,
+      cursor,
+      minStart,
+      maxStart,
+      visibility,
+      minEntryFee,
+      maxEntryFee,
+      latitude,
+      longitude,
+      maxDistance,
+      search,
+      scope,
+    } = filters;
+
+    try {
+      const existingUser = await this.prismaService.users.findUnique({
+        where: { id: user_id },
+      });
+
+      if (!existingUser) {
+        throw new NotFoundException(`User '${user_id}' not found`);
+      }
+
+      const memberships = await this.prismaService.event_members.findMany({
+        where: { user_id, status: Member_status.CONFIRMED },
+      });
+
+      let eventsQuery: any = {
+        where: {
+          id: { in: memberships.map((membership) => membership.event_id) },
+        },
+        take: limit,
+        orderBy: { start_time: 'asc' },
+      };
+
+      const now = new Date();
+      if (scope === event_scope.PAST) {
+        eventsQuery.where.start_time = { lt: now };
+      } else if (scope === event_scope.UPCOMING) {
+        eventsQuery.where.start_time = { gte: now };
+      }
+
+      if (minStart) {
+        eventsQuery.where.start_time = {
+          ...(eventsQuery.where.start_time || {}),
+          gte: minStart,
+        };
+      }
+      if (maxStart) {
+        eventsQuery.where.start_time = {
+          ...(eventsQuery.where.start_time || {}),
+          lte: maxStart,
+        };
+      }
+
+      if (visibility && visibility !== visibility_filter.ALL) {
+        eventsQuery.where.visibility = visibility;
+      }
+
+      if (search) {
+        eventsQuery.where.OR = [
+          { title: { contains: search, mode: 'insensitive' } },
+          { description: { contains: search, mode: 'insensitive' } },
+        ];
+      }
+
+      if (minEntryFee !== undefined) {
+        eventsQuery.where.entry_fee = {
+          ...(eventsQuery.where.entry_fee || {}),
+          gte: minEntryFee,
+        };
+      }
+      if (maxEntryFee !== undefined) {
+        eventsQuery.where.entry_fee = {
+          ...(eventsQuery.where.entry_fee || {}),
+          lte: maxEntryFee,
+        };
+      }
+
+      if (
+        latitude !== undefined &&
+        longitude !== undefined &&
+        maxDistance !== undefined
+      ) {
+        const earthRadius = 6371; // Earth's radius in km
+        eventsQuery.where.AND = [
+          {
+            latitude: {
+              gte: latitude - (maxDistance / earthRadius) * (180 / Math.PI),
+              lte: latitude + (maxDistance / earthRadius) * (180 / Math.PI),
+            },
+          },
+          {
+            longitude: {
+              gte:
+                longitude -
+                (maxDistance /
+                  (earthRadius * Math.cos((latitude * Math.PI) / 180))) *
+                  (180 / Math.PI),
+              lte:
+                longitude +
+                (maxDistance /
+                  (earthRadius * Math.cos((latitude * Math.PI) / 180))) *
+                  (180 / Math.PI),
+            },
+          },
+        ];
+      }
+
+      const events = await this.prismaService.events.findMany(eventsQuery);
+
+      return events;
+    } catch (error) {
+      if (error instanceof HttpException) throw error;
+      throw new InternalServerErrorException(error.message);
+    }
   }
 }

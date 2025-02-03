@@ -5,8 +5,16 @@ export class CreateMemberDto {
   @IsString()
   @ApiProperty({
     type: String,
-    description: 'ID dans la table user',
+    description: 'ID dans la table users',
     example: 'cm48rr8fv0000ublpox84yv1y',
   })
   readonly user_id: string;
+
+  @IsString()
+  @ApiProperty({
+    type: String,
+    description: 'ID dans la table events',
+    example: 'cm48rr8fv0000ublpox84yv1y',
+  })
+  readonly event_id: string;
 }

@@ -9,9 +9,20 @@ import { ChatModule } from './chat/chat.module';
 import { ConversationModule } from './conversation/conversation.module';
 import { EventModule } from './event/event.module';
 import { AwsModule } from './aws/aws.module';
+import { MemberModule } from './member/member.module';
 
 @Module({
-  imports: [AuthModule, PrismaModule, ConfigModule.forRoot({ isGlobal: true }), UserModule, ChatModule, ConversationModule, EventModule, AwsModule],
+  imports: [
+    AuthModule,
+    PrismaModule,
+    ConfigModule.forRoot({ isGlobal: true }),
+    UserModule,
+    ChatModule,
+    ConversationModule,
+    EventModule,
+    AwsModule,
+    MemberModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })

@@ -20,8 +20,8 @@ import { ImageService } from './image/image.service';
 import { EventFilterDto } from './dto/event-filter.dto';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { CreateImageDto } from './image/dto/create-image.dto';
-import { MemberService } from './member/member.service';
-import { CreateMemberDto } from './member/dto/create-member.dto';
+import { MemberService } from '../member/member.service';
+import { CreateMemberDto } from '../member/dto/create-member.dto';
 import { InvitationService } from './invitation/invitation.service';
 
 @Controller('events')
@@ -29,7 +29,7 @@ export class EventController {
   constructor(
     private readonly eventService: EventService,
     private imageService: ImageService,
-    private readonly memberService: MemberService,
+    // private readonly memberService: MemberService,
     private readonly invitationService: InvitationService,
   ) {}
 
@@ -60,6 +60,15 @@ export class EventController {
   @Get()
   async findAll(@Query() filters: EventFilterDto) {
     return this.eventService.findAll(filters);
+  }
+
+  @Get('/my-memberships')
+  async getMemberships(
+    @Req() request: Request,
+    @Query() filters: EventFilterDto,
+  ) {
+    const user_id = request['user'].id;
+    return this.eventService.getMyMemberships(user_id, filters);
   }
 
   @Get(':id')
@@ -143,48 +152,6 @@ export class EventController {
   /*****************************
    ******MEMBERS ROUTES**********
    *****************************/
-
-  @Post('members/join/:event_id')
-  async joinEvent(
-    @Req() request: Request,
-    @Param('event_id') event_id: string,
-  ) {
-    const user_id = request['user'].id;
-    return this.memberService.addMember(event_id, user_id);
-  }
-
-  @Get('members/:event_id')
-  async getMembers(@Param('event_id') event_id: string) {
-    return this.memberService.getMembers(event_id);
-  }
-
-  @Get('members/my-memberships')
-  async getMemberships(
-    @Req() request: Request,
-    @Query() filters: EventFilterDto,
-  ) {
-    const user_id = request['user'].id;
-    return this.memberService.getMyMemberships(user_id, filters);
-  }
-
-  @Patch('members/leave/:event_id')
-  async leaveEvent(
-    @Param('event_id') event_id: string,
-    @Req() request: Request,
-  ) {
-    const user_id = request['user'].id;
-    return this.memberService.leaveEvent(user_id, event_id);
-  }
-
-  @Patch('members/kick/:event_id')
-  async kickMember(
-    @Param('event_id') event_id: string,
-    @Req() request: Request,
-    @Body('member_id') member_id: string,
-  ) {
-    const user_id = request['user'].id;
-    return this.memberService.kickMember(user_id, event_id, member_id);
-  }
 
   /*****************************
    ******INVITATIONS ROUTES*****
