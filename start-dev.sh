@@ -1,6 +1,6 @@
 
-npx prisma migrate deploy
+doppler run -- npx prisma migrate deploy
 
-npx prisma db push
+doppler run -- npx prisma db push
 
 nest start --watch
