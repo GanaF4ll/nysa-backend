@@ -308,18 +308,41 @@ export class EventService {
     if (!creatorImage) {
       creatorImage = '';
     }
-    const eventWithCreator = {
+
+    const participants = await this.prismaService.event_members.findMany({
+      where: { event_id: event_id, status: Member_status.CONFIRMED },
+    });
+
+    const participantCount = participants.length;
+
+    // récupère les 5 derniers participants
+    const lastFiveParticipants = participants.slice(0, 5);
+
+    let participantsImages = [];
+    // récupère les photos de profil des 5 derniers participants
+    await Promise.all(
+      lastFiveParticipants.map(async (participant) => {
+        const profilePic = await this.imageService.getProfilePic(
+          participant.user_id,
+        );
+        participantsImages.push(profilePic);
+      }),
+    );
+
+    const eventData = {
       ...event,
       creatorName:
         creator.type === User_type.USER ? creator.firstname : creator.name,
       creatorDateInscription: creator.created_at,
       creatorImage,
       isMember,
+      participantCount,
+      participantsImages,
     };
 
     return {
       message: 'Event found',
-      data: { event: eventWithCreator, images },
+      data: { event: eventData, images },
       status: 200,
     };
   }
