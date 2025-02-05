@@ -151,10 +151,6 @@ export class FriendsService {
     }
   }
 
-  async findOne(id: number) {
-    return `This action returns a #${id} friend`;
-  }
-
   // todo: update que les demandes où je suis responder
   async update(updateFriendDto: UpdateFriendDto) {
     const { sender_id, responder_id, status } = updateFriendDto;
@@ -197,7 +193,33 @@ export class FriendsService {
     }
   }
 
-  async remove(id: number) {
-    return `This action removes a #${id} friend`;
+  async remove(fRequestDto: CreateFriendDto) {
+    const { sender_id, responder_id } = fRequestDto;
+    try {
+      const friendRequest = await this.prismaService.friends.findFirst({
+        where: {
+          user_id1: sender_id,
+          user_id2: responder_id,
+        },
+      });
+
+      if (!friendRequest) {
+        throw new NotFoundException('Friend request not found');
+      }
+
+      await this.prismaService.friends.delete({
+        where: {
+          user_id1_user_id2: {
+            user_id1: friendRequest.user_id1,
+            user_id2: friendRequest.user_id2,
+          },
+        },
+      });
+
+      return { message: 'Friend request deleted' };
+    } catch (error) {
+      if (error instanceof HttpException) throw error;
+      throw new InternalServerErrorException(error.message);
+    }
   }
 }

@@ -46,11 +46,6 @@ export class FriendsController {
     return this.friendsService.findAllFriends(id);
   }
 
-  @Get('/:id')
-  findOne(@Param('id') id: string) {
-    return this.friendsService.findOne(+id);
-  }
-
   @Patch('/accept')
   accept(@Req() request: Request, @Body() body: { user_id: string }) {
     const responder_id = request['user'].id;
@@ -78,8 +73,15 @@ export class FriendsController {
     return this.friendsService.update(updateFriendDto);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.friendsService.remove(+id);
+  @Delete('/cancel')
+  remove(@Req() request: Request, @Body() body: { user_id: string }) {
+    const sender_id = request['user'].id;
+    // * met l'ID du user en sender pour qu'il ne puisse annuler
+    // * qu'une demande qu'il a envoyée
+    const fRequestDto: CreateFriendDto = {
+      sender_id,
+      responder_id: body.user_id,
+    };
+    return this.friendsService.remove(fRequestDto);
   }
 }
