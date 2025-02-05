@@ -96,22 +96,20 @@ export class AuthService {
 
   async verifyEmail(emailDto: VerifyMailDto) {
     const { email } = emailDto;
+    let isUser = false;
     const user = await this.userService.findOneByEmail(email);
     if (!user) {
-      throw new NotFoundException('User not found');
+      return {
+        data: { isAvailable: isUser },
+        message: `Email is available to use`,
+      };
     }
 
-    if (!user.active) {
-      throw new UnauthorizedException('User not active');
-    }
-
-    if (user.provider !== 'GOOGLE') {
-      throw new BadRequestException('User not registered with Google');
-    }
-    const payload = { id: user.id };
+    isUser = true;
 
     return {
-      access_token: this.jwt.sign(payload),
+      data: { isAvailable: isUser },
+      message: `Email is already used`,
     };
   }
 

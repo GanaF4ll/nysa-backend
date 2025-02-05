@@ -70,7 +70,7 @@ export class AuthController {
   @ApiOperation({
     summary: "Permet de vérifier l'adresse mail, route non protégée",
   })
-  async verifyMail(@Body() verifyMailDto: VerifyMailDto) {
+  async verifyEmail(@Body() verifyMailDto: VerifyMailDto) {
     return this.authService.verifyEmail(verifyMailDto);
   }
 
