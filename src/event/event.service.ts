@@ -87,7 +87,7 @@ export class EventService {
   }
 
   async findAll(filters: EventFilterDto): Promise<{
-    response: Events[];
+    data: Events[];
     nextCursor: string | null;
     totalCount: number;
   }> {
@@ -219,10 +219,19 @@ export class EventService {
         if (!image) {
           image = '';
         }
+        let isComplete = false;
+        let participants = await this.prismaService.event_members.count({
+          where: { event_id: event.id },
+        });
+
+        if (participants === event.max_participants) {
+          isComplete = true;
+        }
 
         return {
           ...event,
           image,
+          isComplete,
         };
       }),
     );
@@ -236,7 +245,7 @@ export class EventService {
     }
 
     return {
-      response,
+      data: response,
       nextCursor,
       totalCount: Number(countResult.total),
     };
