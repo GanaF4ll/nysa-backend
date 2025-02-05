@@ -114,23 +114,25 @@ model Events {
 }
 
 model Event_members {
-  event_id String
-  user_id  String
-  status   Member_status @map("status")
-  event    Events        @relation(fields: [event_id], references: [id])
-  user     Users         @relation(fields: [user_id], references: [id])
+  event_id   String
+  user_id    String
+  status     Member_status @map("status")
+  created_at DateTime      @default(now())
+  updated_at DateTime      @updatedAt
+  event      Events        @relation(fields: [event_id], references: [id])
+  user       Users         @relation(fields: [user_id], references: [id])
 
   @@id([event_id, user_id])
 }
 
 model Event_Invitations {
-  id         String        @id @default(cuid())
+  id         String            @id @default(cuid())
   user_id    String
-  inviter_id    String
+  inviter_id String
   event_id   String
   status     Invitation_status @map("status")
-  created_at DateTime      @default(now())
-  updated_at DateTime      @updatedAt
+  created_at DateTime          @default(now())
+  updated_at DateTime          @updatedAt
 
   Event Events @relation(fields: [event_id], references: [id])
   User  Users  @relation(fields: [user_id], references: [id])

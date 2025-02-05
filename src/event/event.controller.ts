@@ -75,8 +75,10 @@ export class EventController {
   @ApiOperation({
     summary: 'Retourne une ressource Event',
   })
-  findOne(@Param('id') id: string) {
-    return this.eventService.findOne(id);
+  findOne(@Param('id') id: string, @Req() request: Request) {
+    const user_id = request['user'].id;
+
+    return this.eventService.findOne(id, user_id);
   }
 
   @Get('creator/:creator_id')

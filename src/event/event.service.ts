@@ -242,9 +242,9 @@ export class EventService {
     };
   }
 
-  async findOne(id: string): Promise<ResponseType> {
+  async findOne(event_id: string, user_id: string): Promise<ResponseType> {
     const event = await this.prismaService.events.findUnique({
-      where: { id },
+      where: { id: event_id },
       select: {
         id: true,
         title: true,
@@ -266,8 +266,29 @@ export class EventService {
     if (!event) {
       throw new NotFoundException('Event not found');
     }
+    const existingUser = await this.prismaService.users.findUnique({
+      where: { id: user_id },
+    });
+    if (!existingUser) {
+      throw new NotFoundException('User not found');
+    }
 
-    let images = await this.imageService.getImagesByEventId(id);
+    const existingMember = await this.prismaService.event_members.findUnique({
+      where: {
+        event_id_user_id: {
+          event_id: event_id,
+          user_id: user_id,
+        },
+      },
+    });
+
+    let isMember = false;
+
+    if (existingMember) {
+      isMember = true;
+    }
+
+    let images = await this.imageService.getImagesByEventId(event_id);
     if (!images) {
       images = [];
     }
@@ -287,17 +308,41 @@ export class EventService {
     if (!creatorImage) {
       creatorImage = '';
     }
-    const eventWithCreator = {
+
+    const participants = await this.prismaService.event_members.findMany({
+      where: { event_id: event_id, status: Member_status.CONFIRMED },
+    });
+
+    const participantCount = participants.length;
+
+    // récupère les 5 derniers participants
+    const lastFiveParticipants = participants.slice(0, 5);
+
+    let participantsImages = [];
+    // récupère les photos de profil des 5 derniers participants
+    await Promise.all(
+      lastFiveParticipants.map(async (participant) => {
+        const profilePic = await this.imageService.getProfilePic(
+          participant.user_id,
+        );
+        participantsImages.push(profilePic);
+      }),
+    );
+
+    const eventData = {
       ...event,
       creatorName:
         creator.type === User_type.USER ? creator.firstname : creator.name,
       creatorDateInscription: creator.created_at,
       creatorImage,
+      isMember,
+      participantCount,
+      participantsImages,
     };
 
     return {
       message: 'Event found',
-      data: { event: eventWithCreator, images },
+      data: { event: eventData, images },
       status: 200,
     };
   }
@@ -459,7 +504,13 @@ export class EventService {
   }
 
   async remove(id: string): Promise<ResponseType> {
-    const existingEvent = await this.findOne(id);
+    const existingEvent = await this.prismaService.events.findUnique({
+      where: { id },
+    });
+
+    if (!existingEvent) {
+      throw new NotFoundException('Event not found');
+    }
 
     await this.prismaService.events.delete({ where: { id } });
 
