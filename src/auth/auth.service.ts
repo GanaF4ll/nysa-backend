@@ -96,19 +96,16 @@ export class AuthService {
 
   async verifyEmail(emailDto: VerifyMailDto) {
     const { email } = emailDto;
-    let isUser = false;
     const user = await this.userService.findOneByEmail(email);
     if (!user) {
       return {
-        data: { isAvailable: isUser },
+        data: { isAvailable: true },
         message: `Email is available to use`,
       };
     }
 
-    isUser = true;
-
     return {
-      data: { isAvailable: isUser },
+      data: { isAvailable: false },
       message: `Email is already used`,
     };
   }
