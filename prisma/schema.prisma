@@ -87,6 +87,21 @@ model Users {
   Get_notification    Get_notifications[]
 
   Event_Invitations Event_Invitations[]
+
+  Friends_sent     Friends[] @relation("friend1")
+  Friends_received Friends[] @relation("friend2")
+}
+
+model Friends {
+  user_id1   String
+  user_id2   String
+  status     Invitation_status @map("status")
+  created_at DateTime          @default(now())
+  updated_at DateTime          @updatedAt
+  user1      Users             @relation("friend1", fields: [user_id1], references: [id])
+  user2      Users             @relation("friend2", fields: [user_id2], references: [id])
+
+  @@id([user_id1, user_id2])
 }
 
 model Events {

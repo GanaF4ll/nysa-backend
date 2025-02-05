@@ -11,6 +11,7 @@ import { EventModule } from './event/event.module';
 import { AwsModule } from './aws/aws.module';
 import { MemberModule } from './member/member.module';
 import { InvitationModule } from './invitation/invitation.module';
+import { FriendsModule } from './friends/friends.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { InvitationModule } from './invitation/invitation.module';
     AwsModule,
     MemberModule,
     InvitationModule,
+    FriendsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
