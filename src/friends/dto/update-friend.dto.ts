@@ -1,7 +1,6 @@
 import { PartialType } from '@nestjs/swagger';
 import { CreateFriendDto } from './create-friend.dto';
-import { IsEnum, IsString, IsUUID } from 'class-validator';
-import { Invitation_status } from '@prisma/client';
+import { IsString, IsUUID } from 'class-validator';
 
 export class UpdateFriendDto extends PartialType(CreateFriendDto) {
   @IsString()
@@ -12,6 +11,6 @@ export class UpdateFriendDto extends PartialType(CreateFriendDto) {
   @IsUUID()
   readonly user_id2: string;
 
-  @IsEnum(Invitation_status)
-  readonly status: Invitation_status;
+  @IsString()
+  readonly status: 'ACCEPTED' | 'REFUSED';
 }

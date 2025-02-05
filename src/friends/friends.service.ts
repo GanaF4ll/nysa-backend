@@ -73,7 +73,7 @@ export class FriendsService {
       throw new InternalServerErrorException(error.message);
     }
   }
-
+  // TODO: récurer que les invitations ou je suis responder
   async findAllMyInvitations(user_id: string) {
     try {
       const user = await this.prismaService.users.findUnique({
@@ -127,15 +127,55 @@ export class FriendsService {
     }
   }
 
-  findOne(id: number) {
+  async findOne(id: number) {
     return `This action returns a #${id} friend`;
   }
 
-  update(id: number, updateFriendDto: UpdateFriendDto) {
-    return `This action updates a #${id} friend`;
+  // todo: update que les demandes où je suis responder
+  async update(updateFriendDto: UpdateFriendDto) {
+    const { user_id1, user_id2, status } = updateFriendDto;
+    try {
+      const friendRequest = await this.prismaService.friends.findFirst({
+        where: {
+          OR: [
+            { user_id1, user_id2 },
+            { user_id1: user_id2, user_id2: user_id1 },
+          ],
+        },
+      });
+
+      if (!friendRequest) {
+        throw new NotFoundException('Friend request not found');
+      }
+
+      if (friendRequest.status === status) {
+        throw new ConflictException('Friend request already in this status');
+      }
+
+      const updatedRequest = await this.prismaService.friends.update({
+        where: {
+          user_id1_user_id2: {
+            user_id1: friendRequest.user_id1,
+            user_id2: friendRequest.user_id2,
+          },
+        },
+        data: { status },
+      });
+
+      if (!updatedRequest) {
+        throw new NotFoundException('Friend request update failed');
+      }
+
+      return {
+        message: `Friend request updated from ${friendRequest.status} to ${updatedRequest.status}`,
+      };
+    } catch (error) {
+      if (error instanceof HttpException) throw error;
+      throw new InternalServerErrorException(error.message);
+    }
   }
 
-  remove(id: number) {
+  async remove(id: number) {
     return `This action removes a #${id} friend`;
   }
 }

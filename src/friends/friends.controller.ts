@@ -11,6 +11,7 @@ import {
 import { FriendsService } from './friends.service';
 import { CreateFriendDto } from './dto/create-friend.dto';
 import { UpdateFriendDto } from './dto/update-friend.dto';
+import { Invitation_status } from '@prisma/client';
 
 @Controller('friends')
 export class FriendsController {
@@ -50,9 +51,30 @@ export class FriendsController {
     return this.friendsService.findOne(+id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateFriendDto: UpdateFriendDto) {
-    return this.friendsService.update(+id, updateFriendDto);
+  @Patch('/accept')
+  accept(@Req() request: Request, @Body() body: { user_id: string }) {
+    const user_id1 = request['user'].id;
+
+    const updateFriendDto: UpdateFriendDto = {
+      user_id1,
+      user_id2: body.user_id,
+      status: Invitation_status.ACCEPTED,
+    };
+    console.log(updateFriendDto);
+    return this.friendsService.update(updateFriendDto);
+  }
+
+  @Patch('/decline')
+  decline(@Req() request: Request, @Body() body: { user_id: string }) {
+    const user_id1 = request['user'].id;
+
+    const updateFriendDto: UpdateFriendDto = {
+      user_id1,
+      user_id2: body.user_id,
+      status: Invitation_status.REFUSED,
+    };
+
+    return this.friendsService.update(updateFriendDto);
   }
 
   @Delete(':id')
