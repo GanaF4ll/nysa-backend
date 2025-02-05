@@ -96,7 +96,8 @@ export class AuthService {
 
   async verifyEmail(emailDto: VerifyMailDto) {
     const { email } = emailDto;
-    const user = await this.userService.findOneByEmail(email);
+    const formattedEmail = email.toLowerCase();
+    const user = await this.userService.findOneByEmail(formattedEmail);
     if (!user) {
       return {
         data: { isAvailable: true },
