@@ -3,8 +3,10 @@ import { IsString, IsUUID } from 'class-validator';
 export class CreateFriendDto {
   @IsString()
   @IsUUID()
-  readonly user_id1: string;
+  // sender_id est toujours user_id1
+  readonly sender_id: string;
   @IsString()
   @IsUUID()
-  readonly user_id2: string;
+  // responder_id est toujours user_id2
+  readonly responder_id: string;
 }

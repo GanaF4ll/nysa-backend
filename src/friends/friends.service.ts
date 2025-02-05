@@ -15,36 +15,33 @@ export class FriendsService {
   constructor(private readonly prismaService: PrismaService) {}
 
   async create(createFriendDto: CreateFriendDto) {
-    const { user_id1, user_id2 } = createFriendDto;
+    const { sender_id, responder_id } = createFriendDto;
     const status = Invitation_status.PENDING;
     try {
-      const user1 = await this.prismaService.users.findUnique({
-        where: { id: user_id1 },
+      const sender = await this.prismaService.users.findUnique({
+        where: { id: sender_id },
       });
 
-      if (!user1) {
+      if (!sender) {
         throw new NotFoundException('User 1 not found');
       }
 
-      const user2 = await this.prismaService.users.findUnique({
-        where: { id: user_id2 },
+      const responder = await this.prismaService.users.findUnique({
+        where: { id: responder_id },
       });
 
-      if (!user2) {
+      if (!responder) {
         throw new NotFoundException('User 2 not found');
       }
 
-      if (user1.id === user2.id) {
+      if (sender.id === responder.id) {
         throw new NotFoundException('You cannot be friends with yourself');
       }
 
-      // Vérifiez si une relation existe déjà
       const existingFriendShip = await this.prismaService.friends.findFirst({
         where: {
-          OR: [
-            { user_id1, user_id2 },
-            { user_id1: user_id2, user_id2: user_id1 },
-          ],
+          user_id1: sender_id,
+          user_id2: responder_id,
         },
       });
 
@@ -58,9 +55,35 @@ export class FriendsService {
         }
       }
 
-      // Crée la nouvelle requête
+      // * vérifie si le responder a déjà envoyé une demande
+      const didResponderAlreadyRequest =
+        await this.prismaService.friends.findFirst({
+          where: {
+            user_id1: responder_id,
+            user_id2: sender_id,
+          },
+        });
+
+      // * si oui et que la demande est en attente, accepter la demande
+      if (didResponderAlreadyRequest.status === Invitation_status.PENDING) {
+        await this.prismaService.friends.update({
+          where: {
+            user_id1_user_id2: {
+              user_id1: didResponderAlreadyRequest.user_id1,
+              user_id2: didResponderAlreadyRequest.user_id2,
+            },
+          },
+          data: { status: Invitation_status.ACCEPTED },
+        });
+
+        return {
+          message:
+            'The existing friend request from the responder has been accepted',
+        };
+      }
+
       const newRequest = await this.prismaService.friends.create({
-        data: { user_id1, user_id2, status },
+        data: { user_id1: sender_id, user_id2: responder_id, status },
       });
 
       if (!newRequest) {
@@ -84,9 +107,10 @@ export class FriendsService {
         throw new NotFoundException('User not found');
       }
 
+      // récupère que les demande où je suis responder & pas encore répondu
       const friendRequests = await this.prismaService.friends.findMany({
         where: {
-          OR: [{ user_id1: user_id }, { user_id2: user_id }],
+          user_id2: user_id,
           status: Invitation_status.PENDING,
         },
       });
@@ -133,14 +157,12 @@ export class FriendsService {
 
   // todo: update que les demandes où je suis responder
   async update(updateFriendDto: UpdateFriendDto) {
-    const { user_id1, user_id2, status } = updateFriendDto;
+    const { sender_id, responder_id, status } = updateFriendDto;
     try {
       const friendRequest = await this.prismaService.friends.findFirst({
         where: {
-          OR: [
-            { user_id1, user_id2 },
-            { user_id1: user_id2, user_id2: user_id1 },
-          ],
+          user_id1: sender_id,
+          user_id2: responder_id,
         },
       });
 
