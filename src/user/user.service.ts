@@ -112,7 +112,6 @@ export class UserService {
         throw new ConflictException(
           `User already exists: ${JSON.stringify(existingUser)}`,
         );
-        return existingUser;
       }
 
       const newUser = await this.prismaService.users.create({

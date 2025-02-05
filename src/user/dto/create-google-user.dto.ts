@@ -17,7 +17,7 @@ export class CreateGoogleUserDto {
 
   @IsString()
   @IsNotEmpty()
-  readonly lastname: string;
+  readonly lastname?: string;
 
   @IsUrl()
   @IsOptional()

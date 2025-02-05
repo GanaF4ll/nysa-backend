@@ -18,7 +18,7 @@ import { CreateOrganisationDto } from 'src/user/dto/create-organisation.dto';
 import { RegisterUserDto } from './dto/register.dto';
 import { CreateGoogleUserDto } from 'src/user/dto/create-google-user.dto';
 import { VerifyMailDto } from './dto/verify-mail.dto';
-import { User_type } from '@prisma/client';
+import { Provider, User_type } from '@prisma/client';
 
 @Injectable()
 export class AuthService {
@@ -115,14 +115,21 @@ export class AuthService {
 
   async validateGoogleUser(googleUser: CreateGoogleUserDto) {
     try {
-      let user = await this.userService.findOneByEmail(googleUser.email);
+      let user = await this.prismaService.users.findUnique({
+        where: { email: googleUser.email },
+      });
 
-      if (user) {
-        return user;
+      if (!user) {
+        user = await this.userService.createGoogleUser(googleUser);
       }
 
-      user = await this.userService.createGoogleUser(googleUser);
-      return user;
+      const payload = { id: user.id };
+
+      if (user.provider !== Provider.GOOGLE) {
+        throw new BadRequestException('User already exists');
+      }
+
+      return { access_token: this.jwt.sign(payload) };
     } catch (error) {
       if (error instanceof HttpException) throw error;
       throw new InternalServerErrorException(error.message);

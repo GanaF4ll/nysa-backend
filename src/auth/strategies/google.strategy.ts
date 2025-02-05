@@ -24,6 +24,13 @@ export class GoogleStrategy extends PassportStrategy(Strategy) {
     refreshToken: string,
     profile: any,
   ): Promise<any> {
+    console.log(
+      'accessToken',
+      accessToken,
+      // 'refreshToken',
+      // refreshToken,
+      profile,
+    );
     const user = await this.authService.validateGoogleUser({
       email: profile.emails[0].value,
       firstname: profile.name.givenName,
@@ -32,6 +39,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy) {
       provider: 'GOOGLE',
     });
 
-    return { id: user.id, email: user.email };
+    // * validateGoogleUser return changed from user to access_token
+    // return { id: user.id, email: user.email };
   }
 }

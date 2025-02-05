@@ -26,6 +26,7 @@ import { User_type, Sex } from '@prisma/client';
 import { CreateImageDto } from 'src/event/image/dto/create-image.dto';
 import { CreateUserDto } from 'src/user/dto/create-user.dto';
 import { CreateOrganisationDto } from 'src/user/dto/create-organisation.dto';
+import { CreateGoogleUserDto } from 'src/user/dto/create-google-user.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -89,12 +90,14 @@ export class AuthController {
   // **************************/
 
   @Public() // ? décorateur @Public() pour ignorer le middleware d'authentification
-  @UseGuards(GoogleAuthGuard)
-  @Get('google/login')
+  // @UseGuards(GoogleAuthGuard)
+  @Post('google/login')
   @ApiOperation({
     summary: "Permet à l'utilisateur de se connecter avec Google",
   })
-  async googleLogin() {}
+  async googleLogin(@Body() googleUser: CreateGoogleUserDto) {
+    return this.authService.validateGoogleUser(googleUser);
+  }
   @Public() // ? décorateur @Public() pour ignorer le middleware d'authentification
   @UseGuards(GoogleAuthGuard)
   @Get('google/callback')
