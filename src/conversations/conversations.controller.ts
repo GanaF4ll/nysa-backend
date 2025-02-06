@@ -11,15 +11,15 @@ import {
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
-import { ConversationService } from './conversation.service';
+import { ConversationsService } from './conversations.service';
 import { CreateConversationDto } from './dto/create-conversation.dto';
 import { UpdateConversationDto } from './dto/update-conversation.dto';
 import { ApiOperation } from '@nestjs/swagger';
 
 @Controller('conversations')
-export class ConversationController {
-  constructor(private readonly conversationService: ConversationService) {}
-  private readonly logger = new Logger(ConversationController.name);
+export class ConversationsController {
+  constructor(private readonly conversationsService: ConversationsService) {}
+  private readonly logger = new Logger(ConversationsController.name);
 
   @Post()
   @ApiOperation({
@@ -38,17 +38,17 @@ export class ConversationController {
     this.logger.log('Request Body:', JSON.stringify(request.body));
     this.logger.log('Parsed DTO:', JSON.stringify(createConversationDto));
     const auth_id = request['user'].id;
-    return this.conversationService.create(auth_id, createConversationDto);
+    return this.conversationsService.create(auth_id, createConversationDto);
   }
 
   @Get()
   findAll() {
-    return this.conversationService.findAll();
+    return this.conversationsService.findAll();
   }
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.conversationService.findOne(+id);
+    return this.conversationsService.findOne(+id);
   }
 
   @Patch(':id')
@@ -56,11 +56,11 @@ export class ConversationController {
     @Param('id') id: string,
     @Body() updateConversationDto: UpdateConversationDto,
   ) {
-    return this.conversationService.update(+id, updateConversationDto);
+    return this.conversationsService.update(+id, updateConversationDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.conversationService.remove(+id);
+    return this.conversationsService.remove(+id);
   }
 }

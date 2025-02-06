@@ -9,7 +9,7 @@ import { UpdateConversationDto } from './dto/update-conversation.dto';
 import { PrismaService } from 'src/db/prisma.service';
 
 @Injectable()
-export class ConversationService {
+export class ConversationsService {
   constructor(private prismaService: PrismaService) {}
   private logger = new Logger('ConversationService');
 
