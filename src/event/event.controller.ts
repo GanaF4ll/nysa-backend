@@ -20,8 +20,6 @@ import { ImageService } from './image/image.service';
 import { EventFilterDto } from './dto/event-filter.dto';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { CreateImageDto } from './image/dto/create-image.dto';
-import { MemberService } from '../member/member.service';
-import { CreateMemberDto } from '../member/dto/create-member.dto';
 import { InvitationService } from '../invitation/invitation.service';
 
 @Controller('events')
@@ -29,8 +27,6 @@ export class EventController {
   constructor(
     private readonly eventService: EventService,
     private imageService: ImageService,
-    // private readonly memberService: MemberService,
-    private readonly invitationService: InvitationService,
   ) {}
 
   @Post()

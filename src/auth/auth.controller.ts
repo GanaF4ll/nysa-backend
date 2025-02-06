@@ -1,4 +1,3 @@
-import { create } from 'domain';
 import {
   Controller,
   Post,
@@ -10,7 +9,6 @@ import {
   NotFoundException,
   UseInterceptors,
   UploadedFile,
-  BadRequestException,
   HttpException,
   InternalServerErrorException,
 } from '@nestjs/common';
@@ -22,10 +20,7 @@ import { GoogleAuthGuard } from './guards/google-auth.guard';
 import { Public } from './decorators/public.decorator';
 import { VerifyMailDto } from './dto/verify-mail.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { User_type, Sex } from '@prisma/client';
 import { CreateImageDto } from 'src/event/image/dto/create-image.dto';
-import { CreateUserDto } from 'src/user/dto/create-user.dto';
-import { CreateOrganisationDto } from 'src/user/dto/create-organisation.dto';
 import { CreateGoogleUserDto } from 'src/user/dto/create-google-user.dto';
 
 @Controller('auth')

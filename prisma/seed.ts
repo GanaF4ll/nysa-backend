@@ -402,7 +402,7 @@ async function main() {
   ];
 
   for (const member of members) {
-    const createdMember = await prisma.event_members.create({
+    await prisma.event_members.create({
       data: member,
     });
     console.log(

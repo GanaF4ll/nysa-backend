@@ -129,7 +129,7 @@ export class MemberService {
         };
       }
 
-      const updatedMember = await this.prismaService.event_members.update({
+      await this.prismaService.event_members.update({
         where: {
           event_id_user_id: {
             event_id: existingMember.event_id,

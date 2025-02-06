@@ -1,9 +1,7 @@
-import { CreateImageDto } from './../../event/image/dto/create-image.dto';
 import {
   IsString,
   IsNotEmpty,
   IsPhoneNumber,
-  IsUrl,
   IsOptional,
   IsEnum,
   IsEmail,

@@ -2,7 +2,6 @@ import { PartialType } from '@nestjs/mapped-types';
 import { CreateUserDto } from './create-user.dto';
 import {
   IsString,
-  IsNotEmpty,
   IsPhoneNumber,
   IsUrl,
   IsOptional,

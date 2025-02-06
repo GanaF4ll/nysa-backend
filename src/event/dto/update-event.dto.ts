@@ -8,7 +8,6 @@ import {
   IsDateString,
   Min,
   Max,
-  IsNotEmpty,
 } from 'class-validator';
 import { Event_visibility } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
