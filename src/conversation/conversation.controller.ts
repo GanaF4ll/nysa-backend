@@ -22,6 +22,10 @@ export class ConversationController {
   private readonly logger = new Logger(ConversationController.name);
 
   @Post()
+  @ApiOperation({
+    summary:
+      "Crée une conversation pour le socket GroupMessage d'un utilisateur",
+  })
   @UsePipes(new ValidationPipe({ transform: true }))
   @ApiOperation({
     summary:

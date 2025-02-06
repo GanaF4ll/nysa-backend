@@ -30,6 +30,9 @@ export class EventController {
   ) {}
 
   @Post()
+  @ApiOperation({
+    summary: "Crée une ressource Event, nécessite d'être connecté",
+  })
   @UseInterceptors(FilesInterceptor('files', 10))
   @ApiOperation({
     summary: 'Crée une ressource Event',
@@ -54,11 +57,18 @@ export class EventController {
   }
 
   @Get()
+  @ApiOperation({
+    summary: "Retourne toutes les ressources Event, nécessite d'être connecté",
+  })
   async findAll(@Query() filters: EventFilterDto) {
     return this.eventService.findAll(filters);
   }
 
   @Get('/my-memberships')
+  @ApiOperation({
+    summary:
+      "Retourne toutes les ressources Event auxquelles l'utilisateur est inscrit",
+  })
   async getMemberships(
     @Req() request: Request,
     @Query() filters: EventFilterDto,

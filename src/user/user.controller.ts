@@ -19,6 +19,9 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Post('/google')
+  @ApiOperation({
+    summary: 'Crée un utilisateur avec un compte Google',
+  })
   createGoogleUser(@Body() createGoogleUserDto: CreateGoogleUserDto) {
     return this.userService.createGoogleUser(createGoogleUserDto);
   }
