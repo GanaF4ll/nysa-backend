@@ -12,7 +12,7 @@ import {
   UploadedFile,
   UploadedFiles,
 } from '@nestjs/common';
-import { EventService } from './event.service';
+import { EventsService } from './events.service';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { ApiOperation } from '@nestjs/swagger';
@@ -23,9 +23,9 @@ import { CreateImageDto } from './image/dto/create-image.dto';
 import { InvitationService } from '../invitation/invitation.service';
 
 @Controller('events')
-export class EventController {
+export class EventsController {
   constructor(
-    private readonly eventService: EventService,
+    private readonly eventsService: EventsService,
     private imageService: ImageService,
   ) {}
 
@@ -53,7 +53,7 @@ export class EventController {
         }))
       : [];
 
-    return this.eventService.create(creator_id, createEventDto, event_images);
+    return this.eventsService.create(creator_id, createEventDto, event_images);
   }
 
   @Get()
@@ -61,7 +61,7 @@ export class EventController {
     summary: "Retourne toutes les ressources Event, nécessite d'être connecté",
   })
   async findAll(@Query() filters: EventFilterDto) {
-    return this.eventService.findAll(filters);
+    return this.eventsService.findAll(filters);
   }
 
   @Get('/my-memberships')
@@ -74,7 +74,7 @@ export class EventController {
     @Query() filters: EventFilterDto,
   ) {
     const user_id = request['user'].id;
-    return this.eventService.getMyMemberships(user_id, filters);
+    return this.eventsService.getMyMemberships(user_id, filters);
   }
 
   @Get(':id')
@@ -84,7 +84,7 @@ export class EventController {
   findOne(@Param('id') id: string, @Req() request: Request) {
     const user_id = request['user'].id;
 
-    return this.eventService.findOne(id, user_id);
+    return this.eventsService.findOne(id, user_id);
   }
 
   @Get('creator/:creator_id')
@@ -95,7 +95,7 @@ export class EventController {
     @Param('creator_id') creator_id: string,
     @Query() filters: EventFilterDto,
   ) {
-    return this.eventService.findByCreator(creator_id, filters);
+    return this.eventsService.findByCreator(creator_id, filters);
   }
 
   @Patch(':id')
@@ -103,7 +103,7 @@ export class EventController {
     summary: "Met à jour une ressource Event, nécessite d'être connecté",
   })
   update(@Param('id') id: string, @Body() updateEventDto: UpdateEventDto) {
-    return this.eventService.update(id, updateEventDto);
+    return this.eventsService.update(id, updateEventDto);
   }
 
   @Delete(':id')
@@ -111,7 +111,7 @@ export class EventController {
     summary: "Supprime une ressource Event, nécessite d'être connecté",
   })
   remove(@Param('id') id: string) {
-    return this.eventService.remove(id);
+    return this.eventsService.remove(id);
   }
 
   /*****************************

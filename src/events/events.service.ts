@@ -20,7 +20,7 @@ import { ImageService } from './image/image.service';
 import { CreateImageDto } from './image/dto/create-image.dto';
 
 @Injectable()
-export class EventService {
+export class EventsService {
   constructor(
     private readonly prismaService: PrismaService,
     private readonly imageService: ImageService,

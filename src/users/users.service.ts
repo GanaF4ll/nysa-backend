@@ -11,8 +11,8 @@ import * as argon2 from 'argon2';
 import { CreateOrganisationDto } from './dto/create-organisation.dto';
 import { CreateGoogleUserDto } from './dto/create-google-user.dto';
 import { UpdatePasswordDto } from './dto/update-password.dto';
-import { ImageService } from 'src/event/image/image.service';
-import { CreateImageDto } from 'src/event/image/dto/create-image.dto';
+import { ImageService } from 'src/events/image/image.service';
+import { CreateImageDto } from 'src/events/image/dto/create-image.dto';
 
 @Injectable()
 export class UsersService {

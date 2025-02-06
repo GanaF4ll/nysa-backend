@@ -20,7 +20,7 @@ import { GoogleAuthGuard } from './guards/google-auth.guard';
 import { Public } from './decorators/public.decorator';
 import { VerifyMailDto } from './dto/verify-mail.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { CreateImageDto } from 'src/event/image/dto/create-image.dto';
+import { CreateImageDto } from 'src/events/image/dto/create-image.dto';
 import { CreateGoogleUserDto } from 'src/users/dto/create-google-user.dto';
 
 @Controller('auth')

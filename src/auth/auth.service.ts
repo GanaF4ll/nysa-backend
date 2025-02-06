@@ -1,4 +1,4 @@
-import { CreateImageDto } from './../event/image/dto/create-image.dto';
+import { CreateImageDto } from '../events/image/dto/create-image.dto';
 import {
   Injectable,
   NotFoundException,
