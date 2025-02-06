@@ -10,7 +10,7 @@ import { PrismaService } from 'src/db/prisma.service';
 import { CreateMemberDto } from 'src/member/dto/create-member.dto';
 
 @Injectable()
-export class InvitationService {
+export class InvitationsService {
   constructor(private readonly prismaService: PrismaService) {}
   // TODO: adapter pour creatememberdto, add event_id to it
   async inviteMember(inviter_id, createMemberDto: CreateMemberDto) {

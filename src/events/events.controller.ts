@@ -20,7 +20,6 @@ import { ImageService } from './image/image.service';
 import { EventFilterDto } from './dto/event-filter.dto';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { CreateImageDto } from './image/dto/create-image.dto';
-import { InvitationService } from '../invitation/invitation.service';
 
 @Controller('events')
 export class EventsController {

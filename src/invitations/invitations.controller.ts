@@ -1,11 +1,11 @@
 import { Body, Controller, Get, Param, Patch, Post, Req } from '@nestjs/common';
 import { CreateMemberDto } from 'src/member/dto/create-member.dto';
-import { InvitationService } from './invitation.service';
+import { InvitationsService } from './invitations.service';
 import { ApiOperation } from '@nestjs/swagger';
 
 @Controller('invitations')
-export class InvitationController {
-  constructor(private readonly invitationService: InvitationService) {}
+export class InvitationsController {
+  constructor(private readonly invitationsService: InvitationsService) {}
 
   @Post('add-member/')
   @ApiOperation({
@@ -16,7 +16,7 @@ export class InvitationController {
     @Req() request: Request,
   ) {
     const inviter_id = request['user'].id;
-    return this.invitationService.inviteMember(inviter_id, createMemberDto);
+    return this.invitationsService.inviteMember(inviter_id, createMemberDto);
   }
 
   @Get('/my-invitations')
@@ -26,7 +26,7 @@ export class InvitationController {
   async getMyInvitations(@Req() request: Request) {
     const user_id = request['user'].id;
 
-    return this.invitationService.getMyInvitations(user_id);
+    return this.invitationsService.getMyInvitations(user_id);
   }
 
   // TODO: route qui appelle acceptInvitation & addMember
@@ -39,6 +39,6 @@ export class InvitationController {
     @Req() request: Request,
   ) {
     const user_id = request['user'].id;
-    return this.invitationService.acceptInvitation(user_id, invitation_id);
+    return this.invitationsService.acceptInvitation(user_id, invitation_id);
   }
 }
