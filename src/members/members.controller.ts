@@ -1,11 +1,11 @@
 import { Body, Controller, Get, Param, Patch, Post, Req } from '@nestjs/common';
-import { MemberService } from './member.service';
+import { MembersService } from './members.service';
 import { CreateMemberDto } from './dto/create-member.dto';
 import { ApiOperation } from '@nestjs/swagger';
 
 @Controller('members')
-export class MemberController {
-  constructor(private readonly memberService: MemberService) {}
+export class MembersController {
+  constructor(private readonly membersService: MembersService) {}
   @Post('/join/')
   @ApiOperation({
     summary: 'Rejoindre un événement',
@@ -18,7 +18,7 @@ export class MemberController {
       member_id: user_id,
     };
 
-    return this.memberService.addMember(createMemberDto);
+    return this.membersService.addMember(createMemberDto);
   }
 
   @Get('/get/:event_id')
@@ -26,7 +26,7 @@ export class MemberController {
     summary: "Récupérer les membres d'un événement",
   })
   async getMembers(@Param('event_id') event_id: string) {
-    return this.memberService.getMembers(event_id);
+    return this.membersService.getMembers(event_id);
   }
 
   @Patch('/leave/:event_id')
@@ -44,7 +44,7 @@ export class MemberController {
       member_id: user_id,
     };
 
-    return this.memberService.leaveEvent(memberDto);
+    return this.membersService.leaveEvent(memberDto);
   }
 
   @Patch('/kick/:event_id')
@@ -62,6 +62,6 @@ export class MemberController {
       event_id,
       member_id: body.member_id,
     };
-    return this.memberService.kickMember(user_id, memberDto);
+    return this.membersService.kickMember(user_id, memberDto);
   }
 }

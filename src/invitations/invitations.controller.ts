@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Param, Patch, Post, Req } from '@nestjs/common';
-import { CreateMemberDto } from 'src/member/dto/create-member.dto';
+import { CreateMemberDto } from 'src/members/dto/create-member.dto';
 import { InvitationsService } from './invitations.service';
 import { ApiOperation } from '@nestjs/swagger';
 

@@ -11,7 +11,7 @@ import { Member_status } from '@prisma/client';
 import { CreateMemberDto } from './dto/create-member.dto';
 
 @Injectable()
-export class MemberService {
+export class MembersService {
   constructor(private prismaService: PrismaService) {}
 
   async addMember(createMemberDto: CreateMemberDto) {
