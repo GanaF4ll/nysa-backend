@@ -8,22 +8,22 @@ import {
   Req,
   Post,
 } from '@nestjs/common';
-import { UserService } from './user.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ApiOperation } from '@nestjs/swagger';
 import { CreateGoogleUserDto } from './dto/create-google-user.dto';
 import { UpdatePasswordDto } from './dto/update-password.dto';
+import { UsersService } from './users.service';
 
 @Controller('users')
-export class UserController {
-  constructor(private readonly userService: UserService) {}
+export class UsersController {
+  constructor(private readonly usersService: UsersService) {}
 
   @Post('/google')
   @ApiOperation({
     summary: 'Crée un utilisateur avec un compte Google',
   })
   createGoogleUser(@Body() createGoogleUserDto: CreateGoogleUserDto) {
-    return this.userService.createGoogleUser(createGoogleUserDto);
+    return this.usersService.createGoogleUser(createGoogleUserDto);
   }
 
   @Get('/all')
@@ -31,7 +31,7 @@ export class UserController {
     summary: 'Récupère tous les utilisateurs',
   })
   findAll() {
-    return this.userService.findAll();
+    return this.usersService.findAll();
   }
 
   @Get(':id')
@@ -39,7 +39,7 @@ export class UserController {
     summary: 'Récupère un utilisateur grâce à son id',
   })
   findOne(@Param('id') id: string) {
-    return this.userService.findOne(id);
+    return this.usersService.findOne(id);
   }
 
   @Get('/')
@@ -48,7 +48,7 @@ export class UserController {
   })
   findMe(@Req() request: Request) {
     const id = request['user'].id;
-    return this.userService.findOne(id);
+    return this.usersService.findOne(id);
   }
 
   @Get('/email')
@@ -56,7 +56,7 @@ export class UserController {
     summary: 'Récupère un utilisateur grâce à son email',
   })
   async findOneByEmail(@Body('email') email: string) {
-    return this.userService.findOneByEmail(email);
+    return this.usersService.findOneByEmail(email);
   }
 
   @Patch('/update')
@@ -66,7 +66,7 @@ export class UserController {
   })
   update(@Req() request: Request, @Body() updateUserDto: UpdateUserDto) {
     const id = request['user'].id;
-    return this.userService.update(id, updateUserDto);
+    return this.usersService.update(id, updateUserDto);
   }
 
   @Patch('/update-password')
@@ -79,7 +79,7 @@ export class UserController {
     @Body() updatePasswordDto: UpdatePasswordDto,
   ) {
     const id = request['user'].id;
-    return this.userService.updatePassword(id, updatePasswordDto);
+    return this.usersService.updatePassword(id, updatePasswordDto);
   }
 
   @Patch('/deactivate')
@@ -89,7 +89,7 @@ export class UserController {
   })
   deactivate(@Req() request: Request) {
     const id = request['user'].id;
-    return this.userService.deactivate(id);
+    return this.usersService.deactivate(id);
   }
 
   @Delete('/delete')
@@ -99,6 +99,6 @@ export class UserController {
   })
   remove(@Req() request: Request) {
     const id = request['user'].id;
-    return this.userService.remove(id);
+    return this.usersService.remove(id);
   }
 }

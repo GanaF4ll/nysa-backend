@@ -11,7 +11,7 @@ import {
   Validate,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsStrongPassword } from 'src/user/password.validator';
+import { IsStrongPassword } from 'src/users/password.validator';
 
 export class RegisterUserDto {
   @IsEnum(User_type)

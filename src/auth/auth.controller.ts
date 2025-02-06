@@ -21,7 +21,7 @@ import { Public } from './decorators/public.decorator';
 import { VerifyMailDto } from './dto/verify-mail.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CreateImageDto } from 'src/event/image/dto/create-image.dto';
-import { CreateGoogleUserDto } from 'src/user/dto/create-google-user.dto';
+import { CreateGoogleUserDto } from 'src/users/dto/create-google-user.dto';
 
 @Controller('auth')
 export class AuthController {
