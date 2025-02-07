@@ -1,5 +1,4 @@
-import { create } from 'domain';
-import { CreateImageDto } from './../event/image/dto/create-image.dto';
+import { CreateImageDto } from '../events/image/dto/create-image.dto';
 import {
   Injectable,
   NotFoundException,
@@ -12,20 +11,20 @@ import { LoginDto } from './dto/login.dto';
 import { PrismaService } from 'src/db/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import * as argon2 from 'argon2';
-import { UserService } from 'src/user/user.service';
-import { CreateUserDto } from 'src/user/dto/create-user.dto';
-import { CreateOrganisationDto } from 'src/user/dto/create-organisation.dto';
+import { CreateUserDto } from 'src/users/dto/create-user.dto';
+import { CreateOrganisationDto } from 'src/users/dto/create-organisation.dto';
 import { RegisterUserDto } from './dto/register.dto';
-import { CreateGoogleUserDto } from 'src/user/dto/create-google-user.dto';
+import { CreateGoogleUserDto } from 'src/users/dto/create-google-user.dto';
 import { VerifyMailDto } from './dto/verify-mail.dto';
 import { Provider, User_type } from '@prisma/client';
+import { UsersService } from 'src/users/users.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly prismaService: PrismaService,
     private readonly jwt: JwtService,
-    private readonly userService: UserService,
+    private readonly userService: UsersService,
   ) {}
 
   async register(
