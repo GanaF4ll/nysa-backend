@@ -68,12 +68,24 @@ export class EventsController {
     summary:
       "Retourne toutes les ressources Event auxquelles l'utilisateur est inscrit",
   })
-  async getMemberships(
+  async getMyMemberships(
     @Req() request: Request,
     @Query() filters: EventFilterDto,
   ) {
     const user_id = request['user'].id;
     return this.eventsService.getMyMemberships(user_id, filters);
+  }
+
+  @Get('/memberships/:id')
+  @ApiOperation({
+    summary:
+      "Retourne toutes les ressources Event auxquelles l'utilisateur est inscrit",
+  })
+  async getMemberships(
+    @Param('id') id: string,
+    @Query() filters: EventFilterDto,
+  ) {
+    return this.eventsService.getMyMemberships(id, filters);
   }
 
   @Get(':id')

@@ -18,6 +18,7 @@ import {
 } from './dto/event-filter.dto';
 import { ImageService } from './image/image.service';
 import { CreateImageDto } from './image/dto/create-image.dto';
+import { PaginationResponseType } from 'src/interfaces/pagination-response-type';
 
 @Injectable()
 export class EventsService {
@@ -86,11 +87,7 @@ export class EventsService {
     }
   }
 
-  async findAll(filters: EventFilterDto): Promise<{
-    data: Events[];
-    nextCursor: string | null;
-    totalCount: number;
-  }> {
+  async findAll(filters: EventFilterDto): Promise<PaginationResponseType> {
     const {
       limit = 10,
       cursor,
@@ -359,7 +356,7 @@ export class EventsService {
   async findByCreator(
     creator_id: string,
     filters: EventFilterDto,
-  ): Promise<ResponseType> {
+  ): Promise<PaginationResponseType> {
     const {
       limit = 10,
       minStart,
@@ -369,6 +366,7 @@ export class EventsService {
       maxEntryFee,
       search,
       scope,
+      cursor,
     } = filters;
 
     const creator = await this.prismaService.users.findUnique({
@@ -393,9 +391,17 @@ export class EventsService {
         created_at: true,
         updated_at: true,
       },
-      take: limit,
+      take: limit + 1,
       orderBy: { start_time: 'asc' },
     };
+
+    // Ajout de la logique de cursor
+    if (cursor) {
+      query.cursor = {
+        id: cursor,
+      };
+      query.skip = 1;
+    }
 
     const now = new Date();
 
@@ -444,13 +450,24 @@ export class EventsService {
 
     const events = await this.prismaService.events.findMany(query);
 
+    // Gestion du cursor pour la pagination
+    let nextCursor: string | null = null;
+    if (events.length > limit) {
+      const nextItem = events.pop();
+      nextCursor = nextItem.id;
+    }
+
     if (!events || events.length === 0) {
       throw new NotFoundException(
         `No events found for the user with id ${creator_id}`,
       );
     }
 
-    return { message: 'Events found', data: events, status: 200 };
+    return {
+      data: events,
+      nextCursor,
+      totalCount: events.length,
+    };
   }
 
   async update(
