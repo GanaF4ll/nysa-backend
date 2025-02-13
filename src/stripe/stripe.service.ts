@@ -1,7 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import Stripe from 'stripe';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from 'src/db/prisma.service';
+import { types } from 'util';
 
 @Injectable()
 export class StripeService {
@@ -11,17 +12,14 @@ export class StripeService {
     private readonly configService: ConfigService,
     private readonly prismaService: PrismaService,
   ) {
-    this.stripe = new Stripe(
-      this.configService.getOrThrow('STRIPE_SECRET_KEY'),
-    );
+    this.stripe = new Stripe(this.configService.getOrThrow('STRIPE_SECRET_KEY'), {
+      apiVersion: '2025-01-27.acacia',
+      typescript: true,
+    });
   }
 
-  async createConnectedAccount({
-    user_id,
-  }: {
-    user_id: string;
-  }): Promise<{ accountLink: string }> {
-    const existingUser = await this.prismaService.users.findUniqueOrThrow({
+  async createConnectedAccount(user_id: string): Promise<{ accountLink: string }> {
+    const existingUser = await this.prismaService.users.findUnique({
       where: {
         id: user_id,
       },
@@ -31,6 +29,10 @@ export class StripeService {
         email: true,
       },
     });
+
+    if (!existingUser) {
+      throw new NotFoundException('User not found');
+    }
 
     if (existingUser.stripe_account_id) {
       const accountLink = await this.createAccountLink({
@@ -61,11 +63,7 @@ export class StripeService {
     return { accountLink: accountLink.url };
   }
 
-  async createAccountLink({
-    stripe_account_id,
-  }: {
-    stripe_account_id: string;
-  }) {
+  async createAccountLink({ stripe_account_id }: { stripe_account_id: string }) {
     return await this.stripe.accountLinks.create({
       account: stripe_account_id,
       refresh_url: 'http://localhost:3000/onboarding',
