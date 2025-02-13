@@ -12,6 +12,7 @@ import { InvitationsModule } from './invitations/invitations.module';
 import { FriendsModule } from './friends/friends.module';
 import { UsersModule } from './users/users.module';
 import { EventsModule } from './events/events.module';
+import { StripeService } from './stripe/stripe.service';
 
 @Module({
   imports: [
@@ -28,6 +29,6 @@ import { EventsModule } from './events/events.module';
     FriendsModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, StripeService],
 })
 export class AppModule {}
