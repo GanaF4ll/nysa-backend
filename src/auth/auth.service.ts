@@ -18,6 +18,7 @@ import { CreateGoogleUserDto } from 'src/users/dto/create-google-user.dto';
 import { VerifyMailDto } from './dto/verify-mail.dto';
 import { Provider, User_type } from '@prisma/client';
 import { UsersService } from 'src/users/users.service';
+import { log } from 'console';
 
 @Injectable()
 export class AuthService {
@@ -111,13 +112,48 @@ export class AuthService {
     }
 
     const access_token = this.jwt.sign(payload);
-    //todo : vérifié présence de device_id dans la table user_tokens et le supprimer
-    await this.prismaService.user_tokens.create({
-      data: {
-        user_id: user.id,
-        device_id: device_id,
-        token: access_token,
-      },
+
+    const existingTokens = await this.prismaService.user_tokens.findMany({
+      where: { user_id: user.id },
+    });
+
+    // vérifie l'existence d'un token avec un device_id pour l'utilisateur
+    const tokenWithDeviceId = existingTokens.find(
+      (token) => token.device_id !== null && token.user_id === user.id,
+    );
+    // si aucun token avec un device_id n'existe, crée un nouveau token
+    if (!tokenWithDeviceId) {
+      await this.prismaService.user_tokens.create({
+        data: {
+          user_id: user.id,
+          device_id: device_id,
+          token: access_token,
+        },
+      });
+
+      const tokenWithoutDeviceId = existingTokens.filter(
+        (token) => !token.device_id,
+      );
+      // s'il y'a plus d'un token sans device_id, supprime le plus ancien
+      if (tokenWithoutDeviceId.length > 1) {
+        // Trie les tokens par date de création et garde le plus ancien
+        const oldestToken = tokenWithoutDeviceId.sort(
+          (a, b) => a.created_at.getTime() - b.created_at.getTime(),
+        )[0];
+
+        await this.prismaService.user_tokens.delete({
+          where: { id: oldestToken.id },
+        });
+      }
+
+      return {
+        access_token,
+      };
+    }
+    // si un token avec un device_id existe, met à jour le token existant
+    await this.prismaService.user_tokens.update({
+      where: { id: tokenWithDeviceId.id },
+      data: { token: access_token },
     });
 
     return {
