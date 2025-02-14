@@ -97,7 +97,7 @@ model Users {
 model User_tokens {
   id         String   @id @default(cuid())
   user_id    String
-  device_id  String
+  device_id  String?
   token      String
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt

@@ -12,6 +12,7 @@ import { InvitationsModule } from './invitations/invitations.module';
 import { FriendsModule } from './friends/friends.module';
 import { UsersModule } from './users/users.module';
 import { EventsModule } from './events/events.module';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { EventsModule } from './events/events.module';
     MembersModule,
     InvitationsModule,
     FriendsModule,
+    NotificationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
