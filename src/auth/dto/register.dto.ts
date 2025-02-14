@@ -23,6 +23,14 @@ export class RegisterUserDto {
 
   // Propriétés communes
   @IsString()
+  @IsOptional()
+  @ApiProperty({
+    description: 'Identifiant du device, uniquement pour les téléphones',
+    example: '123456',
+  })
+  readonly device_id?: string;
+
+  @IsString()
   @IsEmail()
   @ApiProperty({ description: 'Email', example: 'test@mail.com' })
   readonly email: string;

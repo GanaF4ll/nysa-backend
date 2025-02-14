@@ -149,7 +149,7 @@ export class AuthService {
       throw new NotFoundException('User not found');
     }
     if (user.active !== true) {
-      throw new UnauthorizedException('User not active');
+      throw new UnauthorizedException('User is not active');
     }
     return { message: true };
   }
