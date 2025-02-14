@@ -31,6 +31,7 @@ export class AuthService {
     registerDto: RegisterUserDto,
     createImageDto?: CreateImageDto,
   ) {
+    const { device_id } = registerDto;
     let newUser;
 
     if (registerDto.type === User_type.USER) {
@@ -70,14 +71,29 @@ export class AuthService {
       throw new BadRequestException('Invalid user type');
     }
 
-    const payload = { id: newUser.id };
+    let payload: { id: string; device_id?: typeof device_id } = {
+      id: newUser.id,
+    };
+    if (device_id) {
+      payload.device_id = device_id;
+    }
+    const access_token = this.jwt.sign(payload);
+
+    await this.prismaService.user_tokens.create({
+      data: {
+        user_id: newUser.id,
+        device_id: device_id,
+        token: access_token,
+      },
+    });
+
     return {
-      access_token: this.jwt.sign(payload),
+      access_token,
     };
   }
 
   async login(loginDto: LoginDto) {
-    const { email, password } = loginDto;
+    const { email, password, device_id } = loginDto;
     const formattedEmail = email.toLowerCase();
     const user = await this.userService.findOneByEmail(formattedEmail);
     if (!user) {
@@ -87,9 +103,25 @@ export class AuthService {
     if (!isPasswordValid) {
       throw new BadRequestException('Invalid credentials');
     }
-    const payload = { id: user.id };
+    let payload: { id: string; device_id?: typeof device_id } = {
+      id: user.id,
+    };
+    if (device_id) {
+      payload.device_id = device_id;
+    }
+
+    const access_token = this.jwt.sign(payload);
+    //todo : vérifié présence de device_id dans la table user_tokens et le supprimer
+    await this.prismaService.user_tokens.create({
+      data: {
+        user_id: user.id,
+        device_id: device_id,
+        token: access_token,
+      },
+    });
+
     return {
-      access_token: this.jwt.sign(payload),
+      access_token,
     };
   }
 
