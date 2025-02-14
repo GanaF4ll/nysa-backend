@@ -131,16 +131,17 @@ export class AuthService {
         },
       });
 
-      const tokenWithoutDeviceId = existingTokens.filter(
+      const tokensWithoutDeviceId = existingTokens.filter(
         (token) => !token.device_id,
       );
+
       // s'il y'a plus d'un token sans device_id, supprime le plus ancien
-      if (tokenWithoutDeviceId.length > 1) {
+      if (tokensWithoutDeviceId.length >= 1) {
         // Trie les tokens par date de création et garde le plus ancien
-        const oldestToken = tokenWithoutDeviceId.sort(
+        const oldestToken = tokensWithoutDeviceId.sort(
           (a, b) => a.created_at.getTime() - b.created_at.getTime(),
         )[0];
-
+        console.log('oldestToken', oldestToken);
         await this.prismaService.user_tokens.delete({
           where: { id: oldestToken.id },
         });
