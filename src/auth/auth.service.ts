@@ -96,70 +96,71 @@ export class AuthService {
   async login(loginDto: LoginDto) {
     const { email, password, device_id } = loginDto;
     const formattedEmail = email.toLowerCase();
+
     const user = await this.userService.findOneByEmail(formattedEmail);
     if (!user) {
       throw new NotFoundException('User not found');
     }
+
     const isPasswordValid = await argon2.verify(user.password, password);
     if (!isPasswordValid) {
       throw new BadRequestException('Invalid credentials');
     }
-    let payload: { id: string; device_id?: typeof device_id } = {
-      id: user.id,
-    };
-    if (device_id) {
-      payload.device_id = device_id;
-    }
 
+    const payload = { id: user.id, ...(device_id && { device_id }) };
     const access_token = this.jwt.sign(payload);
 
     const existingTokens = await this.prismaService.user_tokens.findMany({
       where: { user_id: user.id },
+      orderBy: { created_at: 'asc' },
     });
 
-    // vérifie l'existence d'un token avec un device_id pour l'utilisateur
     const tokenWithDeviceId = existingTokens.find(
-      (token) => token.device_id !== null && token.user_id === user.id,
+      (token) => token.device_id !== null,
     );
-    // si aucun token avec un device_id n'existe, crée un nouveau token
-    if (!tokenWithDeviceId) {
-      await this.prismaService.user_tokens.create({
-        data: {
-          user_id: user.id,
-          device_id: device_id,
-          token: access_token,
-        },
-      });
+    const tokensWithoutDeviceId = existingTokens.filter(
+      (token) => !token.device_id,
+    );
 
-      const tokensWithoutDeviceId = existingTokens.filter(
-        (token) => !token.device_id,
-      );
+    // Gestion des tokens avec transaction pour garantir l'atomicité
+    await this.prismaService.$transaction(async (prisma) => {
+      if (device_id) {
+        if (tokenWithDeviceId) {
+          // Mise à jour du token existant avec device_id
+          await prisma.user_tokens.update({
+            where: { id: tokenWithDeviceId.id },
+            data: { token: access_token },
+          });
+        } else {
+          // Création d'un nouveau token avec device_id
+          await prisma.user_tokens.create({
+            data: {
+              user_id: user.id,
+              device_id,
+              token: access_token,
+            },
+          });
+        }
+      } else {
+        // Gestion du token sans device_id
+        if (tokensWithoutDeviceId.length >= 1) {
+          //? on supprime le token le plus ancien sans device_id
+          await prisma.user_tokens.delete({
+            where: { id: tokensWithoutDeviceId[0].id },
+          });
+        }
 
-      // s'il y'a plus d'un token sans device_id, supprime le plus ancien
-      if (tokensWithoutDeviceId.length >= 1) {
-        // Trie les tokens par date de création et garde le plus ancien
-        const oldestToken = tokensWithoutDeviceId.sort(
-          (a, b) => a.created_at.getTime() - b.created_at.getTime(),
-        )[0];
-        console.log('oldestToken', oldestToken);
-        await this.prismaService.user_tokens.delete({
-          where: { id: oldestToken.id },
+        // Création du nouveau token sans device_id
+        await prisma.user_tokens.create({
+          data: {
+            user_id: user.id,
+            token: access_token,
+          },
         });
       }
-
-      return {
-        access_token,
-      };
-    }
-    // si un token avec un device_id existe, met à jour le token existant
-    await this.prismaService.user_tokens.update({
-      where: { id: tokenWithDeviceId.id },
-      data: { token: access_token },
     });
 
-    return {
-      access_token,
-    };
+    return { access_token };
   }
 
   async verifyEmail(emailDto: VerifyMailDto) {
