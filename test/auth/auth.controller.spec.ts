@@ -28,7 +28,7 @@ describe('AuthController', () => {
     }).compile();
 
     controller = module.get<AuthController>(AuthController);
-    authService = module.get<AuthService>(AuthService);
+    module.get<AuthService>(AuthService);
   });
 
   afterEach(() => {
@@ -150,9 +150,7 @@ describe('AuthController', () => {
       const result = await controller.googleLogin(googleUser);
 
       expect(result).toEqual({ access_token: 'mock_token' });
-      expect(mockAuthService.validateGoogleUser).toHaveBeenCalledWith(
-        googleUser,
-      );
+      expect(mockAuthService.validateGoogleUser).toHaveBeenCalledWith(googleUser);
     });
   });
 });
