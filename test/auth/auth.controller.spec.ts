@@ -36,28 +36,30 @@ describe('AuthController', () => {
   });
 
   describe('register', () => {
-    // it('should register a new user without file', async () => {
-    //   const registerDto = {
-    //     email: 'test@test.com',
-    //     password: 'password',
-    //     firstname: 'John',
-    //     lastname: 'Doe',
-    //     birthdate: new Date().toString(),
-    //     type: User_type.USER,
-    //   };
+    it('should register a new user without file', async () => {
+      const registerDto = {
+        email: 'test@test.com',
+        password: 'password',
+        firstname: 'John',
+        lastname: 'Doe',
+        birthdate: new Date().toString(),
+        type: User_type.USER,
+      };
 
-    //   mockAuthService.register.mockResolvedValue({
-    //     access_token: 'mock_token',
-    //   });
+      const noFile = {} as Express.Multer.File;
 
-    //   const result = await controller.register(registerDto, undefined);
+      mockAuthService.register.mockResolvedValue({
+        access_token: 'mock_token',
+      });
 
-    //   expect(result).toEqual({ access_token: 'mock_token' });
-    //   expect(mockAuthService.register).toHaveBeenCalledWith(
-    //     registerDto,
-    //     undefined,
-    //   );
-    // });
+      const result = await controller.register(registerDto, noFile);
+
+      expect(result).toEqual({ access_token: 'mock_token' });
+      expect(mockAuthService.register).toHaveBeenCalledWith(registerDto, {
+        file: undefined,
+        name: NaN,
+      });
+    });
 
     it('should register a new user with file', async () => {
       const registerDto = {

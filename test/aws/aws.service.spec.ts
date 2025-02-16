@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { AwsService } from '../../src/aws/aws.service';
+import { AwsService } from 'src/aws/aws.service';
 import { ConfigService } from '@nestjs/config';
 import { S3Client } from '@aws-sdk/client-s3';
 import { BadRequestException } from '@nestjs/common';
@@ -15,10 +15,10 @@ describe('AwsService', () => {
   const mockConfigService = {
     getOrThrow: jest.fn((key: string) => {
       const config = {
-        AWS_S3_REGION: 'eu-west-3',
-        AWS_ACCESS_KEY: 'test-access-key',
-        AWS_SECRET_ACCESS_KEY: 'test-secret-key',
-        AWS_S3_BUCKET: 'nysa.app',
+        AWS_S3_REGION: process.env.AWS_S3_REGION,
+        AWS_ACCESS_KEY: process.env.AWS_ACCESS_KEY,
+        AWS_SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY,
+        AWS_S3_BUCKET: process.env.AWS_S3_BUCKET,
       };
       return config[key];
     }),
@@ -80,7 +80,9 @@ describe('AwsService', () => {
       const filename = 'test-file.jpg';
       const file = Buffer.from('test file content');
 
-      await expect(service.upload(folder, filename, file)).rejects.toThrow(BadRequestException);
+      await expect(service.upload(folder, filename, file)).rejects.toThrow(
+        BadRequestException,
+      );
     });
   });
 
@@ -109,12 +111,16 @@ describe('AwsService', () => {
     });
 
     it('should throw BadRequestException on getSignedUrl error', async () => {
-      (presigner.getSignedUrl as jest.Mock).mockRejectedValue(new Error('Signing failed'));
+      (presigner.getSignedUrl as jest.Mock).mockRejectedValue(
+        new Error('Signing failed'),
+      );
 
       const folder = 'test-folder';
       const filename = 'test-file.jpg';
 
-      await expect(service.getSignedUrl(folder, filename)).rejects.toThrow(BadRequestException);
+      await expect(service.getSignedUrl(folder, filename)).rejects.toThrow(
+        BadRequestException,
+      );
     });
   });
 
@@ -147,7 +153,9 @@ describe('AwsService', () => {
 
       const filename = 'test-file.jpg';
 
-      await expect(service.deleteFile(filename)).rejects.toThrow(BadRequestException);
+      await expect(service.deleteFile(filename)).rejects.toThrow(
+        BadRequestException,
+      );
     });
   });
 });
