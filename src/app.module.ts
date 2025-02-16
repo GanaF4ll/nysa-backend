@@ -32,6 +32,6 @@ import { StripeModule } from './stripe/stripe.module';
     StripeModule,
   ],
   controllers: [AppController],
-  providers: [AppService, StripeService],
+  providers: [AppService],
 })
 export class AppModule {}
