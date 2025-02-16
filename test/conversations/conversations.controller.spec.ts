@@ -27,7 +27,7 @@ describe('ConversationsController', () => {
     }).compile();
 
     controller = module.get<ConversationsController>(ConversationsController);
-    service = module.get<ConversationsService>(ConversationsService);
+    module.get<ConversationsService>(ConversationsService);
   });
 
   describe('create', () => {
@@ -47,10 +47,7 @@ describe('ConversationsController', () => {
       const result = await controller.create(mockRequest as any, createDto);
 
       expect(result).toBe('Conversation created');
-      expect(mockConversationsService.create).toHaveBeenCalledWith(
-        'user-1',
-        createDto,
-      );
+      expect(mockConversationsService.create).toHaveBeenCalledWith('user-1', createDto);
     });
   });
 

@@ -24,7 +24,7 @@ describe('InvitationsController', () => {
     }).compile();
 
     controller = module.get<InvitationsController>(InvitationsController);
-    service = module.get<InvitationsService>(InvitationsService);
+    module.get<InvitationsService>(InvitationsService);
   });
 
   describe('addMember', () => {
@@ -42,16 +42,10 @@ describe('InvitationsController', () => {
         message: 'User has been invited to the event',
       });
 
-      const result = await controller.addMember(
-        createMemberDto,
-        mockRequest as any,
-      );
+      const result = await controller.addMember(createMemberDto, mockRequest as any);
 
       expect(result.message).toBe('User has been invited to the event');
-      expect(mockInvitationsService.inviteMember).toHaveBeenCalledWith(
-        'user-1',
-        createMemberDto,
-      );
+      expect(mockInvitationsService.inviteMember).toHaveBeenCalledWith('user-1', createMemberDto);
     });
   });
 
@@ -68,9 +62,7 @@ describe('InvitationsController', () => {
       const result = await controller.getMyInvitations(mockRequest as any);
 
       expect(result.data).toBeDefined();
-      expect(mockInvitationsService.getMyInvitations).toHaveBeenCalledWith(
-        'user-1',
-      );
+      expect(mockInvitationsService.getMyInvitations).toHaveBeenCalledWith('user-1');
     });
   });
 
@@ -85,16 +77,10 @@ describe('InvitationsController', () => {
         message: 'Invitation accepted',
       });
 
-      const result = await controller.acceptInvitation(
-        invitationId,
-        mockRequest as any,
-      );
+      const result = await controller.acceptInvitation(invitationId, mockRequest as any);
 
       expect(result.message).toBe('Invitation accepted');
-      expect(mockInvitationsService.acceptInvitation).toHaveBeenCalledWith(
-        'user-1',
-        invitationId,
-      );
+      expect(mockInvitationsService.acceptInvitation).toHaveBeenCalledWith('user-1', invitationId);
     });
   });
 });

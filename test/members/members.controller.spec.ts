@@ -26,7 +26,7 @@ describe('MembersController', () => {
     }).compile();
 
     controller = module.get<MembersController>(MembersController);
-    membersService = module.get<MembersService>(MembersService);
+    module.get<MembersService>(MembersService);
   });
 
   afterEach(() => {
@@ -113,11 +113,7 @@ describe('MembersController', () => {
         message: 'User has been kicked from the event',
       });
 
-      const result = await controller.kickMember(
-        event_id,
-        mockRequest as any,
-        mockBody,
-      );
+      const result = await controller.kickMember(event_id, mockRequest as any, mockBody);
 
       expect(result.message).toBe('User has been kicked from the event');
       expect(mockMembersService.kickMember).toHaveBeenCalledWith('user-1', {

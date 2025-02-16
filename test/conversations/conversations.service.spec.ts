@@ -31,7 +31,7 @@ describe('ConversationsService', () => {
     }).compile();
 
     service = module.get<ConversationsService>(ConversationsService);
-    prismaService = module.get<PrismaService>(PrismaService);
+    module.get<PrismaService>(PrismaService);
   });
 
   afterEach(() => {
@@ -95,30 +95,24 @@ describe('ConversationsService', () => {
 
     it('should throw BadRequestException for invalid data', async () => {
       const invalidDto = { name: 'Test', users: null };
-      await expect(service.create(mockUserId, invalidDto)).rejects.toThrow(
-        BadRequestException,
-      );
+      await expect(service.create(mockUserId, invalidDto)).rejects.toThrow(BadRequestException);
     });
 
     it('should throw BadRequestException for null dto', async () => {
-      await expect(service.create(mockUserId, null)).rejects.toThrow(
-        BadRequestException,
-      );
+      await expect(service.create(mockUserId, null)).rejects.toThrow(BadRequestException);
     });
 
     it('should throw BadRequestException for missing users array', async () => {
       const invalidDto = { name: 'Test' };
-      await expect(
-        service.create(mockUserId, invalidDto as any),
-      ).rejects.toThrow(BadRequestException);
+      await expect(service.create(mockUserId, invalidDto as any)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('should throw NotFoundException when admin user not found', async () => {
       mockPrismaService.users.findUnique.mockResolvedValueOnce(null);
 
-      await expect(service.create(mockUserId, mockCreateDto)).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(service.create(mockUserId, mockCreateDto)).rejects.toThrow(NotFoundException);
     });
   });
 });

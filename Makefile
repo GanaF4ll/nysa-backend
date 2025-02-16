@@ -8,6 +8,3 @@ fix-permissions:
 
 nest-sh:
 	docker compose exec nest-api /bin/sh
-
-postgres-sh:
-	docker compose exec postgres psql -U root -d nysa

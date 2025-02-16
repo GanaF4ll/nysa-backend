@@ -34,7 +34,7 @@ describe('FriendsService', () => {
     }).compile();
 
     service = module.get<FriendsService>(FriendsService);
-    prismaService = module.get<PrismaService>(PrismaService);
+    module.get<PrismaService>(PrismaService);
   });
 
   afterEach(() => {
@@ -51,9 +51,7 @@ describe('FriendsService', () => {
       mockPrismaService.users.findUnique
         .mockResolvedValueOnce({ id: 'user-1' })
         .mockResolvedValueOnce({ id: 'user-2' });
-      mockPrismaService.friends.findFirst
-        .mockResolvedValueOnce(null)
-        .mockResolvedValueOnce(null);
+      mockPrismaService.friends.findFirst.mockResolvedValueOnce(null).mockResolvedValueOnce(null);
       mockPrismaService.friends.create.mockResolvedValue({
         user_id1: 'user-1',
         user_id2: 'user-2',
@@ -76,13 +74,11 @@ describe('FriendsService', () => {
       mockPrismaService.users.findUnique
         .mockResolvedValueOnce({ id: 'user-1' })
         .mockResolvedValueOnce({ id: 'user-2' });
-      mockPrismaService.friends.findFirst
-        .mockResolvedValueOnce(null)
-        .mockResolvedValueOnce({
-          user_id1: 'user-2',
-          user_id2: 'user-1',
-          status: Invitation_status.PENDING,
-        });
+      mockPrismaService.friends.findFirst.mockResolvedValueOnce(null).mockResolvedValueOnce({
+        user_id1: 'user-2',
+        user_id2: 'user-1',
+        status: Invitation_status.PENDING,
+      });
       mockPrismaService.friends.update.mockResolvedValue({
         user_id1: 'user-2',
         user_id2: 'user-1',
@@ -103,9 +99,7 @@ describe('FriendsService', () => {
 
       mockPrismaService.users.findUnique.mockResolvedValue({ id: 'user-1' });
 
-      await expect(service.create(sameUserDto)).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(service.create(sameUserDto)).rejects.toThrow(NotFoundException);
     });
 
     it('should throw when friendship already exists', async () => {
@@ -116,9 +110,7 @@ describe('FriendsService', () => {
         status: Invitation_status.ACCEPTED,
       });
 
-      await expect(service.create(createFriendDto)).rejects.toThrow(
-        ConflictException,
-      );
+      await expect(service.create(createFriendDto)).rejects.toThrow(ConflictException);
     });
   });
 

@@ -5,10 +5,7 @@ import { ImageService } from 'src/events/image/image.service';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { CreateEventDto } from 'src/events/dto/create-event.dto';
 import { Events, Member_status, User_type } from '@prisma/client';
-import {
-  event_scope,
-  visibility_filter,
-} from 'src/events/dto/event-filter.dto';
+import { event_scope, visibility_filter } from 'src/events/dto/event-filter.dto';
 
 describe('EventsService', () => {
   let service: EventsService;
@@ -58,8 +55,8 @@ describe('EventsService', () => {
     }).compile();
 
     service = module.get<EventsService>(EventsService);
-    prismaService = module.get<PrismaService>(PrismaService);
-    imageService = module.get<ImageService>(ImageService);
+    module.get<PrismaService>(PrismaService);
+    module.get<ImageService>(ImageService);
   });
 
   it('should be defined', () => {
@@ -112,9 +109,7 @@ describe('EventsService', () => {
         active: true,
       });
 
-      await expect(service.create(creator_id, pastEventDto)).rejects.toThrow(
-        BadRequestException,
-      );
+      await expect(service.create(creator_id, pastEventDto)).rejects.toThrow(BadRequestException);
     });
   });
 
@@ -167,10 +162,7 @@ describe('EventsService', () => {
         id: 'user-id',
       });
       mockPrismaService.users.findUnique.mockResolvedValueOnce(mockCreator);
-      mockImageService.getImagesByEventId.mockResolvedValue([
-        'image1',
-        'image2',
-      ]);
+      mockImageService.getImagesByEventId.mockResolvedValue(['image1', 'image2']);
       mockImageService.getProfilePic.mockResolvedValue('profile-pic-url');
       mockPrismaService.event_members.findMany.mockResolvedValue([]);
 
@@ -184,9 +176,7 @@ describe('EventsService', () => {
     it('should throw NotFoundException for non-existent event', async () => {
       mockPrismaService.events.findUnique.mockResolvedValue(null);
 
-      await expect(service.findOne('999', 'user-id')).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(service.findOne('999', 'user-id')).rejects.toThrow(NotFoundException);
     });
   });
 
@@ -197,9 +187,7 @@ describe('EventsService', () => {
       mockPrismaService.event_members.findMany.mockResolvedValue([
         { event_id: '1', user_id: userId, status: Member_status.CONFIRMED },
       ]);
-      mockPrismaService.events.findMany.mockResolvedValue([
-        { id: '1', title: 'Test Event' },
-      ]);
+      mockPrismaService.events.findMany.mockResolvedValue([{ id: '1', title: 'Test Event' }]);
 
       const result = await service.getMyMemberships(userId, {
         scope: event_scope.UPCOMING,
@@ -212,9 +200,9 @@ describe('EventsService', () => {
     it('should throw NotFoundException for non-existent user', async () => {
       mockPrismaService.users.findUnique.mockResolvedValue(null);
 
-      await expect(
-        service.getMyMemberships('non-existent-id', {}),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.getMyMemberships('non-existent-id', {})).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 });

@@ -39,9 +39,7 @@ async function bootstrap() {
   const reflector = app.get(Reflector);
   const configService = app.get(ConfigService);
   const prismaService = app.get(PrismaService);
-  app.useGlobalGuards(
-    new AuthGuard(jwtService, reflector, configService, prismaService),
-  );
+  app.useGlobalGuards(new AuthGuard(jwtService, reflector, configService, prismaService));
 
   await app.listen(3000);
 }

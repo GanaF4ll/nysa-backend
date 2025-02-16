@@ -2,11 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { UsersService } from 'src/users/users.service';
 import { PrismaService } from 'src/db/prisma.service';
 import { ImageService } from 'src/events/image/image.service';
-import {
-  ConflictException,
-  NotFoundException,
-  BadRequestException,
-} from '@nestjs/common';
+import { ConflictException, NotFoundException, BadRequestException } from '@nestjs/common';
 import * as argon2 from 'argon2';
 import { Sex } from '@prisma/client';
 
@@ -52,8 +48,8 @@ describe('UsersService', () => {
     }).compile();
 
     service = module.get<UsersService>(UsersService);
-    prismaService = module.get<PrismaService>(PrismaService);
-    imageService = module.get<ImageService>(ImageService);
+    module.get<PrismaService>(PrismaService);
+    module.get<ImageService>(ImageService);
   });
 
   afterEach(() => {
@@ -93,9 +89,7 @@ describe('UsersService', () => {
     it('should throw ConflictException if user already exists', async () => {
       mockPrismaService.users.findUnique.mockResolvedValueOnce({ id: '1' });
 
-      await expect(service.createUser(createUserDto)).rejects.toThrow(
-        ConflictException,
-      );
+      await expect(service.createUser(createUserDto)).rejects.toThrow(ConflictException);
     });
   });
 
@@ -106,10 +100,19 @@ describe('UsersService', () => {
         email: 'test@test.com',
         firstname: 'John',
       };
+      const select = {
+        id: true,
+        firstname: true,
+        lastname: true,
+        name: true,
+        bio: true,
+        image_url: true,
+      };
+
       mockPrismaService.users.findUnique.mockResolvedValueOnce(mockUser);
       mockImageService.getProfilePic.mockResolvedValueOnce('image-url');
 
-      const result = await service.findOne('1');
+      const result = await service.findOne('1', select);
 
       expect(result.data).toBeDefined();
       expect(result.status).toBe(200);
@@ -119,7 +122,21 @@ describe('UsersService', () => {
     it('should throw NotFoundException if user not found', async () => {
       mockPrismaService.users.findUnique.mockResolvedValueOnce(null);
 
-      await expect(service.findOne('1')).rejects.toThrow(NotFoundException);
+      const select = {
+        id: true,
+        firstname: true,
+        lastname: true,
+        name: true,
+        bio: true,
+        image_url: true,
+        email: true,
+        phone: true,
+        birthdate: true,
+        sex: true,
+        active: true,
+        type: true,
+      };
+      await expect(service.findOne('1', select)).rejects.toThrow(NotFoundException);
     });
   });
 
@@ -149,9 +166,9 @@ describe('UsersService', () => {
       });
       (argon2.verify as jest.Mock).mockResolvedValueOnce(false);
 
-      await expect(
-        service.updatePassword('1', updatePasswordDto),
-      ).rejects.toThrow(BadRequestException);
+      await expect(service.updatePassword('1', updatePasswordDto)).rejects.toThrow(
+        BadRequestException,
+      );
     });
   });
 

@@ -25,7 +25,7 @@ import { CreateImageDto } from './image/dto/create-image.dto';
 export class EventsController {
   constructor(
     private readonly eventsService: EventsService,
-    private imageService: ImageService,
+    private readonly imageService: ImageService,
   ) {}
 
   @Post()
@@ -65,13 +65,9 @@ export class EventsController {
 
   @Get('/my-memberships')
   @ApiOperation({
-    summary:
-      "Retourne toutes les ressources Event auxquelles l'utilisateur est inscrit",
+    summary: "Retourne toutes les ressources Event auxquelles l'utilisateur est inscrit",
   })
-  async getMemberships(
-    @Req() request: Request,
-    @Query() filters: EventFilterDto,
-  ) {
+  async getMemberships(@Req() request: Request, @Query() filters: EventFilterDto) {
     const user_id = request['user'].id;
     return this.eventsService.getMyMemberships(user_id, filters);
   }
@@ -90,10 +86,7 @@ export class EventsController {
   @ApiOperation({
     summary: 'Retourne toutes les ressources Event créées par un utilisateur',
   })
-  findByCreator(
-    @Param('creator_id') creator_id: string,
-    @Query() filters: EventFilterDto,
-  ) {
+  findByCreator(@Param('creator_id') creator_id: string, @Query() filters: EventFilterDto) {
     return this.eventsService.findByCreator(creator_id, filters);
   }
 
@@ -137,7 +130,6 @@ export class EventsController {
       file: file.buffer,
       name: file.originalname,
     };
-    const folder = 'events';
     return this.imageService.createEventImage(event_id, completeDto);
   }
   @Patch('images/:image_id')

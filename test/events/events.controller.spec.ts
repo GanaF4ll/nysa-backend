@@ -45,7 +45,7 @@ describe('EventsController', () => {
 
     controller = module.get<EventsController>(EventsController);
     eventsService = module.get<EventsService>(EventsService);
-    imageService = module.get<ImageService>(ImageService);
+    module.get<ImageService>(ImageService);
   });
 
   it('should be defined', () => {
@@ -77,21 +77,13 @@ describe('EventsController', () => {
         status: 201,
       });
 
-      const result = await controller.create(
-        mockRequest as any,
-        mockCreateEventDto,
-        [],
-      );
+      const result = await controller.create(mockRequest as any, mockCreateEventDto, []);
 
       expect(result).toEqual({
         message: 'Event created successfully',
         status: 201,
       });
-      expect(eventsService.create).toHaveBeenCalledWith(
-        'user-id',
-        mockCreateEventDto,
-        [],
-      );
+      expect(eventsService.create).toHaveBeenCalledWith('user-id', mockCreateEventDto, []);
     });
 
     it('should create an event with files', async () => {
@@ -190,16 +182,10 @@ describe('EventsController', () => {
 
       mockEventsService.getMyMemberships.mockResolvedValue(mockMemberships);
 
-      const result = await controller.getMemberships(
-        mockRequest as any,
-        mockFilters,
-      );
+      const result = await controller.getMemberships(mockRequest as any, mockFilters);
 
       expect(result).toEqual(mockMemberships);
-      expect(eventsService.getMyMemberships).toHaveBeenCalledWith(
-        'user-id',
-        mockFilters,
-      );
+      expect(eventsService.getMyMemberships).toHaveBeenCalledWith('user-id', mockFilters);
     });
   });
 
@@ -238,41 +224,4 @@ describe('EventsController', () => {
       expect(eventsService.remove).toHaveBeenCalledWith('1');
     });
   });
-
-  // describe('image operations', () => {
-  //   it('should get images by event id', async () => {
-  //     const mockImages = ['image1.jpg', 'image2.jpg'];
-  //     mockImageService.getImagesByEventId.mockResolvedValue(mockImages);
-
-  //     const result = await controller.getImagesByEventId('1');
-
-  //     expect(result).toEqual(mockImages);
-  //     expect(imageService.getImagesByEventId).toHaveBeenCalledWith('1');
-  //   });
-
-  //   it('should create an image', async () => {
-  //     const mockFile = {
-  //       originalname: 'test.jpg',
-  //       buffer: Buffer.from('test'),
-  //     };
-
-  //     const createImageDto = {
-  //       order: 1,
-  //     };
-
-  //     mockImageService.createEventImage.mockResolvedValue({
-  //       message: 'Image created successfully',
-  //     });
-
-  //     const result = await controller.createImage(
-  //       '1',
-  //       mockFile as Express.Multer.File,
-  //       createImageDto,
-  //     );
-
-  //     expect(result).toEqual({
-  //       message: 'Image created successfully',
-  //     });
-  //   });
-  // });
 });

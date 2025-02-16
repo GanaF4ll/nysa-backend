@@ -2,11 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { MembersService } from 'src/members/members.service';
 import { PrismaService } from 'src/db/prisma.service';
 import { Member_status } from '@prisma/client';
-import {
-  ConflictException,
-  NotFoundException,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { ConflictException, NotFoundException, UnauthorizedException } from '@nestjs/common';
 
 describe('MembersService', () => {
   let service: MembersService;
@@ -39,7 +35,7 @@ describe('MembersService', () => {
     }).compile();
 
     service = module.get<MembersService>(MembersService);
-    prismaService = module.get<PrismaService>(PrismaService);
+    module.get<PrismaService>(PrismaService);
   });
 
   afterEach(() => {
@@ -71,9 +67,7 @@ describe('MembersService', () => {
     it('should throw NotFoundException when event does not exist', async () => {
       mockPrismaService.events.findUnique.mockResolvedValue(null);
 
-      await expect(service.addMember(createMemberDto)).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(service.addMember(createMemberDto)).rejects.toThrow(NotFoundException);
     });
 
     it('should throw ConflictException when user is already a member', async () => {
@@ -83,9 +77,7 @@ describe('MembersService', () => {
         status: Member_status.CONFIRMED,
       });
 
-      await expect(service.addMember(createMemberDto)).rejects.toThrow(
-        ConflictException,
-      );
+      await expect(service.addMember(createMemberDto)).rejects.toThrow(ConflictException);
     });
   });
 
@@ -109,9 +101,7 @@ describe('MembersService', () => {
     it('should throw NotFoundException when event does not exist', async () => {
       mockPrismaService.events.findUnique.mockResolvedValue(null);
 
-      await expect(service.getMembers('non-existent')).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(service.getMembers('non-existent')).rejects.toThrow(NotFoundException);
     });
   });
 
@@ -176,9 +166,7 @@ describe('MembersService', () => {
         status: Member_status.CONFIRMED,
       });
 
-      await expect(service.kickMember('user-3', memberDto)).rejects.toThrow(
-        UnauthorizedException,
-      );
+      await expect(service.kickMember('user-3', memberDto)).rejects.toThrow(UnauthorizedException);
     });
   });
 });
