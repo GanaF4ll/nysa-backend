@@ -14,17 +14,22 @@ export class ConversationsService {
   private logger = new Logger('ConversationService');
 
   async create(id: string, createConversationDto: CreateConversationDto) {
+    if (!createConversationDto) {
+      throw new BadRequestException(
+        'Invalid data: conversation data is required',
+      );
+    }
+
     this.logger.log(
       'createConversationDto:',
       JSON.stringify(createConversationDto),
     );
-    this.logger.log('createConversationDto.name:', createConversationDto.name);
-    this.logger.log(
-      'createConversationDto.users:',
-      JSON.stringify(createConversationDto.users),
-    );
 
-    if (!createConversationDto || !Array.isArray(createConversationDto.users)) {
+    if (!createConversationDto.name) {
+      throw new BadRequestException('Invalid data: name is required');
+    }
+
+    if (!Array.isArray(createConversationDto.users)) {
       throw new BadRequestException('Invalid data: users array is required');
     }
 

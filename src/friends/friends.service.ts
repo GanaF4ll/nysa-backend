@@ -65,7 +65,10 @@ export class FriendsService {
         });
 
       // * si oui et que la demande est en attente, accepter la demande
-      if (didResponderAlreadyRequest.status === Invitation_status.PENDING) {
+      if (
+        didResponderAlreadyRequest &&
+        didResponderAlreadyRequest.status === Invitation_status.PENDING
+      ) {
         await this.prismaService.friends.update({
           where: {
             user_id1_user_id2: {
