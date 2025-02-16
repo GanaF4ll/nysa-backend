@@ -69,24 +69,61 @@ model Auth {
   Get_notification Get_notification[]
 }
 
-// Table dans laquelle sont stockée les informations de l'utilisateur après connexion
-model User {
-  auth_id             String                @id
-  firstname           String
-  lastname            String
-  birthdate           DateTime
-  sex                 Sex                   @map("sex")
-  image_url           String
-  bio                 String
-  city                String
-  created_at          DateTime              @default(now())
-  updated_at          DateTime              @updatedAt
-  // relation One to One, on référence le champ id de la table Auth dans la table User
-  auth                Auth                  @relation(fields: [auth_id], references: [id])
-  // relation One to Many, un User peut apparaitre dans plusieurs organisations et events
-  Organisation_member Organisation_member[]
-  Event_member        Event_member[]
-  // Message             Message[]
+model Users {
+  id                String    @id @default(cuid())
+  type              User_type @default(USER) @map("type")
+  email             String    @unique
+  password          String?
+  name              String?
+  firstname         String?
+  lastname          String?
+  birthdate         DateTime?
+  sex               Sex?      @map("sex")
+  phone             String?
+  image_url         String?
+  bio               String?
+  provider          Provider  @default(NYSA)
+  active            Boolean   @default(true)
+  stripe_account_id String?   @unique
+  created_at        DateTime  @default(now())
+  updated_at        DateTime  @updatedAt
+
+  Event_member        Event_members[]
+  Message             Messages[]
+  Event               Events[]
+  Conversation_member Conversation_members[]
+  Get_notification    Get_notifications[]
+
+  Event_Invitations Event_Invitations[]
+
+  Friends_sent     Friends[] @relation("friend1")
+  Friends_received Friends[] @relation("friend2")
+
+  User_tokens User_tokens[]
+}
+
+model User_tokens {
+  id         String   @id @default(cuid())
+  user_id    String
+  device_id  String?
+  token      String
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  user Users @relation(fields: [user_id], references: [id])
+}
+
+model Friends {
+  user_id1   String
+  user_id2   String
+  status     Invitation_status @map("status")
+  created_at DateTime          @default(now())
+  updated_at DateTime          @updatedAt
+  user1      Users             @relation("friend1", fields: [user_id1], references: [id])
+  user2      Users             @relation("friend2", fields: [user_id2], references: [id])
+
+  @@id([user_id1, user_id2])
+  @@unique([user_id1, user_id2])
 }
 
 // 2e modèle de user, Table dans laquelle sont stockée les informations de l'organisation après connexion
@@ -139,21 +176,33 @@ model Event {
   Event_images     Event_images[]
 }
 
-model Event_member {
-  event_id String
-  user_id  String
-  status   Member_status @map("status")
-  // Est-ce qu'il y'a besoin de created_at et updated_at ici ? Pour avoir un truc sur le front qui dit "membre depuis le ..." ? OUI
-  // Par contre comment ça se passe pour les orga, est-ce qu'elle peuvent être membres d'un event ?
-  event    Event         @relation(fields: [event_id], references: [id])
-  user     User          @relation(fields: [user_id], references: [auth_id])
-  // La clé primaire est la combinaison des deux champs, obligé d'avoir une clé primaire ici,
-  //  et comme ça on est sûr qu'un user ne peut s'inscrire qu'une fois à un évènement
+model Event_members {
+  event_id   String
+  user_id    String
+  status     Member_status @map("status")
+  created_at DateTime      @default(now())
+  updated_at DateTime      @updatedAt
+  event      Events        @relation(fields: [event_id], references: [id])
+  user       Users         @relation(fields: [user_id], references: [id])
 
   @@id([event_id, user_id])
+  @@unique([event_id, user_id])
 }
 
-model Conversation {
+model Event_Invitations {
+  id         String            @id @default(cuid())
+  user_id    String
+  inviter_id String
+  event_id   String
+  status     Invitation_status @map("status")
+  created_at DateTime          @default(now())
+  updated_at DateTime          @updatedAt
+
+  Event Events @relation(fields: [event_id], references: [id])
+  User  Users  @relation(fields: [user_id], references: [id])
+}
+
+model Conversations {
   id         String   @id @default(cuid())
   event_id   String   @unique
   name       String
