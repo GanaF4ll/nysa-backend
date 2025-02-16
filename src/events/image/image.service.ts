@@ -1,8 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/db/prisma.service';
 import { CreateImageDto } from './dto/create-image.dto';
 import { AwsService } from 'src/aws/aws.service';
@@ -11,8 +7,8 @@ import { UpdateImageDto } from './dto/update-image.dto';
 @Injectable()
 export class ImageService {
   constructor(
-    private prismaService: PrismaService,
-    private awsService: AwsService,
+    private readonly prismaService: PrismaService,
+    private readonly awsService: AwsService,
   ) {}
 
   async getImagesByEventId(event_id: string) {
@@ -76,10 +72,7 @@ export class ImageService {
       throw new NotFoundException(`User with id ${user_id} not found`);
     }
     const folder = 'users';
-    const response = await this.awsService.getSignedUrl(
-      folder,
-      profilePic.image_url,
-    );
+    const response = await this.awsService.getSignedUrl(folder, profilePic.image_url);
 
     return response;
   }

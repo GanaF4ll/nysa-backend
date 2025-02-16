@@ -12,7 +12,7 @@ import { CreateMemberDto } from './dto/create-member.dto';
 
 @Injectable()
 export class MembersService {
-  constructor(private prismaService: PrismaService) {}
+  constructor(private readonly prismaService: PrismaService) {}
 
   async addMember(createMemberDto: CreateMemberDto) {
     const { event_id, member_id } = createMemberDto;
@@ -115,9 +115,7 @@ export class MembersService {
       });
 
       if (!existingMember) {
-        throw new NotFoundException(
-          `User '${member_id}' is not a member of event '${event_id}'`,
-        );
+        throw new NotFoundException(`User '${member_id}' is not a member of event '${event_id}'`);
       }
 
       if (
@@ -172,9 +170,7 @@ export class MembersService {
       });
 
       if (!existingMember) {
-        throw new NotFoundException(
-          `User '${user_id}' is not a member of event '${event_id}'`,
-        );
+        throw new NotFoundException(`User '${user_id}' is not a member of event '${event_id}'`);
       }
 
       if (existingMember.status === Member_status.LEFT) {
@@ -182,15 +178,11 @@ export class MembersService {
       }
 
       if (existingMember.status === Member_status.KICKED) {
-        throw new ConflictException(
-          `User has already been kicked from the event`,
-        );
+        throw new ConflictException(`User has already been kicked from the event`);
       }
 
       if (existingEvent.creator_id !== existingUser.id) {
-        throw new UnauthorizedException(
-          'You do not have the permission to kick a member',
-        );
+        throw new UnauthorizedException('You do not have the permission to kick a member');
       }
 
       await this.prismaService.event_members.update({

@@ -50,9 +50,9 @@ describe('AuthService', () => {
     }).compile();
 
     service = module.get<AuthService>(AuthService);
-    prismaService = module.get<PrismaService>(PrismaService);
-    jwtService = module.get<JwtService>(JwtService);
-    usersService = module.get<UsersService>(UsersService);
+    module.get<PrismaService>(PrismaService);
+    module.get<JwtService>(JwtService);
+    module.get<UsersService>(UsersService);
   });
 
   afterEach(() => {

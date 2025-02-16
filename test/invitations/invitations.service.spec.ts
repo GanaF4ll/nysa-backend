@@ -39,7 +39,7 @@ describe('InvitationsService', () => {
     }).compile();
 
     service = module.get<InvitationsService>(InvitationsService);
-    prismaService = module.get<PrismaService>(PrismaService);
+    module.get<PrismaService>(PrismaService);
   });
 
   afterEach(() => {
@@ -80,14 +80,11 @@ describe('InvitationsService', () => {
         id: 'event-1',
         max_participants: 2,
       });
-      mockPrismaService.event_members.findMany.mockResolvedValue([
-        { id: 1 },
-        { id: 2 },
-      ]);
+      mockPrismaService.event_members.findMany.mockResolvedValue([{ id: 1 }, { id: 2 }]);
 
-      await expect(
-        service.inviteMember(inviterId, createMemberDto),
-      ).rejects.toThrow(BadRequestException);
+      await expect(service.inviteMember(inviterId, createMemberDto)).rejects.toThrow(
+        BadRequestException,
+      );
     });
   });
 
@@ -107,21 +104,17 @@ describe('InvitationsService', () => {
       const result = await service.getMyInvitations(userId);
 
       expect(result.data).toHaveLength(1);
-      expect(mockPrismaService.event_Invitations.findMany).toHaveBeenCalledWith(
-        {
-          where: { user_id: userId, status: Invitation_status.PENDING },
-          select: { id: true, event_id: true, status: true, inviter_id: true },
-        },
-      );
+      expect(mockPrismaService.event_Invitations.findMany).toHaveBeenCalledWith({
+        where: { user_id: userId, status: Invitation_status.PENDING },
+        select: { id: true, event_id: true, status: true, inviter_id: true },
+      });
     });
 
     it('should throw NotFoundException when user not found', async () => {
       const userId = 'non-existent';
       mockPrismaService.users.findUnique.mockResolvedValue(null);
 
-      await expect(service.getMyInvitations(userId)).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(service.getMyInvitations(userId)).rejects.toThrow(NotFoundException);
     });
   });
 
@@ -156,9 +149,9 @@ describe('InvitationsService', () => {
       mockPrismaService.users.findUnique.mockResolvedValue({ id: userId });
       mockPrismaService.event_Invitations.findUnique.mockResolvedValue(null);
 
-      await expect(
-        service.acceptInvitation(userId, invitationId),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.acceptInvitation(userId, invitationId)).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should throw BadRequestException when user is not the invitation owner', async () => {
@@ -171,9 +164,9 @@ describe('InvitationsService', () => {
         user_id: 'other-user',
       });
 
-      await expect(
-        service.acceptInvitation(userId, invitationId),
-      ).rejects.toThrow(BadRequestException);
+      await expect(service.acceptInvitation(userId, invitationId)).rejects.toThrow(
+        BadRequestException,
+      );
     });
   });
 });

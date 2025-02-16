@@ -1,4 +1,4 @@
-FROM node:lts-slim
+FROM node:22.13.1-slim
 
 WORKDIR /usr/src/app
 
@@ -18,9 +18,10 @@ RUN npm install --ignore-scripts
 
 COPY . ./
 
-RUN npm install
-# recommandation prisma pour docker
-RUN apt-get update -y && apt-get install -y openssl
+RUN npx prisma generate
+
+RUN apt-get update && apt-get install -y procps
 
 EXPOSE 3000
-CMD ["npm", "run", "start:dev"]
+
+CMD ["doppler", "run", "--", "npm", "run", "start:dev"]

@@ -32,13 +32,7 @@ export class AuthController {
   @UseInterceptors(FileInterceptor('file'))
   @ApiOperation({ summary: 'Créer un compte utilisateur ou organisation' })
   @ApiBody({ type: RegisterUserDto })
-  async register(
-    @Body() registerDto: RegisterUserDto,
-    @UploadedFile() file: Express.Multer.File,
-  ) {
-    // if (!file) {
-    //   throw new BadRequestException('File is required');
-    // }
+  async register(@Body() registerDto: RegisterUserDto, @UploadedFile() file: Express.Multer.File) {
     if (file) {
       const imageName = Date.now() + file.originalname;
 
@@ -98,15 +92,13 @@ export class AuthController {
   @Get('google/callback')
   async googleCallback(@Req() req, @Res() res) {
     try {
-      if (!req.user || !req.user.id) {
+      if (req?.user || req?.user.id) {
         throw new NotFoundException('User not found in request');
       }
 
       const response = await this.authService.googleLogin(req.user.id);
       // !! changerS l'addresse de redirection pour le front
-      return res.redirect(
-        `http://localhost:3000?token=${response.access_token}`,
-      );
+      return res.redirect(`http://localhost:3000?token=${response.access_token}`);
     } catch (error) {
       if (error instanceof HttpException) throw error;
       throw new InternalServerErrorException(error.message);

@@ -1,29 +1,19 @@
-import {
-  BadRequestException,
-  Injectable,
-  Logger,
-  NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { CreateConversationDto } from './dto/create-conversation.dto';
 import { UpdateConversationDto } from './dto/update-conversation.dto';
 import { PrismaService } from 'src/db/prisma.service';
 
 @Injectable()
 export class ConversationsService {
-  constructor(private prismaService: PrismaService) {}
-  private logger = new Logger('ConversationService');
+  constructor(private readonly prismaService: PrismaService) {}
+  private readonly logger = new Logger('ConversationService');
 
   async create(id: string, createConversationDto: CreateConversationDto) {
     if (!createConversationDto) {
-      throw new BadRequestException(
-        'Invalid data: conversation data is required',
-      );
+      throw new BadRequestException('Invalid data: conversation data is required');
     }
 
-    this.logger.log(
-      'createConversationDto:',
-      JSON.stringify(createConversationDto),
-    );
+    this.logger.log('createConversationDto:', JSON.stringify(createConversationDto));
 
     if (!createConversationDto.name) {
       throw new BadRequestException('Invalid data: name is required');

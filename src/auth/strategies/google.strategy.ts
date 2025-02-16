@@ -9,8 +9,8 @@ import { AuthService } from '../auth.service';
 export class GoogleStrategy extends PassportStrategy(Strategy) {
   constructor(
     @Inject(googleOauthConfig.KEY)
-    private googleConfiguration: ConfigType<typeof googleOauthConfig>,
-    private authService: AuthService,
+    private readonly googleConfiguration: ConfigType<typeof googleOauthConfig>,
+    private readonly authService: AuthService,
   ) {
     super({
       clientID: googleConfiguration.clientID,
@@ -19,11 +19,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy) {
       scope: ['email', 'profile'],
     });
   }
-  async validate(
-    accessToken: string,
-    refreshToken: string,
-    profile: any,
-  ): Promise<any> {
+  async validate(accessToken: string, refreshToken: string, profile: any): Promise<any> {
     console.log(
       'accessToken',
       accessToken,

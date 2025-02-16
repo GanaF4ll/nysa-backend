@@ -38,7 +38,7 @@ describe('AwsService', () => {
     }).compile();
 
     service = module.get<AwsService>(AwsService);
-    configService = module.get<ConfigService>(ConfigService);
+    module.get<ConfigService>(ConfigService);
   });
 
   it('should be defined', () => {
@@ -80,9 +80,7 @@ describe('AwsService', () => {
       const filename = 'test-file.jpg';
       const file = Buffer.from('test file content');
 
-      await expect(service.upload(folder, filename, file)).rejects.toThrow(
-        BadRequestException,
-      );
+      await expect(service.upload(folder, filename, file)).rejects.toThrow(BadRequestException);
     });
   });
 
@@ -111,16 +109,12 @@ describe('AwsService', () => {
     });
 
     it('should throw BadRequestException on getSignedUrl error', async () => {
-      (presigner.getSignedUrl as jest.Mock).mockRejectedValue(
-        new Error('Signing failed'),
-      );
+      (presigner.getSignedUrl as jest.Mock).mockRejectedValue(new Error('Signing failed'));
 
       const folder = 'test-folder';
       const filename = 'test-file.jpg';
 
-      await expect(service.getSignedUrl(folder, filename)).rejects.toThrow(
-        BadRequestException,
-      );
+      await expect(service.getSignedUrl(folder, filename)).rejects.toThrow(BadRequestException);
     });
   });
 
@@ -153,9 +147,7 @@ describe('AwsService', () => {
 
       const filename = 'test-file.jpg';
 
-      await expect(service.deleteFile(filename)).rejects.toThrow(
-        BadRequestException,
-      );
+      await expect(service.deleteFile(filename)).rejects.toThrow(BadRequestException);
     });
   });
 });
