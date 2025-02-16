@@ -12,7 +12,7 @@ import { InvitationsModule } from './invitations/invitations.module';
 import { FriendsModule } from './friends/friends.module';
 import { UsersModule } from './users/users.module';
 import { EventsModule } from './events/events.module';
-import { StripeService } from './stripe/stripe.service';
+import { NotificationsModule } from './notifications/notifications.module';
 import { StripeModule } from './stripe/stripe.module';
 
 @Module({
@@ -28,6 +28,7 @@ import { StripeModule } from './stripe/stripe.module';
     MembersModule,
     InvitationsModule,
     FriendsModule,
+    NotificationsModule,
     StripeModule,
   ],
   controllers: [AppController],

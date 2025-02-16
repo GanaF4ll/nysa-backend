@@ -39,7 +39,16 @@ export class UsersController {
     summary: 'Récupère un utilisateur grâce à son id',
   })
   findOne(@Param('id') id: string) {
-    return this.usersService.findOne(id);
+    const select = {
+      id: true,
+      firstname: true,
+      lastname: true,
+      name: true,
+      bio: true,
+      image_url: true,
+    };
+
+    return this.usersService.findOne(id, select);
   }
 
   @Get('/')
@@ -48,7 +57,23 @@ export class UsersController {
   })
   findMe(@Req() request: Request) {
     const id = request['user'].id;
-    return this.usersService.findOne(id);
+
+    const select = {
+      id: true,
+      firstname: true,
+      lastname: true,
+      name: true,
+      bio: true,
+      image_url: true,
+      email: true,
+      phone: true,
+      birthdate: true,
+      sex: true,
+      active: true,
+      type: true,
+    };
+
+    return this.usersService.findOne(id, select);
   }
 
   @Get('/email')

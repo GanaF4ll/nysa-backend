@@ -91,6 +91,19 @@ model Users {
 
   Friends_sent     Friends[] @relation("friend1")
   Friends_received Friends[] @relation("friend2")
+
+  User_tokens User_tokens[]
+}
+
+model User_tokens {
+  id         String   @id @default(cuid())
+  user_id    String
+  device_id  String?
+  token      String
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  user Users @relation(fields: [user_id], references: [id])
 }
 
 model Friends {

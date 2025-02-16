@@ -13,6 +13,7 @@ import { CreateGoogleUserDto } from './dto/create-google-user.dto';
 import { UpdatePasswordDto } from './dto/update-password.dto';
 import { ImageService } from 'src/events/image/image.service';
 import { CreateImageDto } from 'src/events/image/dto/create-image.dto';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class UsersService {
@@ -158,24 +159,10 @@ export class UsersService {
     return users;
   }
 
-  async findOne(id: string) {
+  async findOne(id: string, select: Prisma.UsersSelect) {
     const existingUser = await this.prismaService.users.findUnique({
       where: { id },
-      select: {
-        id: true,
-        type: true,
-        email: true,
-        firstname: true,
-        lastname: true,
-        name: true,
-        birthdate: true,
-        image_url: true,
-        sex: true,
-        phone: true,
-        bio: true,
-        provider: true,
-        active: true,
-      },
+      select,
     });
 
     if (!existingUser) throw new NotFoundException('User not found');

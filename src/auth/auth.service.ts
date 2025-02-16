@@ -18,6 +18,7 @@ import { CreateGoogleUserDto } from 'src/users/dto/create-google-user.dto';
 import { VerifyMailDto } from './dto/verify-mail.dto';
 import { Provider, User_type } from '@prisma/client';
 import { UsersService } from 'src/users/users.service';
+import { log } from 'console';
 
 @Injectable()
 export class AuthService {
@@ -31,6 +32,7 @@ export class AuthService {
     registerDto: RegisterUserDto,
     createImageDto?: CreateImageDto,
   ) {
+    const { device_id } = registerDto;
     let newUser;
 
     if (registerDto.type === User_type.USER) {
@@ -70,27 +72,95 @@ export class AuthService {
       throw new BadRequestException('Invalid user type');
     }
 
-    const payload = { id: newUser.id };
+    let payload: { id: string; device_id?: typeof device_id } = {
+      id: newUser.id,
+    };
+    if (device_id) {
+      payload.device_id = device_id;
+    }
+    const access_token = this.jwt.sign(payload);
+
+    await this.prismaService.user_tokens.create({
+      data: {
+        user_id: newUser.id,
+        device_id: device_id,
+        token: access_token,
+      },
+    });
+
     return {
-      access_token: this.jwt.sign(payload),
+      access_token,
     };
   }
 
   async login(loginDto: LoginDto) {
-    const { email, password } = loginDto;
+    const { email, password, device_id } = loginDto;
     const formattedEmail = email.toLowerCase();
+
     const user = await this.userService.findOneByEmail(formattedEmail);
     if (!user) {
       throw new NotFoundException('User not found');
     }
+
     const isPasswordValid = await argon2.verify(user.password, password);
     if (!isPasswordValid) {
       throw new BadRequestException('Invalid credentials');
     }
-    const payload = { id: user.id };
-    return {
-      access_token: this.jwt.sign(payload),
-    };
+
+    const payload = { id: user.id, ...(device_id && { device_id }) };
+    const access_token = this.jwt.sign(payload);
+
+    const existingTokens = await this.prismaService.user_tokens.findMany({
+      where: { user_id: user.id },
+      orderBy: { created_at: 'asc' },
+    });
+
+    const tokenWithDeviceId = existingTokens.find(
+      (token) => token.device_id !== null,
+    );
+    const tokensWithoutDeviceId = existingTokens.filter(
+      (token) => !token.device_id,
+    );
+
+    // Gestion des tokens avec transaction pour garantir l'atomicité
+    await this.prismaService.$transaction(async (prisma) => {
+      if (device_id) {
+        if (tokenWithDeviceId) {
+          // Mise à jour du token existant avec device_id
+          await prisma.user_tokens.update({
+            where: { id: tokenWithDeviceId.id },
+            data: { token: access_token },
+          });
+        } else {
+          // Création d'un nouveau token avec device_id
+          await prisma.user_tokens.create({
+            data: {
+              user_id: user.id,
+              device_id,
+              token: access_token,
+            },
+          });
+        }
+      } else {
+        // Gestion du token sans device_id
+        if (tokensWithoutDeviceId.length >= 1) {
+          //? on supprime le token le plus ancien sans device_id
+          await prisma.user_tokens.delete({
+            where: { id: tokensWithoutDeviceId[0].id },
+          });
+        }
+
+        // Création du nouveau token sans device_id
+        await prisma.user_tokens.create({
+          data: {
+            user_id: user.id,
+            token: access_token,
+          },
+        });
+      }
+    });
+
+    return { access_token };
   }
 
   async verifyEmail(emailDto: VerifyMailDto) {
@@ -149,7 +219,7 @@ export class AuthService {
       throw new NotFoundException('User not found');
     }
     if (user.active !== true) {
-      throw new UnauthorizedException('User not active');
+      throw new UnauthorizedException('User is not active');
     }
     return { message: true };
   }
