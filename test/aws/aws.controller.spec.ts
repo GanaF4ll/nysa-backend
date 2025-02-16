@@ -23,7 +23,7 @@ describe('AwsController', () => {
     }).compile();
 
     controller = module.get<AwsController>(AwsController);
-    awsService = module.get<AwsService>(AwsService);
+    module.get<AwsService>(AwsService);
   });
 
   afterEach(() => {
@@ -65,9 +65,7 @@ describe('AwsController', () => {
         size: 1024 * 1024,
       } as Express.Multer.File;
 
-      await expect(controller.uploadFile(mockFile)).rejects.toThrow(
-        UnprocessableEntityException,
-      );
+      await expect(controller.uploadFile(mockFile)).rejects.toThrow(UnprocessableEntityException);
     });
 
     it('should throw UnprocessableEntityException for file size exceeding limit', async () => {
@@ -78,9 +76,7 @@ describe('AwsController', () => {
         size: 11 * 1024 * 1024, // 11MB (exceeds 10MB limit)
       } as Express.Multer.File;
 
-      await expect(controller.uploadFile(mockFile)).rejects.toThrow(
-        UnprocessableEntityException,
-      );
+      await expect(controller.uploadFile(mockFile)).rejects.toThrow(UnprocessableEntityException);
     });
 
     it('should handle AWS upload errors', async () => {
@@ -93,9 +89,7 @@ describe('AwsController', () => {
 
       mockAwsService.upload.mockRejectedValue(new Error('Upload failed'));
 
-      await expect(controller.uploadFile(mockFile)).rejects.toThrow(
-        Error('Upload failed'),
-      );
+      await expect(controller.uploadFile(mockFile)).rejects.toThrow(Error('Upload failed'));
     });
   });
 });

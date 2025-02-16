@@ -27,7 +27,7 @@ describe('FriendsController', () => {
     }).compile();
 
     controller = module.get<FriendsController>(FriendsController);
-    service = module.get<FriendsService>(FriendsService);
+    module.get<FriendsService>(FriendsService);
   });
 
   afterEach(() => {
@@ -68,9 +68,7 @@ describe('FriendsController', () => {
       const result = await controller.findAll(mockRequest as any);
 
       expect(result.data).toBeDefined();
-      expect(mockFriendsService.findAllMyInvitations).toHaveBeenCalledWith(
-        'user-1',
-      );
+      expect(mockFriendsService.findAllMyInvitations).toHaveBeenCalledWith('user-1');
     });
   });
 
@@ -85,7 +83,7 @@ describe('FriendsController', () => {
         message: 'Friend request accepted',
       });
 
-      const result = await controller.accept(mockRequest as any, mockBody);
+      await controller.accept(mockRequest as any, mockBody);
 
       expect(mockFriendsService.update).toHaveBeenCalledWith({
         sender_id: 'user-2',
