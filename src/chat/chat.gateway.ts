@@ -20,7 +20,7 @@ import { Logger } from '@nestjs/common';
 export class ChatGateway {
   @WebSocketServer()
   server: Server;
-  private logger = new Logger('ChatGateway');
+  private readonly logger = new Logger('ChatGateway');
 
   constructor(private readonly chatService: ChatService) {}
 
