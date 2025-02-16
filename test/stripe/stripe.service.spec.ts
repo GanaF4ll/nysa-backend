@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { StripeService } from '../../src/stripe/stripe.service';
+import { StripeService } from 'src/stripe/stripe.service';
 
 describe('StripeService', () => {
   let service: StripeService;
