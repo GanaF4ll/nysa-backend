@@ -7,9 +7,9 @@ import { v4 as uuidv4 } from 'uuid';
 export class ChatService {
   constructor(public prismaService: PrismaService) {}
 
-  private userSocketMap = new Map<string, string>();
-  private socketUserMap = new Map<string, string>();
-  private groupUsers = new Map<string, Set<string>>();
+  private readonly userSocketMap = new Map<string, string>();
+  private readonly socketUserMap = new Map<string, string>();
+  private readonly groupUsers = new Map<string, Set<string>>();
 
   addUser(user_id: string, socket_id: string) {
     this.userSocketMap.set(user_id, socket_id);
