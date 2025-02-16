@@ -63,22 +63,23 @@ enum Provider {
 }
 
 model Users {
-  id         String    @id @default(cuid())
-  type       User_type @default(USER) @map("type")
-  email      String    @unique
-  password   String?
-  name       String?
-  firstname  String?
-  lastname   String?
-  birthdate  DateTime?
-  sex        Sex?      @map("sex")
-  phone      String?
-  image_url  String?
-  bio        String?
-  provider   Provider  @default(NYSA)
-  active     Boolean   @default(true)
-  created_at DateTime  @default(now())
-  updated_at DateTime  @updatedAt
+  id                String    @id @default(cuid())
+  type              User_type @default(USER) @map("type")
+  email             String    @unique
+  password          String?
+  name              String?
+  firstname         String?
+  lastname          String?
+  birthdate         DateTime?
+  sex               Sex?      @map("sex")
+  phone             String?
+  image_url         String?
+  bio               String?
+  provider          Provider  @default(NYSA)
+  active            Boolean   @default(true)
+  stripe_account_id String?   @unique
+  created_at        DateTime  @default(now())
+  updated_at        DateTime  @updatedAt
 
   Event_member        Event_members[]
   Message             Messages[]
