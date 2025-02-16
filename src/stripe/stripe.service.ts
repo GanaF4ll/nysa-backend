@@ -2,7 +2,6 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import Stripe from 'stripe';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from 'src/db/prisma.service';
-import { types } from 'util';
 
 @Injectable()
 export class StripeService {
@@ -67,6 +66,7 @@ export class StripeService {
     return await this.stripe.accountLinks.create({
       account: stripe_account_id,
       refresh_url: 'http://localhost:3000/onboarding',
+      // todo: changer l'url de retour
       return_url: 'http://localhost:3000',
       type: 'account_onboarding',
     });
