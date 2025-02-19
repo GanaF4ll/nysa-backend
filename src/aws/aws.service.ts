@@ -1,8 +1,4 @@
-import {
-  PutObjectCommand,
-  S3Client,
-  GetObjectCommand,
-} from '@aws-sdk/client-s3';
+import { PutObjectCommand, S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -52,11 +48,7 @@ export class AwsService {
    * @param expiresIn : valeur à laquelle l'URL signée expire (604800 valeur max)
    * @returns
    */
-  async getSignedUrl(
-    folder: string,
-    filename: string,
-    expiresIn = 7200,
-  ): Promise<string> {
+  async getSignedUrl(folder: string, filename: string, expiresIn = 7200): Promise<string> {
     try {
       const key = `${folder}/${filename}`;
 

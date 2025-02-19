@@ -8,6 +8,7 @@ import { RegisterUserDto } from './auth/dto/register.dto';
 import { AuthGuard } from './auth/guards/auth.guard';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
+import { PrismaService } from './db/prisma.service';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -37,7 +38,8 @@ async function bootstrap() {
   const jwtService = app.get(JwtService);
   const reflector = app.get(Reflector);
   const configService = app.get(ConfigService);
-  app.useGlobalGuards(new AuthGuard(jwtService, reflector, configService));
+  const prismaService = app.get(PrismaService);
+  app.useGlobalGuards(new AuthGuard(jwtService, reflector, configService, prismaService));
 
   await app.listen(3000);
 }

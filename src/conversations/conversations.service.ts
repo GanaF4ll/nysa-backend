@@ -1,30 +1,25 @@
-import {
-  BadRequestException,
-  Injectable,
-  Logger,
-  NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { CreateConversationDto } from './dto/create-conversation.dto';
 import { UpdateConversationDto } from './dto/update-conversation.dto';
 import { PrismaService } from 'src/db/prisma.service';
 
 @Injectable()
 export class ConversationsService {
-  constructor(private prismaService: PrismaService) {}
-  private logger = new Logger('ConversationService');
+  constructor(private readonly prismaService: PrismaService) {}
+  private readonly logger = new Logger('ConversationService');
 
   async create(id: string, createConversationDto: CreateConversationDto) {
-    this.logger.log(
-      'createConversationDto:',
-      JSON.stringify(createConversationDto),
-    );
-    this.logger.log('createConversationDto.name:', createConversationDto.name);
-    this.logger.log(
-      'createConversationDto.users:',
-      JSON.stringify(createConversationDto.users),
-    );
+    if (!createConversationDto) {
+      throw new BadRequestException('Invalid data: conversation data is required');
+    }
 
-    if (!createConversationDto || !Array.isArray(createConversationDto.users)) {
+    this.logger.log('createConversationDto:', JSON.stringify(createConversationDto));
+
+    if (!createConversationDto.name) {
+      throw new BadRequestException('Invalid data: name is required');
+    }
+
+    if (!Array.isArray(createConversationDto.users)) {
       throw new BadRequestException('Invalid data: users array is required');
     }
 

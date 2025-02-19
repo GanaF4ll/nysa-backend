@@ -20,7 +20,7 @@ import { Logger } from '@nestjs/common';
 export class ChatGateway {
   @WebSocketServer()
   server: Server;
-  private logger = new Logger('ChatGateway');
+  private readonly logger = new Logger('ChatGateway');
 
   constructor(private readonly chatService: ChatService) {}
 
@@ -42,15 +42,11 @@ export class ChatGateway {
     @ConnectedSocket() client: Socket,
     @MessageBody() messageData: PrivateMessageDto,
   ) {
-    this.logger.log(
-      `Received privateMessage event: ${JSON.stringify(messageData)}`,
-    );
+    this.logger.log(`Received privateMessage event: ${JSON.stringify(messageData)}`);
     this.logger.log(`Sender ID: ${messageData.sender_id}`);
     this.logger.log(`Recipient ID: ${messageData.recipient_id}`);
 
-    const recipientSocketId = this.chatService.getUserSocketId(
-      messageData.recipient_id,
-    );
+    const recipientSocketId = this.chatService.getUserSocketId(messageData.recipient_id);
 
     const conversation_id = await this.getOrCreateConversation(
       messageData.sender_id,
@@ -81,15 +77,9 @@ export class ChatGateway {
   }
 
   @SubscribeMessage('joinGroup')
-  handleJoinGroup(
-    @ConnectedSocket() client: Socket,
-    @MessageBody() joinGroupData: JoinGroupDto,
-  ) {
+  handleJoinGroup(@ConnectedSocket() client: Socket, @MessageBody() joinGroupData: JoinGroupDto) {
     client.join(joinGroupData.group_id);
-    this.chatService.addUserToGroup(
-      joinGroupData.user_id,
-      joinGroupData.group_id,
-    );
+    this.chatService.addUserToGroup(joinGroupData.user_id, joinGroupData.group_id);
 
     return { status: 'success', message: 'Joined group successfully' };
   }
@@ -99,12 +89,7 @@ export class ChatGateway {
     @ConnectedSocket() client: Socket,
     @MessageBody() messageData: GroupMessageDto,
   ) {
-    if (
-      this.chatService.isUserInGroup(
-        messageData.sender_id,
-        messageData.group_id,
-      )
-    ) {
+    if (this.chatService.isUserInGroup(messageData.sender_id, messageData.group_id)) {
       this.server.to(messageData.group_id).emit('groupMessage', {
         group_id: messageData.group_id,
         from: messageData.sender_id,
@@ -130,42 +115,37 @@ export class ChatGateway {
     return { status: 'error', message: 'User not in group' };
   }
 
-  private async getOrCreateConversation(
-    sender_id: string,
-    recipient_id: string,
-  ): Promise<string> {
-    const existingConversation =
-      await this.chatService.prismaService.conversations.findFirst({
-        where: {
-          is_private: true,
+  private async getOrCreateConversation(sender_id: string, recipient_id: string): Promise<string> {
+    const existingConversation = await this.chatService.prismaService.conversations.findFirst({
+      where: {
+        is_private: true,
+        Conversation_member: {
+          some: {
+            user_id: sender_id,
+          },
+        },
+        AND: {
           Conversation_member: {
             some: {
-              user_id: sender_id,
-            },
-          },
-          AND: {
-            Conversation_member: {
-              some: {
-                user_id: recipient_id,
-              },
+              user_id: recipient_id,
             },
           },
         },
-      });
+      },
+    });
 
     if (existingConversation) {
       return existingConversation.id;
     } else {
-      const newConversation =
-        await this.chatService.prismaService.conversations.create({
-          data: {
-            name: `Conversation between ${sender_id} and ${recipient_id}`,
-            is_private: true,
-            Conversation_member: {
-              create: [{ user_id: sender_id }, { user_id: recipient_id }],
-            },
+      const newConversation = await this.chatService.prismaService.conversations.create({
+        data: {
+          name: `Conversation between ${sender_id} and ${recipient_id}`,
+          is_private: true,
+          Conversation_member: {
+            create: [{ user_id: sender_id }, { user_id: recipient_id }],
           },
-        });
+        },
+      });
       return newConversation.id;
     }
   }
